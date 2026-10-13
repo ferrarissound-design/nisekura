@@ -135,7 +135,7 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
 @media(max-width:374px){#bar{width:calc(100vw - 16px);overflow-x:auto;justify-content:flex-start;touch-action:pan-x}}
 @media(max-height:480px){#compass{top:max(6px,env(safe-area-inset-top));width:min(220px,calc(100vw - 310px));min-width:170px}body.hud-details #compass{top:max(6px,env(safe-area-inset-top))}#stats{max-width:230px}#statsDetails{max-width:200px}.actions,#stick{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 58px)}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>LIVING WILDS · v6.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>LIVING WATERS · v7.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"><div id="compassHeading"></div></div>
  <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -151,7 +151,7 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v6.0</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v7.0</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -177,7 +177,7 @@ try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number
 const terrainVersion=saved?.version===1?(saved.terrainVersion||1):5,GRAND=terrainVersion>=4,VEG=terrainVersion>=5;
 const H=GRAND?192:96,SEA=GRAND?62:10,CHUNK_SIZE=CHUNK*CHUNK*H;
 // Quality presets: near = voxel radius in chunks, far = LOD view distance in blocks, split = LOD detail factor.
-const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140,plant:.4,plantNear:2,fade:40},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220,plant:.75,plantNear:3,fade:72},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320,plant:1,plantNear:5,fade:110}};
+const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140,plant:.4,plantNear:2,fade:40,water:0},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220,plant:.75,plantNear:3,fade:72,water:1},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320,plant:1,plantNear:5,fade:110,water:2}};
 // First run picks a preset from the device; afterwards the player's choice is remembered. ?quality= overrides one session.
 function autoQuality(){try{const mem=navigator.deviceMemory||0,cores=navigator.hardwareConcurrency||4,coarse=matchMedia('(pointer:coarse)').matches;if((mem&&mem<=2)||cores<=2)return'low';if(!coarse&&cores>=8&&(!mem||mem>=8))return'high';return'standard'}catch(e){return'standard'}}
 let qualityName=autoQuality(),qualityAuto=true;try{const q=localStorage.getItem(QUALITY_KEY);if(QUALITY[q]){qualityName=q;qualityAuto=false}}catch(e){}
@@ -487,8 +487,13 @@ float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);ret
 float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
 vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,sqrt(clamp(y,0.,1.)));float s=max(dot(d,sunDir),0.);
  c+=sunCol*(.18*pow(s,5.)+.45*pow(s,40.));return mix(c,horizonCol*.9,clamp(-y*4.,0.,1.));}
+// Light lost per block of water: red first, then green, so depth turns sand turquoise and then blue.
+const vec3 WABS=vec3(.22,.055,.038);
+vec3 underCol(float cd){float k=smoothstep(0.,26.,cd);return mix(vec3(.11,.42,.44),vec3(.03,.15,.33),k)*min(vec3(1.),ambCol*1.5+dirCol*.35);}
 vec3 fogMix(vec3 c,vec3 rel,float wy){float d=length(rel);vec3 dir=rel/max(d,.001);
- if(fogP.w>.5)return mix(c,vec3(.09,.28,.40)*min(vec3(1.),ambCol*1.6),1.-exp(-d/19.));
+ // Underwater (fogP.w = 1 + camera depth): colours shift toward blue-green with distance; light glows from the surface above.
+ if(fogP.w>.5){float cd=fogP.w-1.,k=smoothstep(0.,26.,cd);vec3 u=underCol(cd)+dirCol*.07*pow(max(dir.y,0.),3.)*(1.-k);
+  return mix(c*exp(-WABS*d*.35),u,1.-exp(-d*mix(.045,.07,k)));}
  float f=1.-exp(-pow(d/fogP.x,1.6));f*=1.-.45*clamp((wy-${SEA+25}.)/140.,0.,1.);f=max(f,smoothstep(fogP.y,fogP.z,d));
  return mix(c,skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),clamp(f,0.,1.));}
 vec3 faceNormal(float f){return f<.5?vec3(1.,0.,0.):f<1.5?vec3(-1.,0.,0.):f<2.5?vec3(0.,1.,0.):f<3.5?vec3(0.,-1.,0.):f<4.5?vec3(0.,0.,1.):f<5.5?vec3(0.,0.,-1.):vec3(0.,1.,0.);}
@@ -497,20 +502,50 @@ vec3 lighting(vec3 n,float shade,vec3 w,float soft){
  float nd=mix(max(dot(n,dirLight),0.),.3+.45*max(dirLight.y,0.),soft);vec3 amb=ambCol*(.8+.2*n.y);
  if(shade>.5){vec2 p=floor(w.xz*8.)/8.*.42+misc.y*vec2(.11,.06)*(.4+misc.z);float g=vnoise(p)*.65+vnoise(p*2.7+5.3)*.35;nd*=smoothstep(.56,.66,g)*step(.5,n.y)*.95;amb*=.76;}
  return amb+dirCol*nd;}
-float caustic(vec2 p,float t){p=floor(p*16.)/16.;float a=sin(p.x*1.7+t*1.3+sin(p.y*1.3+t*.8)*1.6),b=sin(p.y*1.9-t*1.1+sin(p.x*1.1-t*.6)*1.6);return pow(max(0.,1.-abs(a+b)*.7),5.);}`;
+float caustic(vec2 p,float t){p=floor(p*16.)/16.;vec2 q=p*.62+vec2(sin(p.y*.37+t*.4),cos(p.x*.41-t*.33))*.35;
+ float a=vnoise(q+vec2(t*.23,t*.13)),b=vnoise(q*1.31+vec2(-t*.17,t*.21)+5.3);return pow(clamp(1.-abs(a-b)*3.2,0.,1.),5.);}`;
+// ---- Water. Shared by the near voxel water and the far LOD sea so both read the same at the seam.
+const WATER_GLSL=`
+uniform float wq;
+// Value noise with its analytic gradient (one lookup set gives a slope).
+vec3 noiseD(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f),du=6.*f*(1.-f);float a=hash(i),b=hash(i+vec2(1.,0.)),c=hash(i+vec2(0.,1.)),d=hash(i+vec2(1.,1.));
+ return vec3(a+(b-a)*u.x+(c-a)*u.y+(a-b-c+d)*u.x*u.y,du*(vec2(b-a,c-a)+(a-b-c+d)*u.yx));}
+// One wave train; it fades out once a pixel covers about half its wavelength (fp = blocks per pixel), so far water never aliases into stripes.
+vec2 wv(vec2 p,vec2 d,float k,float a,float ph,float t,float fp){return d*(a*cos(dot(p,d)*k-t*sqrt(9.8*k)*.75+ph)*clamp(1.6-fp*k*1.3,0.,1.));}
+// Surface slope: wave trains in irregular directions and non-harmonic lengths, broken up by drifting noise.
+vec2 waveSlope(vec2 p,float t,float fp,float amp){
+ // The long swells come in groups, so their crests break into patches instead of running in straight lines.
+ float grp=vnoise(p*.021+t*vec2(.012,.007)),grp2=vnoise(p*.033-t*vec2(.009,.014)+4.7);
+ vec2 s=wv(p,vec2(.82,.57),.19,.11*(.3+.7*grp*grp),0.,t,fp)+wv(p,vec2(.30,.95),.31,.09*(.3+.7*grp2*grp2),1.3,t,fp)+wv(p,vec2(.97,-.24),.53,.055,4.1,t,fp)
+  +wv(p,vec2(-.55,.83),.83,.045,2.2,t,fp)+wv(p,vec2(.64,-.77),1.37,.035,.7,t,fp);
+ #ifndef WATER_LITE
+ if(wq>.5){float f1=clamp(1.6-fp*.8,0.,1.),f2=clamp(1.6-fp*1.9,0.,1.);
+  if(f1>0.)s+=noiseD(p*.6+t*vec2(.23,.15)).yz*.6*.16*f1;
+  if(wq>1.5&&f2>0.)s+=noiseD(p*1.45-t*vec2(.19,.31)+7.3).yz*1.45*.07*f2;}
+ #endif
+ return s*amp;}
+// Surface shading for a pixel with view v, slope g, depth D and sandy bed share: rgb = reflection*F + in-scatter + sun glint,
+// a = how much the water hides what lies below (Fresnel plus haze along the path to the bed).
+vec4 waterShade(vec3 v,vec2 g,float D,float sand,float fp){
+ vec3 nrm=normalize(vec3(-g.x,1.,-g.y));float F=min(.02+.98*pow(1.-max(dot(-v,nrm),0.),5.),.9);
+ vec3 r=reflect(v,nrm);r.y=abs(r.y);float rough=smoothstep(.5,8.,fp),T=exp(-D/max(-v.y,.1)*.2);
+ vec3 sc=mix(mix(vec3(.10,.45,.50),vec3(.18,.62,.63),sand),vec3(.025,.12,.30),smoothstep(1.,20.,D))*(ambCol+dirCol*max(dirLight.y,0.)*.8);
+ vec3 glint=dirCol*pow(max(dot(r,dirLight),0.),mix(900.,60.,rough))*mix(1.7,.6,rough);
+ return vec4(skyColor(r)*F+(1.-F)*(1.-T)*sc+glint,F+(1.-F)*(1.-T));}`;
 const PRECISION=`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
 precision mediump float;
 #endif
 `;
-// aMat packs material + 32*face (0-5 cube faces, 6 plant, 7 unlit) + 256 when the face is under a roof.
+// aMat packs material + 32*face (0-5 cube faces, 6 plant, 7 unlit) + 256 when the face is under a roof + 512 when it faces water.
+// Water surfaces keep their shore exposure in the fraction of the material (10.00-10.45).
 const mainVS=wind=>`
 attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
 uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock; uniform float wind; uniform float fade;
-varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade;
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet;
 void main(){
-float code=aMat;float shade=step(255.5,code);code-=shade*256.;float face=floor((code+.5)/32.);float m=code-face*32.;
+float code=aMat;float wet=step(511.5,code);code-=wet*512.;float shade=step(255.5,code);code-=shade*256.;vWet=wet;float face=floor((code+.5)/32.);float m=code-face*32.;
 vec3 pos=aPos;
 ${wind?`// Plants (grass 15/20-22, flowers 17/23-25) bend from a fixed root; leaves (5) drift. Ground, trunks and animals stay still.
 if((m>14.5&&m<15.99)||(m>16.5&&m<17.99)||(m>19.5&&m<25.99)){
@@ -537,7 +572,7 @@ float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
 gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);col=aColor;uv=aUV;mat=m;rel=p;vClk=clock;vFace=face;vShade=shade;}`;
 // Pixel materials are evaluated in face-local UVs: no external texture/CDN requests.
 const fragmentSource=PRECISION+`
-varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade;
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet;
 uniform vec3 eyeF;`+SKY_GLSL+`
 void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.;vec3 w=rel+eyeF;
 if(mat<.5){c=col;}
@@ -550,16 +585,7 @@ else if(mat<6.5){c=col*(.90+n*.16);if(n>.94)c*=.80;}
 else if(mat<7.5){float seam=step(3.,mod(q.y,4.));float knot=step(.86,hash(vec2(floor(q.x/3.),floor(q.y/4.))));c=col*(.93+n*.14-seam*.28-knot*.15);}
 else if(mat<8.5){float seam=max(step(3.,mod(q.y,4.)),step(7.,mod(q.x+floor(q.y/4.)*4.,8.)));c=mix(col*(.80+n*.26),vec3(.69,.64,.55)*length(col),seam*.75);}
 else if(mat<9.5){float edge=step(.94,max(abs(uv.x-.5),abs(uv.y-.5))*2.);float shine=step(.91,mod(uv.x+uv.y,.9));c=mix(col*.70,vec3(.86,.96,1.),max(edge,shine*.65));alpha=.22+edge*.48+shine*.12;}
-else if(mat<10.5){
- // Water: col.r = depth below the surface (0..1 for 0..30 blocks), col.g = shoreline at this corner.
- float dep=col.r,shore=col.g;vec3 body=mix(vec3(.16,.60,.64),vec3(.03,.20,.42),smoothstep(0.,.45,dep))*(ambCol+dirCol*max(dirLight.y,0.)*.8);
- if(rel.y>0.&&vFace>1.5&&vFace<2.5){c=mix(body*1.7,skyColor(vec3(0.,1.,0.)),.3);alpha=.78;}
- else{vec2 g=vec2(sin(w.x*.9+w.z*.4+vClk*1.6)+sin(w.x*.31-w.z*.73+vClk*1.1),cos(w.z*.83-w.x*.35+vClk*1.3)+cos(w.x*.52+w.z*.27-vClk*.9))*.05;
-  vec3 nrm=normalize(vec3(g.x,1.,g.y));vec3 v=normalize(rel);vec3 r=reflect(v,nrm);r.y=abs(r.y);float fres=.03+.97*pow(1.-abs(dot(v,nrm)),5.);
-  c=mix(body*(.92+n*.06),skyColor(r),clamp(fres,0.,.8))+dirCol*pow(max(dot(r,dirLight),0.),140.)*1.4;
-  float foam=step(.05,shore)*step(1.02-shore*.55,vnoise(floor(w.xz*16.)/16.*2.1+vec2(vClk*.35,-vClk*.2))+.18*sin(vClk*1.7+floor(w.x*16.)/16.+w.z));
-  c=mix(c,vec3(.95,.98,1.)*(ambCol+dirCol*.7),foam*.85);
-  alpha=mix(mix(.4,.86,smoothstep(0.,.4,dep)),.95,fres)+foam*.35;}}
+else if(mat<10.5){c=mix(vec3(.10,.42,.50),vec3(.03,.16,.36),col.r*2.)*(ambCol+dirCol*.6);alpha=.75;}
 else if(mat<11.5){c=col*(.65+n*.5);}
 else if(mat<12.5){float grass=step(12.+floor(hash(vec2(q.x,1.))*3.),q.y);c=mix(vec3(.48,.32,.18),vec3(.35,.57,.17),grass)*(.78+n*.38)*col;}
 else if(mat<13.5){float ring=mod(floor(max(abs(q.x-7.5),abs(q.y-7.5))),3.);c=col*(.70+step(.5,ring)*.3+n*.12);}
@@ -583,10 +609,53 @@ if(mat<9.5||mat>10.5){
  if(mat>17.5&&mat<18.5)c*=ambCol*1.15+dirCol*.6;
  else if(vFace>6.5)c*=ambCol+dirCol*.5;
  else c*=lighting(nrm,vShade,w,step(6.,vFace));
- // Light ripples on shallow sea and lake beds.
- if(vFace>1.5&&vFace<2.5&&mat>.5&&w.y<${SEA}.5&&w.y>${SEA-14}.)c+=caustic(w.xz,vClk)*dirCol*.6*(1.-(${SEA+1}.-w.y)/15.);}
+ // Faces under water: rippling sun caustics, then light loses red and green along its way down and back up to the eye.
+ if(vWet>.5){float ds=max(${SEA}.88-w.y,0.);c+=caustic(w.xz+vec2(w.y*.3),vClk)*dirCol*(vFace>1.5&&vFace<2.5?.55:.25)*exp(-ds*.12)*smoothstep(.0,.25,dirLight.y)*(1.-.7*misc.x);
+  c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-normalize(rel).y,.1):0.)));}}
 gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
-const vertexSource=mainVS(true),fallbackVertexSource=mainVS(false);
+// Translucent pass (water surfaces and glass) has its own program, so the heavy water code never weighs on terrain pixels.
+const waterFragmentSource=PRECISION+`
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet;
+uniform vec3 eyeF;`+SKY_GLSL+WATER_GLSL+`
+void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col;float alpha=1.;vec3 w=rel+eyeF;
+if(mat<9.5){float edge=step(.94,max(abs(uv.x-.5),abs(uv.y-.5))*2.);float shine=step(.91,mod(uv.x+uv.y,.9));c=mix(col*.70,vec3(.86,.96,1.),max(edge,shine*.65));alpha=.22+edge*.48+shine*.12;}
+else{
+ // Water: col.r = depth (0..1 for 0..30 blocks), col.g = shore nearness (1 at the land edge, 0 from 3.5 blocks out),
+ // col.b = sandy bed share, uv = river flow (blocks/s), fract(mat) = exposure to the open sea. All are smooth per corner.
+ float D=col.r*30.,s=col.g,sand=col.b,ex=clamp(fract(mat)*2.23,0.,1.),sp=length(uv);vec3 v=normalize(rel);float d=length(rel);
+ if(rel.y>0.&&vFace>1.5&&vFace<2.5){
+  // From below: the sky shows only inside Snell's window; outside it the surface mirrors the deep water.
+  vec2 g=waveSlope(w.xz,vClk,d*.004,.6);float win=smoothstep(.62,.72,v.y+dot(g,v.xz)*.8);vec3 u=underCol(max(${SEA}.88-eyeF.y,0.));
+  c=mix(u*1.15,skyColor(normalize(vec3(v.x*1.5,max(v.y,.05),v.z*1.5)))+dirCol*pow(max(dot(v,dirLight),0.),24.)*.7,win);alpha=mix(.92,.7,win);}
+ else{
+  float fp=d/(500.*max(abs(v.y),.04));
+  // Open sea rolls; lakes, coves and rivers stay calm. Wind strength lifts every wave a little.
+  vec2 g=waveSlope(w.xz,vClk,fp,mix(.35,1.,ex)*(.75+.5*misc.z)*(1.-.7*smoothstep(0.,.6,sp)));
+  #ifndef WATER_LITE
+  if(sp>.02){
+   // Rivers: ripples stretched along the flow drift downstream; two phases cross-fade so the pattern never smears.
+   vec2 dir=uv/sp,nr=vec2(-dir.y,dir.x);float ph=fract(vClk*.25),ph2=fract(vClk*.25+.5),bl=abs(ph*2.-1.);
+   vec2 pa=w.xz-uv*ph*4.,pb=w.xz-uv*ph2*4.+vec2(5.2,1.3);
+   vec3 na=noiseD(vec2(dot(pa,dir)*.7,dot(pa,nr)*2.2)),nb=noiseD(vec2(dot(pb,dir)*.7,dot(pb,nr)*2.2));
+   vec2 lg=mix(na.yz,nb.yz,bl)*vec2(.7,2.2);g+=(dir*lg.x+nr*lg.y)*.035*(.5+sp)*clamp(1.6-fp*2.,0.,1.);}
+  #endif
+  vec4 ws=waterShade(v,g,D,sand,fp);float a=ws.a;c=ws.rgb/max(a,.02);
+  // Shoreline: a thin wash line slides up and back, breakers roll in on exposed coasts, rocks fizz, river banks streak.
+  // Every stretch of coast has its own timing, and foam only exists within a few blocks of land.
+  float foam=0.;
+  if(s>.02){vec2 pq=floor(w.xz*16.)/16.;float off=vnoise(w.xz*.045)*6.283+vnoise(w.xz*.17+3.)*2.5,calm=1.-smoothstep(.05,.3,sp);
+   float swash=.5+.5*sin(vClk*.5+off),line=.80+.17*swash*(.35+.65*ex),lace=vnoise(pq*1.6+vec2(vClk*.13,-vClk*.09)+off);
+   float sw=s+(vnoise(w.xz*.8+off)-.5)*.14; // wobble, so foam does not follow the block grid
+   float edge=(1.-smoothstep(0.,(.04+.07*lace)*(.7+.5*ex),abs(sw-line)))*step(.18,lace);
+   float wash=(smoothstep(line,line+.03,sw)*(1.-swash)*step(.62,lace)+smoothstep(line-.16,line-.02,sw)*(1.-step(line,sw))*step(.55,lace)*.8)*.7;
+   float brk=smoothstep(.86,.98,fract(sw*2.6-vClk*.16*(.6+ex)+off*.25))*smoothstep(.15,.5,s)*(1.-smoothstep(.85,.95,s))*(.35+.65*ex)*step(.45,lace)*(1.-smoothstep(3.,7.,D));
+   float rock=(1.-sand)*smoothstep(.72,.95,s)*step(.7,fract(hash(pq)+vClk*.35));
+   foam=max(max(edge,wash),max(brk*.85,rock*.7))*calm;
+   if(sp>.02)foam=max(foam,smoothstep(.55,.9,s)*step(.7,vnoise((pq-uv*vClk)*vec2(2.3,2.3)))*.6);
+   foam*=.85;}
+  c=mix(c,vec3(.95,.98,1.)*(ambCol+dirCol*.7),foam);alpha=mix(a,1.,foam*.85);}}
+gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
+const vertexSource=mainVS(true),fallbackVertexSource=mainVS(false),liteWaterSource=waterFragmentSource.replace(PRECISION,PRECISION+'#define WATER_LITE\n');
 // Far LOD terrain: 16-bit positions relative to the tile origin, origin relative to the camera (precise far away).
 // lPos.w packs material + 8*face.
 const lodVertexSource=`
@@ -599,14 +668,17 @@ float face=floor((lPos.w+.5)/8.);
 gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);vCol=lCol.rgb;vRel=p;vMat=lPos.w-face*8.;vFace=face;vClk=clock;}`;
 const lodFragmentSource=PRECISION+`
 varying vec3 vCol; varying vec3 vRel; varying float vMat; varying float vClk; varying float vFace;
-uniform vec4 hole; uniform vec3 eyeF;`+SKY_GLSL+`
+uniform vec4 hole; uniform vec3 eyeF;`+SKY_GLSL+WATER_GLSL+`
 void main(){
- // The near voxel field covers this square; LOD fragments under it are hidden.
- if(vRel.x>hole.x&&vRel.x<hole.z&&vRel.z>hole.y&&vRel.z<hole.w)discard;
+ // The near voxel field covers this square; LOD fragments under it are hidden. Far water stays: the near pass
+ // overdraws it wherever it has geometry, and it fills the gaps seen through the near water at the square's edge.
+ if(vRel.x>hole.x&&vRel.x<hole.z&&vRel.z>hole.y&&vRel.z<hole.w&&(vMat<.5||vMat>1.5))discard;
  vec3 w=vRel+eyeF;float d=length(vRel);vec3 c=vCol;
- if(vMat>.5&&vMat<1.5){vec2 g=vec2(sin(w.x*.09+w.z*.05+vClk*.9)+sin(w.x*.031-w.z*.07+vClk*.6)*.8,cos(w.z*.083-w.x*.04+vClk*.8)+cos(w.x*.05+w.z*.027-vClk*.7)*.8)*.045;
-  vec3 nrm=normalize(vec3(g.x,1.,g.y));vec3 v=vRel/max(d,.001);vec3 r=reflect(v,nrm);r.y=abs(r.y);float fres=.03+.97*pow(1.-abs(dot(v,nrm)),5.);
-  c=mix(c*(ambCol+dirCol*max(dirLight.y,0.)*.8),skyColor(r),clamp(fres,0.,.85))+dirCol*pow(max(dot(r,dirLight),0.),180.)*1.6;}
+ if(vMat>.5&&vMat<1.5){
+  // Far water: vCol.r = depth (0..40 blocks), vCol.g = sandy bed share. The bed is not drawn here, so it is folded in analytically.
+  float D=vCol.r*40.;vec3 v=vRel/max(d,.001);float fp=d/(500.*max(abs(v.y),.03));vec4 ws=waterShade(v,waveSlope(w.xz,vClk,fp,1.),D,vCol.g,fp);
+  vec3 bed=mix(vec3(.40,.40,.38),vec3(.86,.80,.58),vCol.g)*(ambCol+dirCol*max(dirLight.y,0.))*exp(-WABS*(D+D/max(-v.y,.1)));
+  c=ws.rgb+(1.-ws.a)*bed;}
  else{float n=hash(floor(w.xz-.01)+floor(w.y-.01)*17.);c*=1.+(n-.5)*.16*(1.-smoothstep(90.,380.,d));if(vMat>1.5)c*=.9+.14*hash(floor(w.xz*.5-.01)+3.7);
   c*=lighting(faceNormal(vFace),0.,w,0.);}
  gl_FragColor=vec4(fogMix(c,vRel,w.y),1.);}`;
@@ -619,7 +691,7 @@ void main(){vec3 d=normalize(cFwd+cRight*vNdc.x*cScale.x+cUp*vNdc.y*cScale.y);ve
   float s=step(.9972,hash(floor(d.xz/(abs(d.y)+.35)*190.)))*smoothstep(.02,.25,d.y);c+=vec3(.85,.9,1.)*s*misc.x;}
  gl_FragColor=vec4(c,1.);}`;
 
-let mainProg,lodProg,skyProg,mainU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
+let mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
 function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
 function buildProgram(vsrc,fsrc,attribs){
  const p=gl.createProgram();gl.attachShader(p,shader(gl.VERTEX_SHADER,vsrc));gl.attachShader(p,shader(gl.FRAGMENT_SHADER,fsrc));
@@ -635,9 +707,12 @@ function initRenderer(){
  try{mainProg=buildProgram(vertexSource,fragmentSource,['aPos','aColor','aUV','aMat'])}
  catch(windError){console.warn('Using compatible WebGL shader fallback:',windError);mainProg=buildProgram(fallbackVertexSource,fragmentSource,['aPos','aColor','aUV','aMat'])}
  mainU=uniformsOf(mainProg,['eye','yaw','pitch','aspect','proj','clock','wind','fade','eyeF',...SKY_UNIFORMS]);
+ // Water: full shader, then a lighter one; if neither compiles the main program draws plain water, never a blank screen.
+ waterProg=null;for(const fs of[waterFragmentSource,liteWaterSource]){try{waterProg=buildProgram(fallbackVertexSource,fs,['aPos','aColor','aUV','aMat']);break}catch(e){console.warn('Water shader fallback:',e)}}
+ waterU=waterProg?uniformsOf(waterProg,['eye','yaw','pitch','aspect','proj','clock','eyeF','wq',...SKY_UNIFORMS]):null;
  // The far field is optional: if it cannot compile, the game still runs with the near field only.
  try{lodProg=buildProgram(lodVertexSource,lodFragmentSource,['lPos','lCol']);skyProg=buildProgram(skyVertexSource,skyFragmentSource,['sPos']);
-  lodU=uniformsOf(lodProg,['org','yaw','pitch','aspect','proj','clock','hole','eyeF',...SKY_UNIFORMS]);skyU=uniformsOf(skyProg,['cFwd','cRight','cUp','cScale',...SKY_UNIFORMS]);lodOK=true}
+  lodU=uniformsOf(lodProg,['org','yaw','pitch','aspect','proj','clock','hole','eyeF','wq',...SKY_UNIFORMS]);skyU=uniformsOf(skyProg,['cFwd','cRight','cUp','cScale',...SKY_UNIFORMS]);lodOK=true}
  catch(farError){console.warn('Far terrain disabled:',farError);lodOK=false}
  // Every mesh is made of quads; one shared index buffer serves them all.
  const ind=new Uint16Array(MAXQ*6);for(let i=0;i<MAXQ;i++)ind.set([i*4,i*4+1,i*4+2,i*4,i*4+2,i*4+3],i*6);
@@ -693,9 +768,36 @@ const occ=t=>t!==0&&t!==9&&t!==10;
 const FACE=faces.map(f=>{const st=[1,PA,PW],axes=[0,1,2].filter(a=>!f.n[a]);return{off:f.n[0]+f.n[1]*PA+f.n[2]*PW,dcol:f.n[0]+f.n[2]*PW,dy:f.n[1],n:f.n,l:f.l,v:f.v,uv:f.v.map(v=>faceUV(v,f)),
  ao:f.v.map(v=>{const oa=(v[axes[0]]?1:-1)*st[axes[0]],ob=(v[axes[1]]?1:-1)*st[axes[1]];return[oa,ob,oa+ob]})}});
 const LOG_TOP=rgb('#b9955d'),BIRCH_TOP=rgb('#d8cfa8'),WHITE=[1,1,1];
+// ---- Water surface data, per corner of the sea-level water surface so every value blends smoothly across blocks:
+// depth (mean of the four columns, land = 0), shore nearness (distance to land up to 3.5 blocks), sandy bed share,
+// exposure to the open sea, and river flow. Only the mesh changes; terrain, water and saves are untouched.
+const WR=4,WG=CHUNK+2*WR,wLand=new Uint8Array(WG*WG),wDep=new Float32Array(WG*WG),wSand=new Float32Array(WG*WG),wLg=new Float32Array(9);
+const WC=CHUNK+1,wf={dep:new Float32Array(WC*WC),shore:new Float32Array(WC*WC),sand:new Float32Array(WC*WC),ex:new Float32Array(WC*WC),fx:new Float32Array(WC*WC),fz:new Float32Array(WC*WC)};
+function riverField(x,z){const wx=x+62*fbm(x/530+11.3,z/530+4.1,3),wz=z+62*fbm(x/530+71.9,z/530+23.7,3);return pn(wx/820+17.7,wz/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8)}
+// Rivers in GRAND worlds follow zero lines of riverField (see height4): flow runs along the line, toward the east coast,
+// faster where the channel is narrow, and fades out into the sea at the mouth.
+function riverFlow(x,z,L,out){out[0]=out[1]=0;const rm=smooth(-.12,.18,pn(x/900+60.1,z/900+12.3));if(rm<=0)return;
+ const f=riverField(x,z),w=.032;if(Math.abs(f)>w*3.5)return;
+ const gx=(riverField(x+1,z)-riverField(x-1,z))/2,gz=(riverField(x,z+1)-riverField(x,z-1))/2,g=Math.hypot(gx,gz)+1e-9;
+ let tx=-gz/g,tz=gx/g;if(tx<0){tx=-tx;tz=-tz}
+ const k=(1-smooth(w,w*3.5,Math.abs(f)))*rm*smooth(-.1,.35,L)*smooth(0,.3,tx)*Math.max(.3,Math.min(1.5,6*g/w));out[0]=tx*k;out[1]=tz*k}
+function waterFields(cx,cz,nb){const x0=cx*CHUNK,z0=cz*CHUNK,fl=[0,0];
+ for(let j=0;j<WG;j++)for(let i=0;i<WG;i++){const x=x0+i-WR,z=z0+j-WR,k=j*WG+i,t=nb(x,SEA,z);
+  if(t===10){let d=0,y=SEA;while(d<30&&nb(x,y,z)===10){d++;y--}wLand[k]=0;wDep[k]=d;wSand[k]=nb(x,y,z)===6?1:0}
+  else{wLand[k]=occ(t)?1:0;wDep[k]=0;wSand[k]=t===6||t===0&&nb(x,SEA-1,z)===6?1:0}}
+ if(GRAND)for(let b=0;b<3;b++)for(let a=0;a<3;a++){height4(x0+a*8,z0+b*8);wLg[b*3+a]=gLand}
+ for(let j=0;j<WC;j++)for(let i=0;i<WC;i++){const c=j*WC+i,k=(j+WR)*WG+i+WR;
+  wf.dep[c]=(wDep[k]+wDep[k-1]+wDep[k-WG]+wDep[k-WG-1])/4;wf.sand[c]=(wSand[k]+wSand[k-1]+wSand[k-WG]+wSand[k-WG-1])/4;
+  let best=WR*WR;for(let dz=-WR;dz<WR;dz++)for(let dx=-WR;dx<WR;dx++)if(wLand[k+dz*WG+dx]){const ex=dx<0?-dx-1:dx,ez=dz<0?-dz-1:dz,q=ex*ex+ez*ez;if(q<best)best=q}
+  wf.shore[c]=Math.max(0,1-Math.sqrt(best)/3.5);
+  let L=.5;if(GRAND){const u=i/8,v=j/8,a=Math.min(1,Math.floor(u)),b=Math.min(1,Math.floor(v)),fu=u-a,fv=v-b;
+   L=(wLg[b*3+a]*(1-fu)+wLg[b*3+a+1]*fu)*(1-fv)+(wLg[b*3+3+a]*(1-fu)+wLg[b*3+a+4]*fu)*fv;riverFlow(x0+i,z0+j,L,fl)}
+  wf.ex[c]=GRAND?1-smooth(-.15,.55,L):.5;wf.fx[c]=fl[0];wf.fz[c]=fl[1]}}
 function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)return;
  const x0=cx*CHUNK,z0=cz*CHUNK,info=GRAND?columnInfo(cx,cz):null,near=[];
  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const nx=cx+dx,nz=cz+dz;near.push(nx>=0&&nz>=0&&nx<CHUNKS&&nz<CHUNKS?voxelChunk(nx,nz):null)}
+ // Outside the world counts as open water, like the ocean drawn beyond the rim.
+ const nb=(x,y,z)=>{const src=near[((z>>4)-cz+1)*3+((x>>4)-cx+1)];return src?src[(y<<8)|((z&15)<<4)|(x&15)]:10};let wfReady=false;
  let ymin=H,ymax=0;
  for(let pz=0;pz<PW;pz++)for(let px=0;px<PW;px++){
   const wx=x0+px-1,wz=z0+pz-1,src=near[((wz>>4)-cz+1)*3+((wx>>4)-cx+1)],lz=wz&15,lx=wx&15,col=pz*PW+px,inner=px>0&&pz>0&&px<PW-1&&pz<PW-1;
@@ -722,11 +824,13 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
     else if(t===4||t===13){if(F.n[1]){mat=13;c=t===13?BIRCH_TOP:LOG_TOP}else if(t===13||(!GRAND&&rand(wx*9,wz*7)>.62)){mat=14;c=WHITE}}
     else if(t===5)c=lcol;else if(t===14||t===15||t===16){mat=5;c=t===14?lc14:t===15?lc15:lc16}else if(t===12)mat=19;
     // Faces whose open neighbour lies under a roof (canopy, overhang) lose direct sunlight in the shader.
-    const shaded=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy,pa=p+F.off,code=mat+32*fi+(shaded?256:0);
+    const shaded=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy,pa=p+F.off,code=mat+32*fi+(shaded?256:0)+(!water&&nt===10?512:0);
     for(let q=0;q<4;q++){const ao=F.ao[q],a1=occ(pad[pa+ao[0]]),a2=occ(pad[pa+ao[1]]),a3=occ(pad[pa+ao[2]]);sh[q]=1-(a1&&a2?3:a1+a2+a3)*.13}
     const flip=sh[0]+sh[2]<sh[1]+sh[3],w=water||t===9?waterW:opaqueW,drop=water&&!pad[p+PA]?.12:0;grow(w,36);
-    if(water){let d=1,q=p-PA;while(pad[q]===10&&d<30){d++;q-=PA}
-     for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0;vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],d/30,shore,0,F.uv[k][0],F.uv[k][1],code)}}
+    if(water&&fi===2&&y===SEA){if(!wfReady){waterFields(cx,cz,nb);wfReady=true}
+     for(let k=0;k<4;k++){const v=F.v[k],c=(z+v[2])*WC+x+v[0];vert(w,wx+v[0],y+1-drop,wz+v[2],wf.dep[c]/30,wf.shore[c],wf.sand[c],wf.fx[c],wf.fz[c],code+wf.ex[c]*.45)}}
+    else if(water){let d=1,q=p-PA;while(pad[q]===10&&d<30){d++;q-=PA}
+     for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0;vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],d/30,shore,pad[q]===6?1:0,0,0,code)}}
     else for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=sh[kk];vert(w,wx+v[0],y+v[1],wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0],F.uv[kk][1],code)}}
    if(t===1&&!pad[p+PA]){const ps=roofs[(z+1)*PW+x+1]>y+1;
     if(VEG&&info)emitMeadow(opaqueW,wx,wz,y+1,k,info,gcol,ps,y+2<H&&!pad[p+2*PA],keep);
@@ -776,8 +880,8 @@ function lgrow(n){if((lw.n+n)*12<=lw.buf.byteLength)return;const b=new ArrayBuff
 function lvert(x,y,z,c,l,m){const i=lw.n,j=i*6,b=i*12;lw.i16[j]=Math.round(x*8);lw.i16[j+1]=Math.round(y*8);lw.i16[j+2]=Math.round(z*8);lw.i16[j+3]=m;lw.u8[b+8]=Math.min(255,c[0]*l*255);lw.u8[b+9]=Math.min(255,c[1]*l*255);lw.u8[b+10]=Math.min(255,c[2]*l*255);lw.u8[b+11]=255;lw.n=i+1}
 function lodKey(size,x0,z0){return size+':'+x0+':'+z0}
 function lodTile(size,x0,z0){const k=lodKey(size,x0,z0);let t=lodTiles.get(k);if(!t){t={size,x0,z0,step:size/LOD_N,ready:false,building:false,quads:0,buffer:null,ymin:Math.max(0,SEA-32),ymax:H,used:0};lodTiles.set(k,t)}return t}
-const WATER_DEEP=[.09,.24,.5];
-function waterColor(d){return d<=1?[.36,.72,.74]:d<5?mix3([.36,.72,.74],[.19,.55,.72],(d-1)/4):d<14?mix3([.19,.55,.72],[.13,.38,.64],(d-5)/9):mix3([.13,.38,.64],WATER_DEEP,Math.min(1,(d-14)/14))}
+// Far water vertices carry depth/40 and the sandy-bed share; the LOD shader turns them into colour like the near water.
+const WATER_DEEP=[1,0,0];
 const STONE=defsRGB[3],DIRT=[.49,.36,.24],SAND=defsRGB[6],SNOW=defsRGB[12],CANOPY=[0,5,7,6,8,2];
 // Pure tile mesher: writes vertices into lw and returns bounds. Runs on the main thread or inside the LOD worker.
 function* tileMesh(s,x0,z0){
@@ -786,9 +890,9 @@ function* tileMesh(s,x0,z0){
    if(x<0||z<0||x>=W||z>=W){hs[k]=VOID;continue}
    if(GRAND){hs[k]=height4(x,z);ls[k]=gLand;hum[k]=humidity(x,z);bir[k]=birchiness(x,z)}else hs[k]=height(x,z)}
   if((j&3)===3)yield}
- const top=new Float32Array(n*n),gnd=new Float32Array(n*n),surf=new Uint8Array(n*n),can=new Uint8Array(n*n),tc=[],lc=[];
+ const top=new Float32Array(n*n),gnd=new Float32Array(n*n),surf=new Uint8Array(n*n),can=new Uint8Array(n*n),dp=new Float32Array(n*n),sd=new Float32Array(n*n),tc=[],lc=[];
  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i,h=hs[k],x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1);
-  if(h===VOID||h<SEA){top[k]=gnd[k]=SEA+.875;surf[k]=10;tc[k]=h===VOID?WATER_DEEP:waterColor(SEA-h);continue}
+  if(h===VOID||h<SEA){top[k]=gnd[k]=SEA+.875;surf[k]=10;dp[k]=h===VOID?40:SEA-h;sd[k]=h===VOID?0:!GRAND||h>=SEA-12?1:0;continue}
   let sl=0;for(const nk of[k-1,k+1,k-n,k+n])if(nk>=0&&nk<n*n&&hs[nk]!==VOID)sl=Math.max(sl,Math.abs(h-hs[nk]));const slope=sl/s;
   let su=GRAND?surface4(x,z,h,Math.round(slope*1.5)):h<=SEA+1?6:1,c=0;
   if(VEG){
@@ -805,17 +909,20 @@ function* tileMesh(s,x0,z0){
   if(su===1){if(GRAND){const kind=treeKind(x,z,h,Math.round(slope),hum[k],bir[k],rand(x*13+5,z*7+3));if(kind){c=CANOPY[kind]+(rand(x,z*3)>.5?1:0);const lf=leafColor(h-SEA,hum[k],bir[k]),v=.84+rand(z,x*3)*.22;lc[k]=[lf[0]*v,lf[1]*v,lf[2]*v]}}
    else if(rand(x*13+5,z*7+3)<.3){c=5;lc[k]=defsRGB[5]}}
   can[k]=c;gnd[k]=h+1;top[k]=h+1+c}
+ for(let k=0;k<n*n;k++)if(surf[k]!==10)sd[k]=surf[k]===6?1:0;
  yield;
  lw.n=0;let ymin=1e9,ymax=-1e9;const always=s<=2;
+ // Water corners average the four cells around them, so shallows fade smoothly into the deep instead of in steps.
+ const wc=(a,b,c,d)=>[Math.min(1,(dp[a]+dp[b]+dp[c]+dp[d])/160),(sd[a]+sd[b]+sd[c]+sd[d])/4,0];
  const wall=(dir,xa,xb,za,zb,y0,y1,c0,c1,l,m)=>{if(y1<=y0)return;lgrow(4);
   m+=8*[0,1,4,5][dir];if(dir<2){const x=dir===0?xb:xa;lvert(x,y0,za,c0,l,m);lvert(x,y1,za,c1,l,m);lvert(x,y1,zb,c1,l,m);lvert(x,y0,zb,c0,l,m)}
   else{const z=dir===2?zb:za;lvert(xa,y0,z,c0,l,m);lvert(xa,y1,z,c1,l,m);lvert(xb,y1,z,c1,l,m);lvert(xb,y0,z,c0,l,m)}
   if(y0<ymin)ymin=y0};
  for(let j=1;j<=N;j++){for(let i=1;i<=N;i++){
   const k=j*n+i,xa=(i-1)*s,xb=i*s,za=(j-1)*s,zb=j*s,mt=top[k],su=surf[k];
-  lgrow(4);const m=su===10?1:can[k]?2:0,c=can[k]?lc[k]:tc[k];lvert(xa,mt,za,c,1,m+16);lvert(xb,mt,za,c,1,m+16);lvert(xb,mt,zb,c,1,m+16);lvert(xa,mt,zb,c,1,m+16);
-  if(mt>ymax)ymax=mt;if(mt<ymin)ymin=mt;
-  if(su===10)continue;
+  lgrow(4);if(mt>ymax)ymax=mt;if(mt<ymin)ymin=mt;
+  if(su===10){lvert(xa,mt,za,wc(k,k-1,k-n,k-n-1),1,17);lvert(xb,mt,za,wc(k,k+1,k-n,k-n+1),1,17);lvert(xb,mt,zb,wc(k,k+1,k+n,k+n+1),1,17);lvert(xa,mt,zb,wc(k,k-1,k+n,k+n-1),1,17);continue}
+  const m=can[k]?2:0,c=can[k]?lc[k]:tc[k];lvert(xa,mt,za,c,1,m+16);lvert(xb,mt,za,c,1,m+16);lvert(xb,mt,zb,c,1,m+16);lvert(xa,mt,zb,c,1,m+16);
   const g=gnd[k],lightOf=[1,1,1,1],nks=[k+1,k-1,k+n,k-n],borders=[i===N,i===1,j===N,j===1];
   for(let d=0;d<4;d++){const nt=top[nks[d]],border=borders[d];let bottom;
    if(border)bottom=Math.min(mt,nt)-s*1.5;else if(always)bottom=Math.min(mt,nt)-2;else if(mt>nt)bottom=nt;else continue;
@@ -849,7 +956,7 @@ function lodWorkerSource(){
 const perm=new Uint8Array(${k(Array.from(perm))}),defsRGB=${k(defsRGB)},CANOPY=${k(CANOPY)},STONE=${k(STONE)},DIRT=${k(DIRT)},SAND=${k(SAND)},SNOW=${k(SNOW)},WATER_DEEP=${k(WATER_DEEP)};
 const smooth=${smooth},mix3=${mix3},clamp01=${clamp01},f01=${f01},VEGK=${k(VEGK)},E=${k(E)},FP=${k(FP)};let gLand=0,gMount=0;
 const lw={buf:new ArrayBuffer(1<<20),n:0};lw.i16=new Int16Array(lw.buf);lw.u8=new Uint8Array(lw.buf);
-${[rand,noise,height,grad,pn,fbm,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,waterColor,lgrow,lvert,tileMesh,
+${[rand,noise,height,grad,pn,fbm,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,lgrow,lvert,tileMesh,
  fieldClump,fieldGlade,fieldTone,fieldTall,fieldBare,forestDensity,grassColor5,leafColor5,flowerPatches,palettePick,vegEnv,pickSpecies,treeRng,treeAge].join('\n')}
 onmessage=e=>{const{id,step,x0,z0}=e.data,it=tileMesh(step,x0,z0);let r;while(!(r=it.next()).done);const bytes=lw.u8.slice(0,lw.n*12);postMessage({id,bytes,r:r.value},[bytes.buffer])};`}
 let lodWorker=null,lodPending=new Map(),lodNextId=1;
@@ -1007,11 +1114,13 @@ function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayT
  // The title keeps a low golden sun beside the scenic view.
  const a=cam.yaw+.95,e=.16;return skyEnv([Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)])}
 function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,0)}
-function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wind)gl.uniform1f(u.wind,windStr)}
+function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>1?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
+// Same as underCol() in the shaders: the colour water fades to at the camera's depth.
+function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.11,.42,.44],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
 function render(cam,titleOpen,w,h){
  const aspect=w/h,F=makeFrustum(cam,aspect),underwater=!titleOpen&&get(Math.floor(cam.x),Math.floor(cam.y),Math.floor(cam.z))===10,env=environment(titleOpen,cam);
- const far=lodOK?Q.far:(Q.near+1)*CHUNK,fog=[far*.6,far*.8,far*.97,underwater?1:0];
- gl.clearColor(...(underwater?mix3([0,0,0],[.09,.28,.40],Math.min(1,env.amb[1]*1.6)):env.horizon),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ const far=lodOK?Q.far:(Q.near+1)*CHUNK,cd=Math.max(0,SEA+.88-cam.y),fog=[far*.6,far*.8,far*.97,underwater?1+cd:0];
+ gl.clearColor(...(underwater?underColor(env,cd):env.horizon),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
  // Underwater the fog closes within a few dozen blocks, so the far pass is skipped there.
  if(lodOK&&!underwater){
   // Far pass: sky, LOD terrain, ocean beyond the world and clouds, with its own depth range.
@@ -1036,7 +1145,9 @@ function render(cam,titleOpen,w,h){
  drawWorldDetails();
  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
  visible.sort((a,b)=>((b.cx*CHUNK+8-cam.x)**2+(b.cz*CHUNK+8-cam.z)**2)-((a.cx*CHUNK+8-cam.x)**2+(a.cz*CHUNK+8-cam.z)**2));
+ if(waterProg){useProgram(waterProg,4);setEnv(waterU,env,fog);setView(waterU,cam,aspect,.1,(Q.near+3)*CHUNK*1.5+H);gl.uniform3f(waterU.eye,cam.x,cam.y,cam.z);gl.uniform3f(waterU.eyeF,cam.x,cam.y,cam.z)}
  for(const ch of visible)if(ch.waterQuads)drawQuads(ch.water,ch.waterQuads,bind,36);
+ if(waterProg){useProgram(mainProg,4)}
  gl.depthMask(true);gl.disable(gl.BLEND);
  if(!titleOpen&&!photoMode){hit=ray();drawOutline();drawTool()}else hit=null;
 }
@@ -1137,5 +1248,5 @@ function finishBench(){const f=bench.frames.slice().sort((a,b)=>a-b),n=f.length|
  panel.appendChild(pre);panel.appendChild(copy);panel.appendChild(close);wrap.appendChild(panel);(document.body||{appendChild(){}}).appendChild(wrap)}
 if(BENCH)startBench();
 requestAnimationFrame(frame);
-window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,cows,animateWorld,vertexSource,fragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
+window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,cows,animateWorld,vertexSource,fragmentSource,waterFragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
 </script></html>
