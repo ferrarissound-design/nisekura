@@ -2,8 +2,8 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const script=fs.readFileSync(__dirname+'/index.html','utf8').match(/<script>([\s\S]*)<\/script>/)[1];
 function boot(saved,session={},prefs={}){const nodes={},storage={...prefs},events={},windowEvents={};if(saved)storage['nisekura-v1']=saved;let triangles=0;
 const gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true,createBuffer:()=>({}),getAttribLocation:()=>1,bufferData:(_,data)=>{assert(data.every(Number.isFinite));triangles+=data.length}}, {get:(o,k)=>k in o?o[k]:(()=>({}))});
-const node=()=>({style:{},classList:{values:new Set(),add(n){this.values.add(n)},remove(n){this.values.delete(n)},toggle(n,on){if(on)this.values.add(n);else this.values.delete(n)},contains(n){return this.values.has(n)}},addEventListener(){},appendChild(){},getContext:()=>gl,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:112,height:112})});
-const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v,removeItem:k=>{delete session[k]}},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v,removeItem:k=>{delete storage[k]}},document:{getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=(n,f)=>windowEvents[n]=f;c.confirm=()=>true;c.location={pathname:'/jocraft/',href:'/jocraft/'};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,get triangles(){return triangles},events,windowEvents,nodes,session}}
+const node=()=>({style:{},classList:{values:new Set(),add(n){this.values.add(n)},remove(n){this.values.delete(n)},toggle(n,on){if(on)this.values.add(n);else this.values.delete(n)},contains(n){return this.values.has(n)}},setAttribute(){},focus(){},listeners:{},addEventListener(n,f){(this.listeners[n]??=[]).push(f)},appendChild(){},getContext:()=>gl,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:112,height:112})});
+const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v,removeItem:k=>{delete session[k]}},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v,removeItem:k=>{delete storage[k]}},document:{body:node(),getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=(n,f)=>windowEvents[n]=f;c.confirm=()=>true;c.location={pathname:'/jocraft/',href:'/jocraft/'};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,get triangles(){return triangles},events,windowEvents,nodes,session}}
 const run=(b,code)=>vm.runInContext(code,b.c);
 function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++)for(let y=0;y<y1;y++){h^=api.get(x,y,z);h=Math.imul(h,16777619)}return h>>>0}
 
@@ -156,3 +156,37 @@ console.log('PASS: legacy 64/256/2048 saves, byte-identical legacy terrain, lega
  assert.equal(run(d,'save()'),false,'benchmark never saves');run(d,'pause()');assert.equal(d.storage['nisekura-v1'],before,'save untouched by benchmark');
  console.log(`PASS: LOD worker output identical to main thread, quality caps, benchmark (${rep.frames} frames, GPU est ${rep.gpuMB} MB) without saving`)}
 // Performance is profiled in a real browser (Node's vm sandbox makes global lookups ~10x slower); see README.
+
+// Scenic HUD preferences and photo mode must not leak held inputs or edit the world.
+run(a,'paused=false;hudMinimal=false;toggleHUD();toggleDetails()');
+assert.equal(JSON.parse(a.storage['jocraft2-hud']).minimal,true);
+assert(a.c.document.body.classList.contains('hud-minimal'));
+run(a,'keys.KeyW=true;joy.x=1;mineHeld=true;riseHeld=true;setPhotoMode(true)');
+const photoPosition={...a.api.player},photoChanges=run(a,'changes.size'),photoFlight=run(a,'flying');
+assert.equal(run(a,'mineHeld||riseHeld||!!keys.KeyW||joy.x!==0'),false);
+run(a,'update(1);mine();place();toggleFlight()');
+assert.deepEqual({...a.api.player},photoPosition);
+assert.equal(run(a,'changes.size'),photoChanges);assert.equal(run(a,'flying'),photoFlight);
+a.c.document.onkeydown({code:'KeyE'});assert.equal(run(a,'paused'),false);
+a.c.document.onkeydown({code:'Escape',preventDefault(){}});
+assert.equal(run(a,'photoMode'),false);assert(a.c.document.body.classList.contains('hud-minimal'));
+run(a,'setPhotoMode(true);pause()');assert.equal(run(a,'photoMode'),false);assert.equal(run(a,'paused'),true);
+const hudReload=boot(null,{}, {'jocraft2-hud':a.storage['jocraft2-hud']});
+assert.equal(run(hudReload,'hudMinimal'),true);assert.equal(run(hudReload,'photoMode'),false);
+console.log('PASS: HUD preferences, photo input reset, frozen position, blocked edits/flight/craft, Escape/menu recovery');
+
+// Touch holds, cancellation, stick movement and look still work after a photo round-trip.
+run(a,'play();flying=true');
+const touch={pointerId:7,clientX:90,clientY:56,preventDefault(){}};
+a.nodes.stick.onpointerdown(touch);assert(run(a,'joy.x>0'));
+a.nodes.stick.listeners.pointercancel.forEach(f=>f());assert.equal(run(a,'joy.x'),0);
+for(const [id,flag] of [['mine','mineHeld'],['place','placeHeld'],['jump','riseHeld'],['down','descendHeld']]){
+ a.nodes[id].listeners.pointerdown.forEach(f=>f(touch));assert.equal(run(a,flag),true);
+ a.nodes[id].listeners.lostpointercapture.forEach(f=>f());assert.equal(run(a,flag),false);
+}
+run(a,'setPhotoMode(true)');const beforeYaw=run(a,'yaw');
+a.nodes.world.onpointerdown({...touch,pointerType:'touch'});
+a.nodes.world.onpointermove({...touch,clientX:110});assert(run(a,'yaw')>beforeYaw);
+a.nodes.jump.listeners.pointerdown.forEach(f=>f(touch));assert.equal(run(a,'riseHeld'),false);
+run(a,'setPhotoMode(false)');a.nodes.fly.onclick();assert.equal(run(a,'flying'),false);
+console.log('PASS: touch stick/cancel, mining/placing/ascent/descent holds, lost capture, photo look and restored flight button');
