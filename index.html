@@ -135,7 +135,7 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
 @media(max-width:374px){#bar{width:calc(100vw - 16px);overflow-x:auto;justify-content:flex-start;touch-action:pan-x}}
 @media(max-height:480px){#compass{top:max(6px,env(safe-area-inset-top));width:min(220px,calc(100vw - 310px));min-width:170px}body.hud-details #compass{top:max(6px,env(safe-area-inset-top))}#stats{max-width:230px}#statsDetails{max-width:200px}.actions,#stick{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 58px)}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>LIVING WATERS · v7.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>SCENIC WORLD · v8.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"><div id="compassHeading"></div></div>
  <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -144,14 +144,14 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
  <div class="title-menu">
   <button id="play" class="title-button">シングルプレイ</button>
   <div class="title-pair"><button id="mode" class="title-button">モード：素材集め</button><button id="quality" class="title-button">画質：標準</button></div>
-  <button id="home" class="title-button">出発地点へ戻る</button>
+  <div class="title-pair"><button id="home" class="title-button">出発地点へ戻る</button><button id="spots" class="title-button">絶景スポットへ</button></div>
   <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
   <div class="title-pair"><button id="hudMode" class="title-button" aria-pressed="false">HUD：通常</button><button id="hudDetails" class="title-button" aria-pressed="false">詳細情報：OFF</button></div>
   <button id="photoMenu" class="title-button">スクショモード</button>
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v7.0</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v8.0</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -174,7 +174,8 @@ const player={x:32.5,y:25,z:32.5},keys={},joy={x:0,y:0};let saved=null;
 try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number.isFinite(saved.dayTime))dayTime=((saved.dayTime%1)+1)%1;if(Number.isFinite(saved.seed))seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
 // Saved worlds keep the generator and height they were created with. New worlds use GRAND VISTA terrain (v4).
 // v5 adds the natural vegetation system; v4 worlds keep their original trees, grass and flowers.
-const terrainVersion=saved?.version===1?(saved.terrainVersion||1):5,GRAND=terrainVersion>=4,VEG=terrainVersion>=5;
+// v6 adds scenic landforms (sea cliffs, landmark peaks, gorges, river plains); v4/v5 worlds keep their exact terrain.
+const terrainVersion=saved?.version===1?(saved.terrainVersion||1):6,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6;
 const H=GRAND?192:96,SEA=GRAND?62:10,CHUNK_SIZE=CHUNK*CHUNK*H;
 // Quality presets: near = voxel radius in chunks, far = LOD view distance in blocks, split = LOD detail factor.
 const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140,plant:.4,plantNear:2,fade:40,water:0},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220,plant:.75,plantNear:3,fade:72,water:1},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320,plant:1,plantNear:5,fade:110,water:2}};
@@ -214,37 +215,79 @@ function grad(h,x,z){switch(h&7){case 0:return x+z;case 1:return z-x;case 2:retu
 function pn(x,z){const X=Math.floor(x),Z=Math.floor(z),xf=x-X,zf=z-Z,xi=X&255,zi=Z&255,u=xf*xf*xf*(xf*(xf*6-15)+10),v=zf*zf*zf*(zf*(zf*6-15)+10),a=perm[xi]+zi,b=perm[xi+1]+zi;
  const n00=grad(perm[a],xf,zf),n10=grad(perm[b],xf-1,zf),n01=grad(perm[a+1],xf,zf-1),n11=grad(perm[b+1],xf-1,zf-1),n0=n00+u*(n10-n00);return n0+v*(n01+u*(n11-n01)-n0)}
 function fbm(x,z,oct){let s=0,a=1,n=0;for(let o=0;o<oct;o++){s+=pn(x,z)*a;n+=a;a*=.5;x=x*2.03+17.1;z=z*2.03+9.7}return s/n}
-let gLand=0,gMount=0;
+let gLand=0,gMount=0,gOpen=0; // gOpen: 0..1, how open (meadow-like) the scenic landform keeps the ground
+// River centre line (zero crossings). v6 rivers also meander with a slow sideways drift.
+function rvf(wx,wz){return SCENIC?pn(wx/820+17.7,(wz+70*pn(wx/420+4.4,.37))/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8):pn(wx/820+17.7,wz/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8)}
+// Landmark peaks (v6): one candidate per 640-block cell, a pyramid whose arms reach farther along some bearings (spurs) and sag between them (saddles).
+const PKC=new Float64Array(8*8*5).fill(NaN); // per-cell peak parameters (x, z, radius, height, present), filled on first use
+function peakBoost(wx,wz){const C=640,ci=Math.floor(wx/C),cj=Math.floor(wz/C);let best=0;
+ for(let j=cj-1;j<=cj+1;j++)for(let i=ci-1;i<=ci+1;i++){
+  const o=((j+2&7)*8+(i+2&7))*5;
+  if(PKC[o]!==PKC[o]){const on=rand(i*7+401,j*13+77)<=.74;PKC[o]=(i+.2+.6*rand(i*3+9,j*5+1))*C;PKC[o+1]=(j+.2+.6*rand(i*11+3,j*17+5))*C;PKC[o+2]=170+130*rand(i*5+2,j*9+8);PKC[o+3]=42+62*rand(i*13+5,j*7+3);PKC[o+4]=on?1:0}
+  if(!PKC[o+4])continue;
+  const R=PKC[o+2],dx=wx-PKC[o],dz=wz-PKC[o+1],d2=dx*dx+dz*dz;
+  if(d2>=R*R)continue;
+  const a=Math.atan2(dz,dx),sp=clamp01(pn(Math.cos(a)*2.1+i*5.3,Math.sin(a)*2.1+j*3.7)+.5),q=Math.sqrt(d2)/R,d=Math.min(1,q*(1.5-.9*sp)),
+   t=1-d,v=(PKC[o+3]*Math.pow(t,1.6)+16*Math.pow(t,7))*(1-smooth(.7,1,q)); // the last 30% of the radius fades out, so no peak ends in a ring-shaped step
+  if(v>best)best=v}
+ return best}
 function height4(x,z){
  const wx=x+62*fbm(x/530+11.3,z/530+4.1,3),wz=z+62*fbm(x/530+71.9,z/530+23.7,3);
  // A long eastern coastline with bays and capes; the world rim is always ocean.
  const coastX=ORIGIN+190+125*fbm(wz/720+3.3,.5,3)+38*pn(wz/150+9.1,1.7);
  let L=(coastX-wx)/95+.4*fbm(x/240+31.7,z/240+8.9,4);
- if(wx>coastX+45)L=Math.max(L,(fbm(x/150+91.1,z/150+17.4,4)-.36)*5.5-.12);
+ if(wx>coastX+45){const isl=(fbm(x/150+91.1,z/150+17.4,4)-.36)*5.5-.12;
+  // v6 fades islands in over 50 blocks; before, they began along a straight line, which a sea cliff would turn into a wall.
+  if(SCENIC){const t=smooth(coastX+45,coastX+95,wx);L=Math.max(L,isl*t-(1-t)*.6)}else L=Math.max(L,isl)}
+ // v6: capes and coves, plus a mask for cliff coasts (cl) that fades out at the ends of each stretch and around pocket beaches.
+ let cl=0;
+ if(SCENIC){const near=1-smooth(.7,1.7,Math.abs(L));
+  if(near>0){cl=near*smooth(-.1,.18,fbm(x/330+210.1,z/330+95.5,3))*(1-smooth(.35,.62,pn(x/58+3.3,z/58+9.9)));
+   L+=near*((.32+.28*cl)*fbm(x/110+13.7,z/110+61.3,2)+.1*pn(x/36+5.5,z/36+1.9))}}
  L=Math.min(L,(Math.min(x,z,W-1-x,W-1-z)-170)/75+.35*pn(x/190+50.5,z/190+3.3));
- gLand=L;gMount=0;
- if(L<=0){const deep=Math.min(1,-L/1.4);return Math.max(4,Math.floor(SEA-1-deep*(4+deep*24)+pn(x/41,z/41)*1.4))}
+ gLand=L;gMount=0;gOpen=0;
+ if(L<=0){const deep=Math.min(1,-L/(SCENIC?1.4-.95*cl:1.4));return Math.max(4,Math.floor(SEA-1-deep*(4+deep*24)+pn(x/41,z/41)*1.4))}
  const c=smooth(0,.75,L),hills=fbm(x/210+5.5,z/210+66.1,4);
  let h=SEA+1+c*(4+11*(hills*.5+.5))+pn(x/37+.5,z/37+.5)*2.2*c;
  // Mountain ranges rise inland; ridged noise gives sharp crests and long spurs.
  const m=smooth(0,1,(L-1.1+1.9*fbm(x/640+40.2,z/640+40.7,3))/2.7);
  if(m>0){let r=0,a=1,f=1/290;for(let o=0;o<4;o++){const n=1-Math.abs(pn(wx*f+7.7*o,wz*f+3.1*o));r+=n*n*a;a*=.5;f*=2.05}r/=1.875;h+=m*(12+r*r*118)}
  gMount=m;
+ let pk=0;
+ if(SCENIC){
+  // Landmark peaks: a few big, sharp mountains with radiating spurs rise out of the range (and sometimes out of the coast hills).
+  const gp=smooth(.5,1.5,L);if(gp>0){pk=peakBoost(wx,wz)*gp;h+=pk}
+  // Sea cliffs: a steep face a few blocks inland of the shore rising to a plateau; some stretches step in two tiers.
+  if(cl>.02){const amt=11+27*clamp01(fbm(x/260+70.1,z/260+11.9,2)*1.1+.5),sk=smooth(.1,.4,pn(x/240+4.4,z/240+19.8))*.45,
+    prof=(1-sk)*smooth(0,.065,L)+sk*smooth(.15,.24,L);
+   h=Math.max(h,SEA+1+(amt+5*pn(x/60+9.1,z/60+2.7))*prof*cl*(1-smooth(1.2,2.6,L)));gOpen=.75*cl*(1-smooth(.8,1.8,L))}
+  // Gorges: dry mountain valleys with a grassy floor, wide in some places and narrow in others; landmark peaks are spared.
+  if(m>.12){const g2=Math.abs(pn(wx/430+31.3,wz/330+57.7)+.25*pn(wx/160+5.1,wz/160+2.3)),gw=.05*(.65+.8*clamp01(pn(x/300+9.9,z/300+41.1)+.5)),
+    gv=(1-smooth(gw,gw*4.5,g2))*smooth(.12,.55,m)*(1-.7*smooth(8,60,pk)),fl2=SEA+9+(h-SEA)*.38;
+   if(h>fl2)h-=(h-fl2)*gv*.8}}
  // Rivers follow zero lines of stretched noise, so they run roughly east toward the sea and cut valleys.
  const rm=smooth(-.12,.18,pn(x/900+60.1,z/900+12.3));
- if(rm>0){const rv=Math.abs(pn(wx/820+17.7,wz/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8)),w=.026+.012*c;
-  const valley=(1-smooth(w,w*5.5,rv))*rm,ch=(1-smooth(w*.35,w,rv))*rm,fl=SEA+2+(h-SEA)*.08;
-  if(h>fl)h-=(h-fl)*valley;h+=(SEA-3-h)*ch}
+ if(rm>0){let rv,w=.026+.012*c;
+  if(SCENIC){rv=Math.abs(rvf(wx,wz));w*=.7+.9*clamp01(pn(x/330+81.7,z/330+5.5)*.8+.5)}
+  else rv=Math.abs(pn(wx/820+17.7,wz/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8));
+  const valley=(1-smooth(w,w*(SCENIC?5.5+3*m:5.5),rv))*rm,ch=(1-smooth(w*.35,w,rv))*rm,fl=SEA+2+(h-SEA)*.08;
+  if(h>fl)h-=(h-fl)*valley;
+  // River plains: in the lowlands the valley opens into a wide, gently rising meadow with a low bank at the water.
+  if(SCENIC){const pl=smooth(.35,1,L)*(1-smooth(.1,.5,m))*smooth(-.15,.3,pn(x/380+14.2,z/380+88.8));
+   if(pl>0){const fp=(1-smooth(w*3.5,w*(6.5+4*clamp01(pn(x/210+3.1,z/210+44.4)+.5)),rv))*rm*pl;
+    if(fp>0){const ph=SEA+3.6+2.6*smooth(w,w*7,rv)+1.4*smooth(w*.8,w*1.4,rv)+1.3*pn(x/50+5.5,z/50+1.1)*smooth(w,w*3,rv);if(h>ph)h-=(h-ph)*fp;
+     gOpen=Math.max(gOpen,.92*(1-smooth(w*3.5,w*6.5,rv))*rm*pl)}}}
+  h+=(SEA-3-h)*ch}
  if(L>.7&&m<.35&&h>SEA-4){const t=smooth(.26,.4,fbm(x/240+300.5,z/240+300.5,2))*(1-m/.35)*smooth(.7,1.2,L);if(t>0)h+=(SEA-4-h)*t}
- if(h>H-34)h=H-34+(h-(H-34))*.45;
+ if(SCENIC){if(h>140)h=140+42*Math.tanh((h-140)/58)}else if(h>H-34)h=H-34+(h-(H-34))*.45;
  return Math.max(4,Math.min(H-10,Math.floor(h)))
 }
 function humidity(x,z){return fbm(x/430+500.3,z/430+500.9,3)*.5+.5}
 function birchiness(x,z){return pn(x/170+77.7,z/170+33.3)}
 function surface4(x,z,h,slope){const alt=h-SEA,j=rand(x*7+3,z*5+1);
- if(alt<=1+(j>.6?1:0))return h<SEA-12?3:6;
+ if(alt<=1+(j>.6?1:0))return h<SEA-12||(SCENIC&&slope>=3)?3:6; // steep shores are rock, gentle ones sand
  if(alt>92+j*8)return slope>=5?3:12;
- if(slope>=4||alt>78+j*6)return 3;
+ if(slope>=(SCENIC?3:4)||alt>78+j*6)return 3;
  return 1}
 // 0 none, 1 oak, 2 big oak, 3 birch, 4 spruce, 5 bush
 function treeKind(x,z,h,slope,hum,birch,r){const alt=h-SEA;if(slope>2||alt<3||alt>=80)return 0;const forest=smooth(.5,.64,hum);
@@ -298,9 +341,9 @@ function flowerPatches(x,z){let best=0,bh=0;
  FP.cov=best<=0?0:smooth(0,.4,best);FP.h=bh}
 function palettePick(h,wet,alt){if(alt>=44)return h<.8?7:6;if(wet>.45&&h<.6)return 8;return h<.14?0:h<.27?1:h<.4?2:h<.53?3:h<.66?4:h<.78?5:6}
 // Environment of one column. sunny>0 on slopes facing the midday sun, L = distance-inland measure of the coast (<=0 is sea).
-function vegEnv(x,z,h,slope,sunny,L,hum){
+function vegEnv(x,z,h,slope,sunny,L,hum,open=0){
  const alt=h-SEA,wet=smooth(7,1.5,alt)*smooth(.35,.8,L),moist=clamp01(hum+.36*wet-.1*sunny),
-  clump=fieldClump(x,z),glade=fieldGlade(x,z),tone=fieldTone(x,z),tallf=fieldTall(x,z),dens=forestDensity(alt,moist,slope,L,clump,glade);
+  clump=fieldClump(x,z),glade=fieldGlade(x,z),tone=fieldTone(x,z),tallf=fieldTall(x,z),dens=forestDensity(alt,moist,slope,L,clump,glade)*(1-.85*open);
  const dry=clamp01((.56-moist)*3+(.5-tone)*.9+sunny*.3),lush=clamp01((moist-.5)*2.2+wet*.4+dens*.5+(tone-.5)*.6-dry*.3),coast=smooth(.9,.1,L);
  E.wet=wet;E.moist=moist;E.dens=dens;E.dry=dry;E.lush=lush;
  E.bare=smooth(.66,.78,fieldBare(x,z))*(.45+.55*dry)*(1-dens)*(slope>=2?1:.7)*(alt>4?1:0);
@@ -387,13 +430,13 @@ function growVegetation(write,leaf,x0,z0){
   if(vista&&Math.hypot(tx-vista.x,tz-vista.z)<8)continue;growShrub(write,leaf,tx,ci.h[k],tz,treeRng(tx,tz,2),tx*3+tz*7)}
  for(const e of el)growGiant(write,leaf,e)}
 function columnInfo(cx,cz){const key=cx+','+cz;let c=columns.get(key);if(c)return c;
- const x0=cx*CHUNK,z0=cz*CHUNK,P=CHUNK+2,hh=new Int16Array(P*P),ll=VEG?new Float32Array(P*P):null;
- for(let j=0;j<P;j++)for(let i=0;i<P;i++){hh[j*P+i]=height4(x0+i-1,z0+j-1);if(ll)ll[j*P+i]=gLand}
+ const x0=cx*CHUNK,z0=cz*CHUNK,P=CHUNK+2,hh=new Int16Array(P*P),ll=VEG?new Float32Array(P*P):null,oo=VEG?new Float32Array(P*P):null;
+ for(let j=0;j<P;j++)for(let i=0;i<P;i++){hh[j*P+i]=height4(x0+i-1,z0+j-1);if(ll){ll[j*P+i]=gLand;oo[j*P+i]=gOpen}}
  c={h:new Int16Array(256),surf:new Uint8Array(256),slope:new Uint8Array(256),hum:new Float32Array(256),birch:new Float32Array(256)};
  if(VEG)for(const n of['dens','shrub','gd','tl','dry','lush','fc'])c[n]=new Float32Array(256),c.fp=new Uint8Array(256);
  for(let z=0;z<16;z++)for(let x=0;x<16;x++){const k=z*16+x,p=(z+1)*P+x+1,h=hh[p],s=Math.max(Math.abs(h-hh[p-1]),Math.abs(h-hh[p+1]),Math.abs(h-hh[p-P]),Math.abs(h-hh[p+P]));
   c.h[k]=h;c.slope[k]=Math.min(255,s);c.hum[k]=humidity(x0+x,z0+z);c.birch[k]=birchiness(x0+x,z0+z);c.surf[k]=surface4(x0+x,z0+z,h,s);
-  if(VEG){vegEnv(x0+x,z0+z,h,s,Math.max(-1,Math.min(1,(hh[p-P]-hh[p+P])*.35)),ll[p],c.hum[k]);
+  if(VEG){vegEnv(x0+x,z0+z,h,s,Math.max(-1,Math.min(1,(hh[p-P]-hh[p+P])*.35)),ll[p],c.hum[k],oo[p]);
    c.dens[k]=E.dens;c.shrub[k]=E.shrub;c.gd[k]=E.gd;c.tl[k]=E.tl;c.dry[k]=E.dry;c.lush[k]=E.lush;c.fc[k]=E.fc;c.fp[k]=E.fp;if(c.surf[k]===1&&E.bare>.4)c.surf[k]=2}}
  columns.set(key,c);return c}
 // The scenic evaluation point: a hill near the coast that sees both open sea and high mountains.
@@ -405,7 +448,9 @@ function findVista(){
   const x=gx+i*S,z=gz+j*S;if(Math.abs(x-ORIGIN)>300||Math.abs(z-ORIGIN)>320)continue;
   const k=j*N+i,h=g[k],alt=h-SEA;if(alt<10||alt>58)continue;
   if(Math.max(Math.abs(g[k-1]-h),Math.abs(g[k+1]-h),Math.abs(g[k-N]-h),Math.abs(g[k+N]-h))>9)continue;
-  const eye=h+4;let fb=0;
+  const eye=h+4;let fb=0,cb=0;
+  // v6: a clifftop shelf (a sharp drop with sea behind it) or a river plain below gives the view depth in the foreground.
+  if(SCENIC){for(const [a,b] of[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const d1=h-g[k+a+b*N],d2=h-g[k+2*(a+b*N)];let sea=0;for(let r=3;r<=8;r++)if(g[k+r*(a+b*N)]<SEA-2)sea++;if(Math.max(d1,d2)>=12&&sea>=3)cb=Math.max(cb,Math.min(30,Math.max(d1,d2))+sea*2)}}
   if(VEG){for(let a=0;a<8;a++){flowerPatches(x+Math.round(Math.cos(a*.785)*22),z+Math.round(Math.sin(a*.785)*22));fb+=FP.cov}fb*=1-smooth(.5,.64,humidity(x,z))}
   for(let d=0;d<dirs;d++){const a=d*Math.PI*2/dirs,sx=Math.sin(a),sz=Math.cos(a);let maxA=-1e9;sea[d]=0;mt[d]=0;
    for(let r=1;r<N;r++){const ii=Math.round(i+sx*r),jj=Math.round(j+sz*r);if(ii<0||jj<0||ii>=N||jj>=N)break;
@@ -413,11 +458,59 @@ function findVista(){
     if(ang>=maxA){if(hh<SEA-3&&dist>40)sea[d]+=1;if(hh>SEA+55&&dist>90)mt[d]+=(hh-SEA)/90}
     if(ang>maxA)maxA=ang}}
   for(let c=0;c<dirs;c++){let sv=0,mv=0;for(let o=-2;o<=2;o++){const q=(c+o+dirs)%dirs;sv+=sea[q];mv+=mt[q]}
-   const score=Math.min(sv,mv*3)*2+Math.min(sv,40)*.4+mv*1.5+alt*.14-Math.hypot(x-ORIGIN,z-ORIGIN)*.004-smooth(.5,.64,humidity(x,z))*4+fb*1.2;
+   let score=Math.min(sv,mv*3)*2+Math.min(sv,40)*.4+mv*1.5+alt*.14-Math.hypot(x-ORIGIN,z-ORIGIN)*.004-smooth(.5,.64,humidity(x,z))*4+fb*1.2+cb*.55;
+   if(SCENIC&&(!best||score>best.score-30)){const hv=height4(x,z);vegEnv(x,z,hv,0,0,gLand,humidity(x,z),gOpen);score-=E.dens*16}
    if(!best||score>best.score)best={score,x,z,h,yaw:c*Math.PI*2/dirs}}}
  if(!best){for(let r=0;r<N/2&&!best;r++)for(let j=(N>>1)-r;j<=(N>>1)+r&&!best;j++)for(let i=(N>>1)-r;i<=(N>>1)+r;i++)if(g[j*N+i]>SEA+2){best={x:gx+i*S,z:gz+j*S,h:g[j*N+i],yaw:Math.PI/2};break}}
  if(!best)best={x:ORIGIN,z:ORIGIN,h:height4(ORIGIN,ORIGIN),yaw:Math.PI/2};
  const h=height4(best.x,best.z);return{x:best.x,z:best.z,yaw:best.yaw,eye:Math.max(h,SEA)+7.5}}
+// ---- Scenic spot finder (v6). Rates a coarse height grid for four kinds of view and returns the best spots of each kind,
+// refined on the exact terrain. Pure function of the seed, so every device finds the same places; the game runs it frame-sliced.
+const SPOT_KINDS={cliff:'海辺の崖',summit:'山頂',valley:'谷',river:'川沿いの平原'};
+function* scanSpots(out){
+ const S=24,X0=96,Z0=96,NX=Math.floor((1560-X0)/S)+1,NZ=Math.floor((W-96-Z0)/S)+1,g=new Int16Array(NX*NZ);
+ for(let j=0;j<NZ;j++){for(let i=0;i<NX;i++)g[j*NX+i]=height4(X0+i*S,Z0+j*S);yield}
+ const at=(i,j)=>i<0||j<0||i>=NX||j>=NZ?SEA-30:g[j*NX+i],D8=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]],cand={cliff:[],summit:[],valley:[],river:[]};
+ for(let j=4;j<NZ-4;j++){for(let i=4;i<NX-4;i++){
+  const h=g[j*NX+i],alt=h-SEA,x=X0+i*S,z=Z0+j*S;if(alt<2)continue;
+  let lo=1e9,hi=-1e9;for(let b=-3;b<=3;b++)for(let a=-3;a<=3;a++){const q=at(i+a,j+b);if(q<lo)lo=q;if(q>hi)hi=q}
+  // Summit: the highest point within ~3 cells with a deep drop all round.
+  if(alt>=68&&h>=hi){let prom=1e9,open=0;for(const [a,b] of D8){prom=Math.min(prom,h-at(i+a*8,j+b*8));if(h-at(i+a*12,j+b*12)>22)open++}
+   if(prom>=26)cand.summit.push({kind:'summit',x,z,score:prom*1.1+alt*.45+open*5,yaw:0})}
+  // Sea cliff: a high shelf whose edge drops 12+ blocks within a cell or two, with open sea beyond.
+  if(alt>=11&&alt<=64){let bd=-1,bs=0;for(let d=0;d<8;d++){const [a,b]=D8[d],n=Math.hypot(a,b),d1=h-at(i+a,j+b),d2=h-at(i+a*2,j+b*2);let sea=0;for(let r=3;r<=8;r++)if(at(i+a*r,j+b*r)<SEA-2)sea++;
+    if(Math.max(d1,d2)>=12&&sea>=3){const sc=Math.max(d1,d2)*1.2+sea*3+(n>1?-2:0);if(sc>bs){bs=sc;bd=d}}}
+   if(bd>=0&&hi-lo<80)cand.cliff.push({kind:'cliff',x,z,score:bs+alt*.25,yaw:Math.atan2(D8[bd][0],D8[bd][1])})}
+  // Valley: low ground with walls on both sides, running on for a long way.
+  if(alt<=44&&hi-lo>=32){let bs=0,by=0;for(let d=0;d<4;d++){const [a,b]=D8[d],pa=-b,pb=a;
+    const wl=Math.min(at(i+pa*3,j+pb*3),at(i-pa*3,j-pb*3))-h,wf=Math.min(at(i+pa*4,j+pb*4),at(i-pa*4,j-pb*4))-h;
+    let run=0;for(let r=1;r<=6;r++){if(Math.abs(at(i+a*r,j+b*r)-h)<=22&&Math.abs(at(i-a*r,j-b*r)-h)<=22)run++;else break}
+    if(wl>=22&&wf>=26&&run>=4){const sc=Math.min(wl,70)*.7+run*3+(wf>=wl?3:0);if(sc>bs){bs=sc;by=d}}}
+   if(bs>0){let w=0;for(let r=1;r<=3;r++)for(const [a,b] of D8)if(at(i+a*r,j+b*r)<SEA)w++;
+    const [a,b]=D8[by],e1=at(i+a*6,j+b*6),e2=at(i-a*6,j-b*6),dir=e1<=e2?1:-1;cand.valley.push({kind:'valley',x,z,score:bs+Math.min(w,8)*2.5,yaw:Math.atan2(a*dir,b*dir)})}}
+  // River plain: broad flat meadow beside a river, with mountains somewhere behind it.
+  if(alt>=3&&alt<=12&&hi-lo<=16){let w=0,wd=0;for(let r=1;r<=3;r++)for(const [a,b] of D8)if(at(i+a*r,j+b*r)<SEA-1){w++;wd=r}
+   if(w>=2){let flat=0;for(let d=0;d<8;d++){let ok=0;for(let r=2;r<=6;r++)if(Math.abs(at(i+D8[d][0]*r,j+D8[d][1]*r)-h)<=7)ok++;flat+=ok}
+    let mt=-1e9,my=0;for(let d=0;d<8;d++)for(let r=8;r<=14;r+=2){const q=at(i+D8[d][0]*r,j+D8[d][1]*r);if(q>mt){mt=q;my=d}}
+    if(flat>=24&&mt-h>=22){cand.river.push({kind:'river',x,z,score:flat*.5+Math.min(w,8)*1.2+Math.min(mt-h,90)*.15,yaw:Math.atan2(D8[my][0],D8[my][1])})}}}}
+  yield}
+ // Best of each kind: refine the top candidates on the exact terrain (summit top, cliff edge, a clearing without trees), re-rate, keep three per kind 260+ blocks apart.
+ const res=[],dens=(x,z)=>{const h=height4(x,z);vegEnv(x,z,h,0,0,gLand,humidity(x,z),gOpen);return E.dens};
+ for(const kind of Object.keys(cand)){const list=cand[kind].sort((a,b)=>b.score-a.score).slice(0,16),ref=[];
+  for(const c of list){let bx=c.x,bz=c.z,bh=height4(bx,bz),yaw=c.yaw;
+   if(kind==='summit'){for(let it=0;it<10;it++){let moved=false;for(const [a,b] of D8){const nh=height4(bx+a*4,bz+b*4);if(nh>bh){bh=nh;bx+=a*4;bz+=b*4;moved=true;break}}if(!moved)break}}
+   else if(kind==='cliff'){const dx=Math.sin(yaw),dz=Math.cos(yaw);for(let t=0;t<40;t+=2){const nx=Math.round(bx+dx*2),nz=Math.round(bz+dz*2),nh=height4(nx,nz);if(nh<bh-3){bx-=Math.round(dx*8);bz-=Math.round(dz*8);bh=height4(bx,bz);break}bx=nx;bz=nz;bh=nh}}
+   // A clearing nearby: the least wooded point of a small ring that keeps the height of the spot.
+   let bd=dens(bx,bz),px=bx,pz=bz;
+   for(let r=8;r<=24&&bd>.12;r+=8)for(let d=0;d<8;d++){const x=Math.round(bx+Math.cos(d*.785)*r),z=Math.round(bz+Math.sin(d*.785)*r),h=height4(x,z);
+    if(Math.abs(h-bh)>(kind==='summit'?3:4)||(kind==='river'&&(h<SEA+3||h>SEA+12)))continue;const q=dens(x,z);if(q<bd){bd=q;px=x;pz=z}}
+   ref.push({kind,x:px,z:pz,yaw,h:height4(px,pz),score:c.score-bd*45,dens:bd})}
+  ref.sort((a,b)=>b.score-a.score);const keep=[];
+  for(const c of ref){if(keep.length>=3)break;if(c.dens<=.5&&keep.every(k=>Math.hypot(k.x-c.x,k.z-c.z)>260))keep.push(c)}
+  for(const c of keep){
+   if(kind==='summit'){let bestA=-1e9,bestY=0;for(let d=0;d<16;d++){const a=d*Math.PI/8;let sc=0;for(let r=60;r<=500;r+=40){const q=height4(Math.round(c.x+Math.sin(a)*r),Math.round(c.z+Math.cos(a)*r));sc+=q<SEA?1.5:Math.max(-.5,(c.h-q)/60)}if(sc>bestA){bestA=sc;bestY=a}}c.yaw=bestY}
+   res.push(c)}}
+ out.spots=res;out.done=true}
 const vista=GRAND?findVista():null;
 function voxelChunk(cx,cz){const key=cx+','+cz;let data=blocks.get(key);if(data)return data;data=generateChunk(cx,cz);
  const list=changeIndex.get(key);if(list)for(const i of list){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));data[localIdx(x,y,z)]=changes.get(i)}
@@ -440,7 +533,7 @@ function generateChunk(cx,cz){
  if(GRAND){
   const info=columnInfo(cx,cz);
   for(let lz=0;lz<16;lz++)for(let lx=0;lx<16;lx++){const k=lz*16+lx,h=info.h[k],top=info.surf[k],sub=top===1||top===2?2:top===6?6:3;
-   data[k]=11;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-4?sub:3;for(let y=h+1;y<=SEA;y++)data[y*256+k]=10}
+   data[k]=11;const soil=SCENIC&&info.slope[k]>=2?2:4;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-soil?sub:3;for(let y=h+1;y<=SEA;y++)data[y*256+k]=10}
   if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);return data}
   // One tree candidate per 5x5 cell; canopies reach three blocks into neighbouring chunks.
   for(let i=Math.floor((x0-3)/5);i<=Math.floor((x0+CHUNK+2)/5);i++)for(let j=Math.floor((z0-3)/5);j<=Math.floor((z0+CHUNK+2)/5);j++){
@@ -773,7 +866,7 @@ const LOG_TOP=rgb('#b9955d'),BIRCH_TOP=rgb('#d8cfa8'),WHITE=[1,1,1];
 // exposure to the open sea, and river flow. Only the mesh changes; terrain, water and saves are untouched.
 const WR=4,WG=CHUNK+2*WR,wLand=new Uint8Array(WG*WG),wDep=new Float32Array(WG*WG),wSand=new Float32Array(WG*WG),wLg=new Float32Array(9);
 const WC=CHUNK+1,wf={dep:new Float32Array(WC*WC),shore:new Float32Array(WC*WC),sand:new Float32Array(WC*WC),ex:new Float32Array(WC*WC),fx:new Float32Array(WC*WC),fz:new Float32Array(WC*WC)};
-function riverField(x,z){const wx=x+62*fbm(x/530+11.3,z/530+4.1,3),wz=z+62*fbm(x/530+71.9,z/530+23.7,3);return pn(wx/820+17.7,wz/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8)}
+function riverField(x,z){return rvf(x+62*fbm(x/530+11.3,z/530+4.1,3),z+62*fbm(x/530+71.9,z/530+23.7,3))}
 // Rivers in GRAND worlds follow zero lines of riverField (see height4): flow runs along the line, toward the east coast,
 // faster where the channel is narrow, and fades out into the sea at the mouth.
 function riverFlow(x,z,L,out){out[0]=out[1]=0;const rm=smooth(-.12,.18,pn(x/900+60.1,z/900+12.3));if(rm<=0)return;
@@ -885,10 +978,10 @@ const WATER_DEEP=[1,0,0];
 const STONE=defsRGB[3],DIRT=[.49,.36,.24],SAND=defsRGB[6],SNOW=defsRGB[12],CANOPY=[0,5,7,6,8,2];
 // Pure tile mesher: writes vertices into lw and returns bounds. Runs on the main thread or inside the LOD worker.
 function* tileMesh(s,x0,z0){
- const N=LOD_N,n=N+2,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n),ls=new Float32Array(n*n);
+ const N=LOD_N,n=N+2,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n),ls=new Float32Array(n*n),os=new Float32Array(n*n);
  for(let j=0;j<n;j++){for(let i=0;i<n;i++){const x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1),k=j*n+i;
    if(x<0||z<0||x>=W||z>=W){hs[k]=VOID;continue}
-   if(GRAND){hs[k]=height4(x,z);ls[k]=gLand;hum[k]=humidity(x,z);bir[k]=birchiness(x,z)}else hs[k]=height(x,z)}
+   if(GRAND){hs[k]=height4(x,z);ls[k]=gLand;os[k]=gOpen;hum[k]=humidity(x,z);bir[k]=birchiness(x,z)}else hs[k]=height(x,z)}
   if((j&3)===3)yield}
  const top=new Float32Array(n*n),gnd=new Float32Array(n*n),surf=new Uint8Array(n*n),can=new Uint8Array(n*n),dp=new Float32Array(n*n),sd=new Float32Array(n*n),tc=[],lc=[];
  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i,h=hs[k],x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1);
@@ -897,7 +990,7 @@ function* tileMesh(s,x0,z0){
   let su=GRAND?surface4(x,z,h,Math.round(slope*1.5)):h<=SEA+1?6:1,c=0;
   if(VEG){
    // Same environment as the near field: forest density decides how many cells carry a canopy, flower patches tint the turf.
-   const alt=h-SEA;vegEnv(x,z,h,Math.round(slope),0,ls[k],hum[k]);if(su===1&&E.bare>.4)su=2;surf[k]=su;
+   const alt=h-SEA;vegEnv(x,z,h,Math.round(slope),0,ls[k],hum[k],os[k]);if(su===1&&E.bare>.4)su=2;surf[k]=su;
    tc[k]=su===1?mix3(grassColor5(alt,E.dry,E.lush),VEGK.PALMEAN[E.fp],Math.min(.55,E.fc*.6)):su===2?DIRT:su===6?SAND:su===12?SNOW:STONE;
    if(su===1){const tp=Math.pow(E.dens,1.15)*.8;
     if(rand(x*13+5,z*7+3)<1-Math.exp(-tp*1.55)){const R=treeRng(x,z,5),sp=pickSpecies(alt,bir[k],R(),R()),A=treeAge(R);
@@ -952,11 +1045,11 @@ function lodVisit(size,x0,z0,F){
 // ---- LOD worker: tile meshes are built off the main thread when Workers are available (falls back to frame-sliced generators).
 function lodWorkerSource(){
  const k=v=>JSON.stringify(v);
- return `'use strict';const W=${W},H=${H},SEA=${SEA},ORIGIN=${ORIGIN},GRAND=${GRAND},VEG=${VEG},terrainVersion=${terrainVersion},seed=${k(seed)},LOD_N=${LOD_N},VOID=${VOID};
+ return `'use strict';const W=${W},H=${H},SEA=${SEA},ORIGIN=${ORIGIN},GRAND=${GRAND},VEG=${VEG},SCENIC=${SCENIC},terrainVersion=${terrainVersion},seed=${k(seed)},LOD_N=${LOD_N},VOID=${VOID};
 const perm=new Uint8Array(${k(Array.from(perm))}),defsRGB=${k(defsRGB)},CANOPY=${k(CANOPY)},STONE=${k(STONE)},DIRT=${k(DIRT)},SAND=${k(SAND)},SNOW=${k(SNOW)},WATER_DEEP=${k(WATER_DEEP)};
-const smooth=${smooth},mix3=${mix3},clamp01=${clamp01},f01=${f01},VEGK=${k(VEGK)},E=${k(E)},FP=${k(FP)};let gLand=0,gMount=0;
+const smooth=${smooth},mix3=${mix3},clamp01=${clamp01},f01=${f01},VEGK=${k(VEGK)},E=${k(E)},FP=${k(FP)};let gLand=0,gMount=0,gOpen=0;const PKC=new Float64Array(8*8*5).fill(NaN);
 const lw={buf:new ArrayBuffer(1<<20),n:0};lw.i16=new Int16Array(lw.buf);lw.u8=new Uint8Array(lw.buf);
-${[rand,noise,height,grad,pn,fbm,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,lgrow,lvert,tileMesh,
+${[rand,noise,height,grad,pn,fbm,rvf,peakBoost,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,lgrow,lvert,tileMesh,
  fieldClump,fieldGlade,fieldTone,fieldTall,fieldBare,forestDensity,grassColor5,leafColor5,flowerPatches,palettePick,vegEnv,pickSpecies,treeRng,treeAge].join('\n')}
 onmessage=e=>{const{id,step,x0,z0}=e.data,it=tileMesh(step,x0,z0);let r;while(!(r=it.next()).done);const bytes=lw.u8.slice(0,lw.n*12);postMessage({id,bytes,r:r.value},[bytes.buffer])};`}
 let lodWorker=null,lodPending=new Map(),lodNextId=1;
@@ -1020,7 +1113,7 @@ function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInp
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
 function play(){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
 function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
-$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(!confirm('今の世界を消して新しく作りますか？'))return;
+$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(!confirm('今の世界を消して新しく作りますか？'))return;
  // Prevent blur/visibilitychange/pagehide from restoring the deleted world while navigating.
  resettingWorld=true;
  try{localStorage.removeItem(KEY)}catch(e){resettingWorld=false;toast('セーブを消去できません。ブラウザの保存設定を確認してください');return}
@@ -1040,6 +1133,20 @@ window.addEventListener('pagehide',()=>{clearInput();save()});
 window.addEventListener('pageshow',()=>{suspended=false;clearInput();last=performance.now()});
 // Dynamic geometry uses the same pixel materials as the terrain.
 let swing=0,walkPhase=0;const particles=[],cows=[];
+// "絶景スポットへ": the title button cycles through the best cliffs, summits, valleys and river plains of this world.
+let spotList=null,spotIdx=-1,spotBusy=false;
+function nextSpot(){
+ if(!GRAND||spotBusy)return;
+ if(!spotList){spotBusy=true;const out={},it=scanSpots(out),btn=$('spots');btn.textContent='探索中…';
+  const step=()=>{const t0=performance.now();try{while(performance.now()-t0<8)if(it.next().done){
+    // Interleave the kinds so consecutive presses show different landscapes.
+    const kinds=['cliff','summit','valley','river'].map(k=>out.spots.filter(s=>s.kind===k));spotList=[];for(let i=0;i<3;i++)for(const l of kinds)if(l[i])spotList.push(l[i]);
+    spotBusy=false;btn.textContent='絶景スポットへ';return nextSpot()}}catch(e){console.warn('Spot search failed:',e);spotBusy=false;btn.textContent='絶景スポットへ';return}
+   setTimeout(step,0)};step();return}
+ if(!spotList.length){toast('この世界では絶景スポットが見つかりませんでした');return}
+ spotIdx=(spotIdx+1)%spotList.length;const s=spotList[spotIdx];
+ flying=false;player.x=s.x+.5;player.z=s.z+.5;player.y=surface(s.x,s.z)+.02;vy=0;yaw=s.yaw;pitch=-.1;streamChunks(true);dirty=true;play();
+ toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${SPOT_KINDS[s.kind]}（標高${s.h-SEA}m）`)}
 function surface(x,z,from=H-3){for(let y=Math.min(H-3,Math.floor(from));y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
 {const cx0=vista?vista.x-10:ORIGIN-7,cz0=vista?vista.z-10:ORIGIN-3;for(let i=0;i<300&&cows.length<7;i++){let x=cx0+rand(i,321)*22,z=cz0+rand(i,632)*21,y=surface(x,z);if(Math.hypot(x-player.x,z-player.z)>3&&cows.every(c=>Math.hypot(c.x-x,c.z-z)>2)&&y>SEA+1&&y<H-5&&get(Math.floor(x),y-1,Math.floor(z))===1&&cowFits(x,y,z))cows.push({x,y,z,angle:rand(i,13)*6.28,phase:i,wait:0})}}

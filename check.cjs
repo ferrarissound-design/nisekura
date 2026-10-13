@@ -10,9 +10,9 @@ function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)
 // ---- New GRAND VISTA world: basics, saves, physics.
 const t0=Date.now();const a=boot();console.log(`boot new world: ${Date.now()-t0} ms`);
 assert(a.triangles>0);assert(!a.api.collides(a.api.player),'spawn must be clear');assert.equal(a.api.get(32,0,32),11);assert(a.api.collides({x:32.5,y:.5,z:32.5}));assert(a.api.collides({x:-1,y:25,z:30}));
-assert.equal(run(a,'terrainVersion'),5);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
+assert.equal(run(a,'terrainVersion'),6);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
 a.api.edit(30,30,30,8);assert(a.api.save());const b=boot(a.storage['nisekura-v1']);assert.equal(b.api.get(30,30,30),8,'world edit survives reload');assert(!b.api.collides(b.api.player));
-assert.equal(run(b,'terrainVersion'),5,'v5 save reloads as v5');
+assert.equal(run(b,'terrainVersion'),6,'v6 save reloads as v6');
 run(b,'paused=false;for(let i=0;i<120;i++)update(1/60)');assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(run(b,'ground'));
 console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
@@ -42,9 +42,10 @@ assert(Math.abs(a.api.player.x-(V.x+.5))<1e-9&&Math.abs(a.api.player.z-(V.z+.5))
 assert(a.api.player.y>run(a,'SEA')+8,'vista is a hill above the sea');
 let peak=0,ocean=0,inland=0,cells=0;for(let x=64;x<2048;x+=32)for(let z=64;z<2048;z+=32){const h=a.api.height(x,z);cells++;peak=Math.max(peak,h);if(h<62){if(run(a,'gLand')>0)inland++;else ocean++}}
 assert(peak>62+90,`high mountains exist (peak ${peak})`);assert(ocean/cells>.2,'large ocean');assert(inland>3,'rivers or lakes inland');
-let logs=0,leaves=0,sand=0,snow=0;for(let x=V.x-60;x<V.x+60;x+=2)for(let z=V.z-60;z<V.z+60;z+=2)for(let y=55;y<150;y++){const t=a.api.get(x,y,z);if(t===4||t===13)logs++;if(t===5||t===14||t===15||t===16)leaves++;if(t===6)sand++}
+let logs=0,leaves=0,sand=0,snow=0;for(let x=V.x-60;x<V.x+60;x+=2)for(let z=V.z-60;z<V.z+60;z+=2)for(let y=55;y<150;y++){const t=a.api.get(x,y,z);if(t===4||t===13)logs++;if(t===5||t===14||t===15||t===16)leaves++}
+for(let x=V.x-220;x<V.x+220;x+=4)for(let z=V.z-220;z<V.z+220;z+=4)for(let y=58;y<70;y++)if(a.api.get(x,y,z)===6)sand++;
 for(let x=0;x<2048&&!snow;x+=16)for(let z=0;z<2048;z+=16)if(a.api.height(x,z)>62+100){snow++;break}
-assert(logs>20&&leaves>200,'trees near the vista');assert(sand>0,'beach or riverbank sand near the vista');assert(snow>0,'snow-capped peaks exist');
+assert(logs>20&&leaves>200,'trees near the vista');assert(sand>0,'beach or riverbank sand within view of the vista');assert(snow>0,'snow-capped peaks exist');
 let clear=true;for(let x=V.x-5;x<=V.x+5;x++)for(let z=V.z-5;z<=V.z+5;z++)for(let y=Math.floor(a.api.player.y);y<Math.floor(a.api.player.y)+8;y++)if(a.api.get(x,y,z)===4)clear=false;assert(clear,'vista hilltop is clear of trunks');
 console.log(`PASS: vista (${V.x},${V.z}), peak ${peak}, ocean ${(ocean/cells*100).toFixed(0)}%, inland water cells ${inland}, trees, beaches, snow`);
 
@@ -104,7 +105,7 @@ resetTest.windowEvents.pagehide();
 assert.equal(resetTest.storage['nisekura-v1'],undefined,'unload callbacks must not restore deleted saves');
 assert.equal(run(resetTest,'save()'),false,'autosave must remain disabled until navigation completes');
 const afterReset=boot(resetTest.storage['nisekura-v1']);
-assert.equal(run(afterReset,'terrainVersion'),5,'reset must activate new terrain generator');
+assert.equal(run(afterReset,'terrainVersion'),6,'reset must activate new terrain generator');
 assert.equal(run(afterReset,'SEA'),62,'new world sea level is 62');
 assert.equal(run(afterReset,'H'),192,'new world height is 192');
 console.log('PASS: new world reset survives blur, visibility and pagehide without resurrecting legacy terrain');
@@ -252,22 +253,26 @@ console.log('PASS: touch stick/cancel, mining/placing/ascent/descent holds, lost
 {const d=boot(),SEA=run(d,'SEA'),V=d.api.vista;
  const waterOf=(cx,cz)=>{run(d,`rebuild(${cx},${cz})`);return JSON.parse(run(d,'JSON.stringify({w:Array.from(waterW.a.subarray(0,waterW.n)),o:Array.from(opaqueW.a.subarray(0,opaqueW.n))})'))};
  // A coastal chunk east of the vista: sea and land in the same chunk.
- let coast=null;for(let x=V.x;x<V.x+700&&!coast;x+=16){const a=d.api.height(x,V.z),b=d.api.height(x+15,V.z);if(a>=SEA&&b<SEA)coast=[x>>4,V.z>>4]}
- assert(coast,'coastal chunk found');const {w,o}=waterOf(...coast);
- const corners=new Map();let near1=0,far0=0,tops=0;
- for(let i=0;i<w.length;i+=9){if(Math.floor(w[i+8]/32)!==2)continue;tops++;const key=w[i]+','+w[i+2],val=[w[i+3],w[i+4],w[i+5],w[i+6],w[i+7],w[i+8]%1].map(v=>v.toFixed(5)).join();
-  if(corners.has(key))assert.equal(corners.get(key),val,'water data is continuous across blocks at '+key);else corners.set(key,val);
-  const x=w[i],z=w[i+2],land=[[0,0],[-1,0],[0,-1],[-1,-1]].some(([dx,dz])=>d.api.get(x+dx,SEA,z+dz)!==10&&d.api.get(x+dx,SEA,z+dz)!==0);
-  if(land){assert.equal(w[i+4],1,'corners touching land have shore nearness 1');near1++}
-  let open=true;for(let dx=-5;dx<5&&open;dx++)for(let dz=-5;dz<5;dz++){const t=d.api.get(x+dx,SEA,z+dz);if(t!==10&&t!==0){open=false;break}}
-  if(open){assert.equal(w[i+4],0,'no shore foam data far from land');far0++}}
- assert(tops>0&&near1>0&&far0>0,'coastal chunk has shore and open-water corners');
+ const analyse=cc=>{const {w,o}=waterOf(...cc),corners=new Map();let near1=0,far0=0,tops=0;
+  for(let i=0;i<w.length;i+=9){if(Math.floor(w[i+8]/32)!==2)continue;tops++;const key=w[i]+','+w[i+2],val=[w[i+3],w[i+4],w[i+5],w[i+6],w[i+7],w[i+8]%1].map(v=>v.toFixed(5)).join();
+   if(corners.has(key))assert.equal(corners.get(key),val,'water data is continuous across blocks at '+key);else corners.set(key,val);
+   const x=w[i],z=w[i+2],land=[[0,0],[-1,0],[0,-1],[-1,-1]].some(([dx,dz])=>d.api.get(x+dx,SEA,z+dz)!==10&&d.api.get(x+dx,SEA,z+dz)!==0);
+   if(land){assert.equal(w[i+4],1,'corners touching land have shore nearness 1');near1++}
+   let open=true;for(let dx=-5;dx<5&&open;dx++)for(let dz=-5;dz<5;dz++){const t=d.api.get(x+dx,SEA,z+dz);if(t!==10&&t!==0){open=false;break}}
+   if(open){assert.equal(w[i+4],0,'no shore foam data far from land');far0++}}
+  return{w,o,corners,near1,far0,tops}};
+ // A coastal chunk with both a shoreline and open water in it (sea cliffs make some coasts all-or-nothing, so look along the coast).
+ let coast=null,res=null;for(let dz=0;dz<40&&!coast;dz++)for(let x=V.x;x<V.x+700&&!coast;x+=16){const z=V.z+((dz&1)?-1:1)*Math.ceil(dz/2)*16,a=d.api.height(x,z),b=d.api.height(x+15,z);
+  if(a>=SEA&&b<SEA){const r=analyse([x>>4,z>>4]);if(r.tops>0&&r.near1>0&&r.far0>0){coast=[x>>4,z>>4];res=r}}}
+ assert(coast,'coastal chunk with shore and open water found');const {w,o,corners,near1,far0,tops}=res;
  // Wet flag: faces touching water (sea bed) carry +512; nothing above the water does.
  let wet=0;for(let i=0;i<o.length;i+=9)if(o[i+8]>=512){wet++;assert(o[i+1]<=SEA+1,'wet faces lie under the water surface')}assert(wet>0,'sea bed faces are flagged wet');
  // River: water flows (non-zero uv) toward the east; the open sea does not flow.
- const fl=JSON.parse(run(d,'(()=>{const o=[0,0];riverFlow(978,820,2.5,o);const a=[o[0],o[1]];riverFlow(1500,768,-1,o);return JSON.stringify([a,[o[0],o[1]]])})()'));
- assert(fl[0][0]>.2&&Math.hypot(...fl[0])<=1.5,'river flows downstream (east) at a bounded speed');assert.equal(Math.hypot(...fl[1]),0,'open sea has no river flow');
- const rv=waterOf(978>>4,820>>4).w;let flowing=0;for(let i=0;i<rv.length;i+=9)if(Math.hypot(rv[i+6],rv[i+7])>.1)flowing++;assert(flowing>0,'river surface vertices carry flow');
+ // Find a river channel (water inland with flow) near the vista, then check its flow and that its chunk carries it.
+ const rp=JSON.parse(run(d,`(()=>{const o=[0,0];for(let r=8;r<700;r+=8)for(let a=0;a<24;a++){const x=Math.round(${V.x}+Math.cos(a*.26)*r),z=Math.round(${V.z}+Math.sin(a*.26)*r),h=height4(x,z);if(h>=SEA-1||gLand<.4)continue;riverFlow(x,z,gLand,o);if(Math.hypot(o[0],o[1])>.4)return JSON.stringify({x,z,f:[o[0],o[1]]})}return 'null'})()`));
+ assert(rp,'river found');const fl=[rp.f,JSON.parse(run(d,'(()=>{const o=[0,0];riverFlow(1500,768,-1,o);return JSON.stringify([o[0],o[1]])})()'))];
+ assert(fl[0][0]>.1&&Math.hypot(...fl[0])<=1.5,'river flows downstream (east) at a bounded speed');assert.equal(Math.hypot(...fl[1]),0,'open sea has no river flow');
+ const rv=waterOf(rp.x>>4,rp.z>>4).w;let flowing=0;for(let i=0;i<rv.length;i+=9)if(Math.hypot(rv[i+6],rv[i+7])>.1)flowing++;assert(flowing>0,'river surface vertices carry flow');
  // Far water: corners carry depth/40 and fade from shallow near land to deep offshore.
  const tile=JSON.parse(run(d,`(()=>{const it=tileMesh(16,${coast[0]*16-128},${coast[1]*16-256});while(!it.next().done);const r=[];for(let i=0;i<lw.n;i++){const m=lw.i16[i*6+3];if(m===17)r.push(lw.u8[i*12+8])}return JSON.stringify(r)})()`));
  assert(tile.length>0&&Math.min(...tile)<60&&Math.max(...tile)>120,'far water shades from shallow to deep');
@@ -279,3 +284,66 @@ console.log('PASS: touch stick/cancel, mining/placing/ascent/descent holds, lost
  const fp=()=>{let h=2166136261;for(let x=coast[0]*16;x<coast[0]*16+16;x++)for(let z=coast[1]*16;z<coast[1]*16+16;z++)for(let y=40;y<90;y++){h^=d.api.get(x,y,z);h=Math.imul(h,16777619)}return h>>>0};
  const f0=fp();waterOf(...coast);assert.equal(fp(),f0,'meshing water does not alter blocks');
  console.log(`PASS: water corners continuous (${corners.size}), shore ${near1}/open ${far0}, ${wet} wet faces, river flow ${fl[0].map(v=>v.toFixed(2))}, far water depth, lite shader fallback`)}
+
+// ---- Phase 8: scenic landforms (terrainVersion 6) and untouched v5 worlds.
+const SEA_=62;
+{// v5 worlds keep their exact terrain, blocks, meshes and far tiles (fingerprints recorded from v7.0 before the scenic update).
+ const v5=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:5,seed:73219,changes:[],inventory:{}}));
+ assert.equal(run(v5,'terrainVersion'),5);assert.equal(run(v5,'SCENIC'),false);
+ assert.equal(JSON.stringify(v5.api.vista),'{"x":992,"z":768,"yaw":0,"eye":122.5}','v5 vista unchanged');
+ assert.equal(run(v5,`(()=>{let h=2166136261;for(let x=64;x<2048;x+=37)for(let z=64;z<2048;z+=41){h^=height4(x,z);h=Math.imul(h,16777619)}return h>>>0})()`),1676993611,'v5 heights unchanged');
+ const blocks=[[960,704,64],[1100,500,64],[500,1500,64],[1180,900,64]].map(([x0,z0,n])=>{let h=2166136261;for(let x=x0;x<x0+n;x++)for(let z=z0;z<z0+n;z++)for(let y=30;y<180;y++){h^=v5.api.get(x,y,z);h=Math.imul(h,16777619)}return h>>>0});
+ assert.equal(JSON.stringify(blocks),'[3353232788,534966564,1278627299,1910027677]','v5 blocks unchanged');
+ const mesh=[[62,48],[56,62],[74,40]].map(([cx,cz])=>{run(v5,`rebuild(${cx},${cz})`);return JSON.parse(run(v5,`(()=>{let h=2166136261;for(const w of[opaqueW,waterW]){const a=w.a;for(let i=0;i<w.n;i++){h^=Math.round(a[i]*1000);h=Math.imul(h,16777619)}}return JSON.stringify({h:h>>>0,n:opaqueW.n+waterW.n})})()`))});
+ assert.equal(JSON.stringify(mesh),'[{"h":2349763090,"n":52380},{"h":3897508280,"n":43560},{"h":1921417758,"n":18864}]','v5 meshes unchanged');
+ const tile=[[8,512,1024],[2,960,704],[16,1536,0]].map(([s,x,z])=>JSON.parse(run(v5,`(()=>{const it=tileMesh(${s},${x},${z});let q;while(!(q=it.next()).done);let h=2166136261;for(let i=0;i<lw.n*12;i++){h^=lw.u8[i];h=Math.imul(h,16777619)}return JSON.stringify({h:h>>>0,n:lw.n})})()`)));
+ assert.equal(JSON.stringify(tile),'[{"h":4285102453,"n":13432},{"h":3205140737,"n":24396},{"h":402233311,"n":4196}]','v5 far tiles unchanged');
+ // The spot finder also works on old worlds, and a v5 save stays v5 after a reload.
+ assert(run(v5,'save()'));const again=boot(v5.storage['nisekura-v1']);assert.equal(run(again,'terrainVersion'),5,'v5 save stays v5');
+ console.log('PASS: v5 worlds keep identical terrain, blocks, near meshes and far tiles (saves stay on their generator)')}
+{const seeds=[73219,5,999,31337,424242],stat=[];
+ for(const sd of seeds){const w=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:6,seed:sd,changes:[],inventory:{}}));const R=c=>run(w,c);
+  assert.equal(R('SCENIC'),true);
+  // Coast: share of cliff vs beach shoreline; the share differs from world to world.
+  const co=JSON.parse(R(`(()=>{let n=0,cl=0,bc=0;for(let z=200;z<1850;z+=16){let x=1500,f=false;while(x>900){if(height4(x,z)>=SEA){f=true;break}x-=2}if(!f)continue;n++;const h0=height4(x,z);let rise=0;for(let d=2;d<=14;d+=2)rise=Math.max(rise,height4(x-d,z)-h0);if(rise>=9)cl++;else if(rise<=3)bc++}return JSON.stringify({n,cl:cl/n,bc:bc/n})})()`));
+  assert(co.cl>.05&&co.cl<.8,`seed ${sd}: sea cliffs on part of the coast (${(co.cl*100).toFixed(0)}%)`);assert(co.bc>.12,`seed ${sd}: beaches remain (${(co.bc*100).toFixed(0)}%)`);
+  // Terrain is continuous: no sheer walls from rings, island edges or cliff masks.
+  const md=R(`(()=>{let m=0;for(let x=170;x<1400;x+=5)for(let z=170;z<1880;z+=5){const h=height4(x,z);m=Math.max(m,Math.abs(h-height4(x+1,z)),Math.abs(h-height4(x,z+1)))}return m})()`);assert(md<=24,`seed ${sd}: steepest step ${md}`);
+  // Landmark peaks: at least one summit well above the treeline, and the highest point is bounded.
+  const top=R(`(()=>{let m=0;for(let x=170;x<1400;x+=8)for(let z=170;z<1880;z+=8)m=Math.max(m,height4(x,z));return m})()`);assert(top>=SEA_+95&&top<=182,`seed ${sd}: peaks reach y${top}`);
+  // River plains are open meadow: far fewer trees where the ground is kept open.
+  const op=JSON.parse(R(`(()=>{let n=0,s=0,m=0,k=0;for(let x=300;x<1250;x+=10)for(let z=300;z<1750;z+=10){const h=height4(x,z);if(h<SEA+3)continue;const o=gOpen,L=gLand;vegEnv(x,z,h,0,0,L,humidity(x,z),o);if(o>.6){n++;s+=E.dens}else if(L>.8&&h<SEA+14){k++;m+=E.dens}}return JSON.stringify({n,d:n?s/n:0,k,m:k?m/k:0})})()`));
+  if(op.n>5)assert(op.d<.35&&op.d<op.m*.7,`seed ${sd}: open ground is meadow (${op.d.toFixed(2)} vs ${op.m.toFixed(2)})`);
+  // Spots: found for every kind that the terrain offers, deterministic, spaced, in the world, open and on land.
+  const t0=Date.now(),sp=JSON.parse(R(`(()=>{const o={};const it=scanSpots(o);while(!it.next().done);return JSON.stringify(o.spots)})()`));const ms=Date.now()-t0;
+  const sp2=JSON.parse(R(`(()=>{const o={};const it=scanSpots(o);while(!it.next().done);return JSON.stringify(o.spots)})()`));assert.equal(JSON.stringify(sp),JSON.stringify(sp2),'spot search is deterministic');
+  const by=k=>sp.filter(s=>s.kind===k);assert(by('cliff').length>=1&&by('summit').length>=2&&by('valley').length>=1,`seed ${sd}: spots ${sp.map(s=>s.kind[0]).join('')}`);
+  for(const k of['cliff','summit','valley','river']){const l=by(k);for(let i=0;i<l.length;i++)for(let j=i+1;j<l.length;j++)assert(Math.hypot(l[i].x-l[j].x,l[i].z-l[j].z)>250,'spots of one kind are spread out')}
+  for(const s of sp){assert(s.x>0&&s.z>0&&s.x<2048&&s.z<2048&&s.h>=SEA_+1&&Number.isFinite(s.yaw),'spot is on land inside the world');assert(s.dens<=.5,'spot is not buried in forest')
+   const H_=(x,z)=>w.api.height(Math.round(x),Math.round(z));
+   if(s.kind==='summit'){assert(s.h>=SEA_+68);let low=0;for(let a=0;a<8;a++)if(s.h-H_(s.x+Math.cos(a*.785)*160,s.z+Math.sin(a*.785)*160)>=15)low++;assert(low>=6,'summit stands clear of its surroundings')}
+   if(s.kind==='cliff'){const dx=Math.sin(s.yaw),dz=Math.cos(s.yaw);let drop=0,sea=false;for(let r=8;r<=300;r+=8){const q=H_(s.x+dx*r,s.z+dz*r);if(r<=96)drop=Math.max(drop,s.h-q);if(q<SEA_-2)sea=true}assert(drop>=10&&sea,'cliff drops toward open sea')}
+   if(s.kind==='river'){let water=false;for(let r=8;r<=160&&!water;r+=8)for(let a=0;a<8;a++)if(H_(s.x+Math.cos(a*.785)*r,s.z+Math.sin(a*.785)*r)<SEA_-1)water=true;assert(water&&s.h-SEA_>=3&&s.h-SEA_<=12,'river plain lies beside water')}}
+  // The starting view: on land above the sea, not inside a forest.
+  const V=w.api.vista,vd=R(`(()=>{const h=height4(${V.x},${V.z});vegEnv(${V.x},${V.z},h,0,0,gLand,humidity(${V.x},${V.z}),gOpen);return E.dens})()`);assert(V.eye>SEA_+6&&vd<.6,`seed ${sd}: vista is open (density ${vd.toFixed(2)})`);
+  stat.push({sd,cl:co.cl,ms,spots:sp.length})}
+ assert(Math.max(...stat.map(s=>s.cl))-Math.min(...stat.map(s=>s.cl))>.15,'cliff share differs between worlds');
+ console.log(`PASS: scenic landforms over ${seeds.length} seeds: cliffs ${stat.map(s=>(s.cl*100).toFixed(0)+'%').join('/')}, spots ${stat.map(s=>s.spots).join('/')}, search ${Math.max(...stat.map(s=>s.ms))}ms max`)}
+
+{// "絶景スポットへ": cycles through the spots, always standing safely on open ground facing the view; legacy worlds are left alone.
+ const d=boot(),R=c=>run(d,c);R('paused=true');
+ const first=R('(()=>{nextSpot();return JSON.stringify({x:player.x,y:player.y,z:player.z,yaw,n:spotList.length,i:spotIdx,paused})})()');const f=JSON.parse(first);
+ assert(f.n>=8&&f.i===0&&f.paused===false,'first press searches and jumps to the first spot');
+ const seen=new Set();for(let i=0;i<f.n+2;i++){const s=JSON.parse(R('(()=>{const p=spotList[spotIdx];return JSON.stringify({kind:p.kind,x:p.x,z:p.z,px:player.x,py:player.y,pz:player.z,col:collides(player),flying})})()'));
+  assert(!s.col&&!s.flying&&Math.hypot(s.px-s.x-.5,s.pz-s.z-.5)<.01,'player stands at the spot without colliding');seen.add(s.kind);R('nextSpot()')}
+ assert.equal(seen.size,4,'all four kinds of spot are visited');assert.equal(R('spotIdx'),(f.n+2)%f.n,'spots cycle');
+ // Mined or placed blocks near a spot survive; the player's edits are not touched by the search.
+ d.api.edit(Math.floor(f.x),Math.floor(f.y)+3,Math.floor(f.z),8);assert.equal(d.api.get(Math.floor(f.x),Math.floor(f.y)+3,Math.floor(f.z)),8);
+ const v3=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:96,terrainVersion:3,seed:73219,changes:[],inventory:{}})),px=v3.api.player.x;run(v3,'nextSpot()');assert.equal(v3.api.player.x,px,'legacy worlds ignore the spot button');
+ const v4=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:4,seed:73219,changes:[],inventory:{}}));run(v4,'nextSpot()');assert(run(v4,'spotList.length')>0&&!v4.api.collides(v4.api.player),'older GRAND worlds get spots too');
+ // The far-field worker agrees with the main thread on the new landforms (sea cliff, landmark peak).
+ const src=R('lodWorkerSource()');let out=null;const wc={Math,Int16Array,Uint8Array,Float32Array,ArrayBuffer,JSON,Number,Array,postMessage:m=>out=m};vm.createContext(wc);vm.runInContext(src,wc);
+ for(const [step,x0,z0] of [[8,1024,512],[4,1152,1600],[8,768,512]]){wc.onmessage({data:{id:3,step,x0,z0}});
+  const main=JSON.parse(R(`(()=>{const it=tileMesh(${step},${x0},${z0});let r;while(!(r=it.next()).done);return JSON.stringify({r:r.value,b:Array.from(lw.u8.subarray(0,lw.n*12))})})()`));
+  assert.equal(JSON.stringify(out.r),JSON.stringify(main.r),'worker bounds match');assert.equal(out.bytes.length,main.b.length);for(let i=0;i<main.b.length;i+=53)assert.equal(out.bytes[i],main.b[i],'worker bytes match')}
+ console.log(`PASS: spot button (${f.n} spots, 4 kinds, cycling, safe landing), legacy worlds untouched, worker matches main thread on scenic tiles`)}
