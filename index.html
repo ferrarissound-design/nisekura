@@ -37,7 +37,7 @@ body:has(#menu:not(.hidden)) #target,body:has(#menu:not(.hidden)) #hint,
 body:has(#menu:not(.hidden)) #stick,body:has(#menu:not(.hidden)) .actions,
 body:has(#menu:not(.hidden)) #bar{display:none}
 .title-stage{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,5vh,44px);overflow-y:auto;touch-action:pan-y;padding:12px 0}
-.title-logo{position:relative;width:max-content;max-width:100%;text-align:center;transform:rotate(-1.5deg);padding:0 12px 15px}
+.title-logo{position:relative;width:max-content;max-width:100%;text-align:center;transform:rotate(-1.5deg);padding:0 12px 22px}
 .title-logo h1{position:relative;display:block;margin:0;font-family:Impact,'Arial Black',system-ui,sans-serif;font-size:clamp(46px,10.2vw,94px);line-height:1.03;letter-spacing:-.045em;font-weight:1000;color:#e8eaeb;background:linear-gradient(#fff 0%,#eceeee 26%,#b8c0c3 53%,#edf0ee 56%,#8b9696 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:clamp(1.5px,.36vw,3.5px) #242729;paint-order:stroke fill;filter:drop-shadow(0 6px 0 #181b1c) drop-shadow(0 9px 0 #0b0e0d) drop-shadow(4px 11px 1px #0008)}
 .title-logo .edition{display:block;margin-top:7px;font:bold clamp(10px,2.4vw,18px)/1 Impact,'Arial Black',system-ui,sans-serif;letter-spacing:.22em;text-shadow:2px 3px 0 #101010,0 0 7px #000}
 .title-logo .splash{position:absolute;right:-9%;bottom:4px;transform:rotate(-16deg);color:#ffea48;font-weight:900;font-size:clamp(10px,2.3vw,17px);white-space:nowrap;text-shadow:2px 2px #49370c,0 0 4px #000}
@@ -158,7 +158,7 @@ function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);g
 // Pixel materials are evaluated in face-local UVs: no external texture/CDN requests.
 const vertexSource=`
 attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
-uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform float clock;
+uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform mediump float clock;
 varying vec3 col; varying vec2 uv; varying float mat; varying float depth;
 void main(){
 vec3 pos=aPos;
@@ -179,7 +179,7 @@ gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*1.00125-.200125,dd);col=aColor;uv=aUV
 const fragmentSource=`
 precision mediump float;
 varying vec3 col; varying vec2 uv; varying float mat; varying float depth;
-uniform vec3 sky; uniform float clock;
+uniform vec3 sky; uniform mediump float clock;
 float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.;
 if(mat<.5){c=col;}
@@ -201,7 +201,27 @@ else if(mat<15.5){float blade=mod(q.x,4.);float tip=7.+hash(vec2(floor(q.x/4.),0
 else if(mat<16.5){float patch=step(.60,hash(floor(q/4.)));c=mix(vec3(.26,.16,.105),vec3(.91,.88,.76),patch)*col*(.91+n*.12);}
 else if(mat<17.5){float stem=step(abs(q.x-8.),1.)*step(q.y,10.);float flower=step(abs(q.x-8.),4.)*step(abs(q.y-12.),3.);if(max(stem,flower)<.5)discard;c=mix(vec3(.24,.44,.1),col,flower);if(abs(q.x-8.)<2.&&abs(q.y-12.)<2.)c=vec3(1.,.82,.2);}
 float fog=smoothstep(38.,64.,depth);gl_FragColor=vec4(mix(c,sky,fog),alpha);}`;
-const prog=gl.createProgram();gl.attachShader(prog,shader(gl.VERTEX_SHADER,vertexSource));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(prog));gl.useProgram(prog);
+// Match precision of shared uniforms across stages on iOS Safari and other WebGL1 GPUs.
+const fallbackVertexSource=`
+attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
+uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect;
+varying vec3 col; varying vec2 uv; varying float mat; varying float depth;
+void main(){vec3 p=aPos-eye;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
+float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
+gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*1.00125-.200125,dd);col=aColor;uv=aUV;mat=aMat;depth=dd;}`;
+function buildProgram(vertexCode){
+ const p=gl.createProgram(),vs=shader(gl.VERTEX_SHADER,vertexCode),fs=shader(gl.FRAGMENT_SHADER,fragmentSource);
+ gl.attachShader(p,vs);gl.attachShader(p,fs);gl.linkProgram(p);
+ if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
+ return p
+}
+let prog;
+try{prog=buildProgram(vertexSource)}
+catch(windError){
+ console.warn('Using compatible WebGL shader fallback:',windError);
+ prog=buildProgram(fallbackVertexSource);
+}
+gl.useProgram(prog);
 const uniforms={};for(const n of ['eye','yaw','pitch','aspect','sky','clock'])uniforms[n]=gl.getUniformLocation(prog,n);
 const ap=gl.getAttribLocation(prog,'aPos'),ac=gl.getAttribLocation(prog,'aColor'),au=gl.getAttribLocation(prog,'aUV'),am=gl.getAttribLocation(prog,'aMat');
 for(const a of [ap,ac,au,am])gl.enableVertexAttribArray(a);gl.enable(gl.DEPTH_TEST);
@@ -331,7 +351,7 @@ function frame(now){
  const camX=titleOpen?player.x-Math.sin(panoramaYaw)*5:player.x;
  const camZ=titleOpen?player.z-Math.cos(panoramaYaw)*5:player.z;
  const camY=titleOpen?Math.min(H-3,Math.max(SEA+8,height(Math.floor(camX),Math.floor(camZ))+8)):player.y+1.62;
- const sceneYaw=titleOpen?panoramaYaw:yaw,scenePitch=titleOpen?-.30:pitch;
+ const sceneYaw=titleOpen?panoramaYaw:yaw,scenePitch=titleOpen?.24:pitch;
  const underwater=!titleOpen&&get(Math.floor(player.x),Math.floor(player.y+1.62),Math.floor(player.z))===10;
  const sky=titleOpen?[.78,.48,.37]:underwater?[.12,.35,.49]:[.49,.71,.91];
  gl.clearColor(...sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
