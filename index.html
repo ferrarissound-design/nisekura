@@ -178,7 +178,7 @@ try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number
 const terrainVersion=saved?.version===1?(saved.terrainVersion||1):6,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6;
 const H=GRAND?192:96,SEA=GRAND?62:10,CHUNK_SIZE=CHUNK*CHUNK*H;
 // Quality presets: near = voxel radius in chunks, far = LOD view distance in blocks, split = LOD detail factor.
-const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140,plant:.4,plantNear:2,fade:40,water:0},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220,plant:.75,plantNear:3,fade:72,water:1},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320,plant:1,plantNear:5,fade:110,water:2}};
+const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140,plant:.4,plantNear:2,fade:40,water:0,sky:0,cloudR:520},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220,plant:.75,plantNear:3,fade:72,water:1,sky:1,cloudR:760},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320,plant:1,plantNear:5,fade:110,water:2,sky:2,cloudR:1000}};
 // First run picks a preset from the device; afterwards the player's choice is remembered. ?quality= overrides one session.
 function autoQuality(){try{const mem=navigator.deviceMemory||0,cores=navigator.hardwareConcurrency||4,coarse=matchMedia('(pointer:coarse)').matches;if((mem&&mem<=2)||cores<=2)return'low';if(!coarse&&cores>=8&&(!mem||mem>=8))return'high';return'standard'}catch(e){return'standard'}}
 let qualityName=autoQuality(),qualityAuto=true;try{const q=localStorage.getItem(QUALITY_KEY);if(QUALITY[q]){qualityName=q;qualityAuto=false}}catch(e){}
@@ -575,10 +575,10 @@ function faceUV(v,f){return f.n[1]?[v[0],v[2]]:f.n[0]?[v[2],v[1]]:[v[0],v[1]]}
 // ---- Shaders. No uniform is shared between a vertex and fragment stage, so mixed precision cannot break linking on iOS.
 const SKY_GLSL=`
 uniform vec3 sunDir; uniform vec3 zenithCol; uniform vec3 horizonCol; uniform vec3 sunCol; uniform vec4 fogP;
-uniform vec3 dirLight; uniform vec3 dirCol; uniform vec3 ambCol; uniform vec4 misc;
+uniform vec3 dirLight; uniform vec3 dirCol; uniform vec3 ambCol; uniform vec4 misc; uniform vec4 skyP; // skyP: x cloud drift (blocks), y cloud cover 0..1, z sky quality 0..2
 float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
-vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,sqrt(clamp(y,0.,1.)));float s=max(dot(d,sunDir),0.);
+vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,pow(clamp(y,0.,1.),.56));float s=max(dot(d,sunDir),0.);
  c+=sunCol*(.18*pow(s,5.)+.45*pow(s,40.));return mix(c,horizonCol*.9,clamp(-y*4.,0.,1.));}
 // Light lost per block of water: red first, then green, so depth turns sand turquoise and then blue.
 const vec3 WABS=vec3(.22,.055,.038);
@@ -596,7 +596,34 @@ vec3 lighting(vec3 n,float shade,vec3 w,float soft){
  if(shade>.5){vec2 p=floor(w.xz*8.)/8.*.42+misc.y*vec2(.11,.06)*(.4+misc.z);float g=vnoise(p)*.65+vnoise(p*2.7+5.3)*.35;nd*=smoothstep(.56,.66,g)*step(.5,n.y)*.95;amb*=.76;}
  return amb+dirCol*nd;}
 float caustic(vec2 p,float t){p=floor(p*16.)/16.;vec2 q=p*.62+vec2(sin(p.y*.37+t*.4),cos(p.x*.41-t*.33))*.35;
- float a=vnoise(q+vec2(t*.23,t*.13)),b=vnoise(q*1.31+vec2(-t*.17,t*.21)+5.3);return pow(clamp(1.-abs(a-b)*3.2,0.,1.),5.);}`;
+ float a=vnoise(q+vec2(t*.23,t*.13)),b=vnoise(q*1.31+vec2(-t*.17,t*.21)+5.3);return pow(clamp(1.-abs(a-b)*3.2,0.,1.),5.);}
+// ---- Sky cloud layers (also used for reflections). Both are flat layers seen in perspective; the lower one is a patchy deck lit from the sun's side.
+float cfbm(vec2 p,float oct){float s=0.,a=.5;for(int i=0;i<4;i++){if(float(i)>=oct)break;s+=a*vnoise(p);p=p*2.07+vec2(11.3,7.9);a*=.5}return s;}
+// Mid deck: rgb + alpha. q = sky quality (0 unlit and cheap, 1 lit, 2 finer detail).
+vec4 skyDeck(vec3 d,float q){
+ if(d.y<.02)return vec4(0.);
+ float hz=smoothstep(.02,.24,d.y),oct=q>1.5?4.:q>.5?3.:2.;
+ vec2 p=d.xz/(d.y+.085)*520.-vec2(skyP.x,0.),pn=p/820.+vec2(3.1,1.7);
+ float n=cfbm(pn,oct),th=.60-skyP.y*.30;
+ if(q>.5)n-=.07*(1.-vnoise(p/175.));
+ float dens=smoothstep(th,th+.15,n);
+ if(dens<.01)return vec4(0.);
+ float lit=.7;
+ if(q>.5){vec2 sd=sunDir.xz/max(sunDir.y,.25);float nS=cfbm(pn+sd*.11,oct);lit=clamp(.66+(nS-n)*4.6-.34*smoothstep(0.,.3,n-th),0.,1.);}
+ vec3 litC=ambCol*.95+dirCol*.95,shC=ambCol*vec3(.74,.80,.98)*.9;
+ vec3 c=mix(shC,litC,lit);
+ c=mix(c,horizonCol*1.05,smoothstep(.5,0.,d.y)*.45);
+ float sl=pow(max(dot(d,sunDir),0.),6.)*(1.-smoothstep(0.,.35,n-th))*.55;
+ c+=sunCol*sl;
+ return vec4(c,dens*hz*.97);}
+// High thin streaks (cirrus), stretched along the wind.
+vec4 skyCirrus(vec3 d){
+ if(d.y<.04)return vec4(0.);
+ vec2 p=d.xz/(d.y+.16)*900.-vec2(skyP.x*.35,skyP.x*.06);
+ float n=cfbm(vec2(p.x/2700.,p.y/640.)+vec2(7.7,2.3),3.);
+ float a=smoothstep(.5-skyP.y*.08,.76,n)*.5*smoothstep(.04,.3,d.y);
+ vec3 c=(ambCol*.95+dirCol*.8)*1.08;
+ return vec4(c,a);}`;
 // ---- Water. Shared by the near voxel water and the far LOD sea so both read the same at the seam.
 const WATER_GLSL=`
 uniform float wq;
@@ -689,7 +716,14 @@ else if(mat<17.5){float fv=floor(fract(mat)*10.+.5),hx=abs(q.x-8.),hy=abs(q.y-12
  // Petal variants (v4 flowers are variant 0, unchanged).
  float head=fv<.5?step(hx,4.)*step(hy,3.):fv<1.5?step(hx+hy,4.5):fv<2.5?max(step(hx,1.)*step(hy,4.),step(hy,1.)*step(hx,4.)):fv<3.5?step(r2,13.):step(r2,16.)*(step(4.,r2)+step(r2,1.5));
  float stem=step(abs(q.x-8.),1.)*step(q.y,10.);if(max(stem,head)<.5)discard;c=mix(vec3(.24,.44,.1),col*(.9+n*.18),head);if(hx<2.&&hy<2.)c=vec3(1.,.82,.2);}
-else if(mat<18.5){c=col;}
+else if(mat<18.5){
+ // Cloud faces: col.r = height in the cloud, col.g = tint, col.b = depth inside it (0 at the surface of a thin part, 1 deep in a thick one).
+ vec3 n3=faceNormal(vFace),v3=normalize(rel);float lam=dot(n3,dirLight),puff=vnoise(w.xz*.085+w.y*.06);
+ vec3 sh=ambCol*vec3(.86,.92,1.06)*(.62+.38*col.r);
+ vec3 sun=dirCol*(.5+.65*max(lam,0.))*(1.-.6*col.b)*clamp(.5+.6*lam,0.,1.);
+ c=(sh+sun*1.2)*mix(.9,1.07,puff)*(.9+.12*col.g);
+ if(vFace>2.5&&vFace<3.5)c*=.8;
+ c+=dirCol*pow(max(dot(v3,dirLight),0.),5.)*(1.-col.b)*(.35+.65*(1.-col.r))*.5;}
 else if(mat<19.5){c=col*(.93+n*.08);if(n>.97)c=vec3(1.);}
 else if(mat<20.5){float b=mod(q.x,3.),tip=7.+hash(vec2(floor(q.x/3.),2.))*9.;if(b>1.||q.y>tip||(q.y>tip-2.&&b>.5))discard;c=col*(.68+uv.y*.42+n*.12);if(q.y>tip-1.5&&hash(vec2(floor(q.x/3.),5.))>.6)c=mix(c,vec3(.78,.70,.45),.6);}
 else if(mat<21.5){float dx=abs(q.x-8.),w=(1.+5.*sin(clamp(q.y/14.,0.,1.)*3.1416))*(1.-q.y/22.);if(dx>w||q.y>14.||(mod(q.y,3.)<1.&&dx>1.&&dx>w-1.5))discard;c=col*(.72+n*.2+step(dx,.9)*.12);}
@@ -699,7 +733,7 @@ else if(mat<24.5){float stem=step(abs(q.x-7.5),.6)*step(q.y,6.),sp=step(6.,q.y)*
 else{vec2 a=q-vec2(4.,9.),b=q-vec2(11.,11.),d=q-vec2(8.,6.);float head=min(1.,step(dot(a,a),3.)+step(dot(b,b),3.)+step(dot(d,d),2.5)),stem=step(abs(q.x-7.5),.6)*step(q.y,6.);if(max(head,stem)<.5)discard;c=mix(vec3(.26,.46,.12),col,head);}
 if(mat<9.5||mat>10.5){
  vec3 nrm=faceNormal(vFace);
- if(mat>17.5&&mat<18.5)c*=ambCol*1.15+dirCol*.6;
+ if(mat>17.5&&mat<18.5){}
  else if(vFace>6.5)c*=ambCol+dirCol*.5;
  else c*=lighting(nrm,vShade,w,step(6.,vFace));
  // Faces under water: rippling sun caustics, then light loses red and green along its way down and back up to the eye.
@@ -779,9 +813,14 @@ const skyVertexSource=`attribute vec2 sPos; varying vec2 vNdc; void main(){vNdc=
 const skyFragmentSource=PRECISION+`varying vec2 vNdc; uniform vec3 cFwd; uniform vec3 cRight; uniform vec3 cUp; uniform vec2 cScale;`+SKY_GLSL+`
 void main(){vec3 d=normalize(cFwd+cRight*vNdc.x*cScale.x+cUp*vNdc.y*cScale.y);vec3 c=skyColor(d);
  c=mix(c,vec3(1.,.97,.88),smoothstep(.9986,.9994,dot(d,sunDir))*(1.-misc.x));
+ // Stars and moon first, then cloud layers over them (clouds hide stars).
+
  // Night: a moon opposite the sun and pixel stars above the horizon.
  if(misc.x>.01){c=mix(c,vec3(.86,.9,1.),smoothstep(.9991,.9995,dot(d,-sunDir))*misc.x);
   float s=step(.9972,hash(floor(d.xz/(abs(d.y)+.35)*190.)))*smoothstep(.02,.25,d.y);c+=vec3(.85,.9,1.)*s*misc.x;}
+ if(skyP.z>-.5&&d.y>.02){
+  if(skyP.z>.5){vec4 ci=skyCirrus(d);c=mix(c,ci.rgb,ci.a)}
+  vec4 dk=skyDeck(d,skyP.z);c=mix(c,dk.rgb,dk.a)}
  gl_FragColor=vec4(c,1.);}`;
 
 let mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
@@ -792,7 +831,7 @@ function buildProgram(vsrc,fsrc,attribs){
  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
  return p
 }
-const SKY_UNIFORMS=['sunDir','zenithCol','horizonCol','sunCol','fogP','dirLight','dirCol','ambCol','misc'];
+const SKY_UNIFORMS=['sunDir','zenithCol','horizonCol','sunCol','fogP','dirLight','dirCol','ambCol','misc','skyP'];
 function uniformsOf(p,names){const u={};for(const n of names)u[n]=gl.getUniformLocation(p,n);return u}
 const MAXQ=16384;
 function initRenderer(){
@@ -1174,13 +1213,36 @@ cuboid(a,-.48,1.40,.52,.17,.12,.21,'#73543c',0,rot);cuboid(a,.31,1.40,.52,.17,.1
 }
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
 drawData(dynamicBuffer,a)}
-// Broad, flat clouds are intentionally cuboid, like the rest of this world. The mesh is static and drifts by offset.
-const CLOUD_Y=GRAND?SEA+112:56;let cloudQuads=0,cloudAX=1e9,cloudAZ=1e9;
-function buildClouds(ax,az){const w=dyn,R=Math.min(1000,Q.far*.8),S=44;w.n=0;
+// Clouds are blocky like the rest of the world but have real volume: each is a small voxel body (towering cumulus with a flat base,
+// thin stratus sheets, little puffs) built from the exposed faces only. The mesh is static and drifts by offset; the shader lights
+// the faces from the sun and the vertex colour carries (height in the cloud, tint, depth inside the cloud).
+const CLOUD_Y=GRAND?SEA+112:56,CLOUD_CELL=72;let cloudQuads=0,cloudAX=1e9,cloudAZ=1e9;
+const cloudRadius=()=>Math.min(Q.cloudR,Q.far*.8);
+// Deterministic cloud for one grid cell (a pure function of seed and cell), or null for a gap in the sky.
+function cloudAt(gx,gz){
+ const f=pn(gx/5.5+.5,gz/5.5+.5)+rand(gx*31+7,gz*17+3)*.8-.1;if(f<.3)return null;
+ const t=rand(gx*13+1,gz*7+5),big=smooth(.3,.9,f),r1=rand(gx*3+9,gz*5+2),r2=rand(gx*5+4,gz*3+8),r3=rand(gx*7+1,gz*11+6);
+ const kind=t<.5?0:t<.78?1:2;let nx,ny,nz,vx,vy;
+ if(kind===0){nx=3+Math.floor(r1*3+big*2);nz=3+Math.floor(r2*3+big);ny=2+Math.floor(r3*2+big*2);vx=9+r1*3;vy=5.5}
+ else if(kind===1){nx=5+Math.floor(r1*5);nz=3+Math.floor(r2*4);ny=1;vx=13;vy=3.4}
+ else{nx=2+Math.floor(r1*2);nz=2+Math.floor(r2*2);ny=1+Math.floor(r3*2);vx=7;vy=4.2}
+ const occ=new Uint8Array(nx*ny*nz);let any=0;
+ for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+  const ex=(i+.5)/nx*2-1,ez=(k+.5)/nz*2-1,ey=(j+.5)/ny,nv=rand(gx*97+i*13+j*7,gz*89+k*11+j*3)-.5;
+  const d=kind===1?ex*ex+ez*ez+nv*.7:ex*ex+ez*ez+ey*ey*(kind===0?1.05:.8)+nv*.55;
+  if(d<(kind===1?1:.95)){occ[(j*nz+k)*nx+i]=1;any++}}
+ if(!any)return null;
+ const cx=gx*CLOUD_CELL+CLOUD_CELL/2+(rand(gx*5,gz*3)-.5)*CLOUD_CELL*.45,cz=gz*CLOUD_CELL+CLOUD_CELL/2+(rand(gx*3,gz*5)-.5)*CLOUD_CELL*.45;
+ const base=CLOUD_Y+(kind===0?-8+Math.floor(r3*3)*4:kind===1?8+Math.floor(r1*2)*4:-16+Math.floor(r2*3)*3)*(GRAND?1:.4);
+ return{kind,nx,ny,nz,vx,vy,occ,x:cx-nx*vx/2,z:cz-nz*vx/2,y:base,tint:.85+.15*rand(gx*11,gz*13)}}
+function buildClouds(ax,az){const w=dyn,R=cloudRadius(),S=CLOUD_CELL;w.n=0;
  for(let gx=Math.floor((ax-R)/S);gx<=Math.floor((ax+R)/S);gx++)for(let gz=Math.floor((az-R)/S);gz<=Math.floor((az+R)/S);gz++){
-  if(pn(gx/7+.5,gz/7+.5)+rand(gx*31+7,gz*17+3)*.7<.5)continue;
-  const x=gx*S+rand(gx,gz*3)*12,z=gz*S+rand(gx*5,gz)*12,sx=14+rand(gx*2,gz*7)*26,sz=9+rand(gx*7,gz*2)*16,y=CLOUD_Y+Math.floor(rand(gx*3,gz*9)*3)*2;
-  cuboid(w,x,y,z,sx,3.2,sz,'#f4f6ec',18);if(sx>22)cuboid(w,x+sx*.25,y+3.2,z+sz*.2,sx*.5,1.6,sz*.55,'#fffdf3',18)}
+  const c=cloudAt(gx,gz);if(!c)continue;const{nx,ny,nz,vx,vy,occ}=c,at=(i,j,k)=>i<0||j<0||k<0||i>=nx||j>=ny||k>=nz?0:occ[(j*nz+k)*nx+i];
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){if(!occ[(j*nz+k)*nx+i])continue;
+   for(let fi=0;fi<6;fi++){const F=FACE[fi],nn=F.n;if(at(i+nn[0],j+nn[1],k+nn[2]))continue;
+    let dep=0;for(let q=1;q<=3&&at(i-nn[0]*q,j-nn[1]*q,k-nn[2]*q);q++)dep++;
+    grow(w,36);const code=18+32*fi;
+    for(let q=0;q<4;q++){const v=F.v[q],r=(j+v[1])/ny;vert(w,c.x+(i+v[0])*vx,c.y+(j+v[1])*vy,c.z+(k+v[2])*vx,r,c.tint,dep/3,F.uv[q][0],F.uv[q][1],code)}}}}
  if(!cloudBuffer)cloudBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,cloudBuffer);gl.bufferData(gl.ARRAY_BUFFER,w.a.subarray(0,w.n),gl.STATIC_DRAW);cloudQuads=w.n/36;cloudAX=ax;cloudAZ=az}
 function drawTool(){if(paused)return;const a=dyn,bob=Math.sin(walkPhase)*.025,kick=Math.sin(swing*Math.PI),aspect=canvas.width/canvas.height;a.n=0;
 const transform=p=>{let x=p[0],y=p[1],z=p[2];const angle=-.40-kick*.65,xx=x*Math.cos(angle)-y*Math.sin(angle),yy=x*Math.sin(angle)+y*Math.cos(angle);x=xx+Math.min(.70,aspect*.42)-kick*.15;y=yy-.51+bob+kick*.06;z+=1.12;const py=Math.cos(pitch)*y+Math.sin(pitch)*z,pz=-Math.sin(pitch)*y+Math.cos(pitch)*z;return[player.x+Math.cos(yaw)*x+Math.sin(yaw)*pz,player.y+1.62+py,player.z-Math.sin(yaw)*x+Math.cos(yaw)*pz]};
@@ -1226,7 +1288,7 @@ function sunFromTime(t){const a=(t-.25)*Math.PI*2;return norm([Math.cos(a),Math.
 function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayTime));
  // The title keeps a low golden sun beside the scenic view.
  const a=cam.yaw+.95,e=.16;return skyEnv([Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)])}
-function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,0)}
+function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,0);if(u.skyP)gl.uniform4f(u.skyP,cloudDrift%40000,.5+.22*Math.sin(time*.0031+1.3)+.12*Math.sin(time*.0113),Q.sky,0)}
 function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>1?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
 // Same as underCol() in the shaders: the colour water fades to at the camera's depth.
 function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.11,.42,.44],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
@@ -1246,8 +1308,8 @@ function render(cam,titleOpen,w,h){
   if(readyR>=0)gl.uniform4f(lodU.hole,(centerCX-readyR)*CHUNK-cam.x+.01,(centerCZ-readyR)*CHUNK-cam.z+.01,(centerCX+readyR+1)*CHUNK-cam.x-.01,(centerCZ+readyR+1)*CHUNK-cam.z-.01);else gl.uniform4f(lodU.hole,1,1,-1,-1);
   for(const t of lodDraw){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,t.quads,bindLod,12)}
   for(const t of oceanTiles)if(sphereVisible(F,t.x0+W/2,SEA,t.z0+W/2,W*.71)){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,1,bindLod,12)}
-  const drift=cloudDrift,R=Math.min(1000,Q.far*.8);if(Math.hypot(cam.x-drift-cloudAX,cam.z-cloudAZ)>R*.35)buildClouds(cam.x-drift,cam.z);
-  useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,farNear,farFar);gl.uniform3f(mainU.eye,cam.x-drift,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x,cam.y,cam.z);
+  const drift=cloudDrift,R=cloudRadius();if(Math.hypot(cam.x-drift-cloudAX,cam.z-cloudAZ)>R*.35)buildClouds(cam.x-drift,cam.z);
+  useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,farNear,farFar);gl.uniform3f(mainU.eye,cam.x-drift,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x-drift,cam.y,cam.z); // fragments see the cloud's own coordinates
   if(cloudQuads)drawQuads(cloudBuffer,cloudQuads,bind,36);
   gl.clear(gl.DEPTH_BUFFER_BIT);
  }
