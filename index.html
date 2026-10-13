@@ -43,7 +43,7 @@ function height(x,z){
  if(terrainVersion===3){
   const continent=noise(x,z,270)*.7+noise(x,z,80)*.3;
   const coast=Math.max(0,Math.min(1,(x-(ORIGIN+90)+(noise(x,z,110)-.5)*85)/150));
-  let h=5+continent*31+(noise(x,z,29)-.5)*6-coast*22;
+  let h=5+continent*31+(noise(x,z,29)-.5)*6-coast*30;
   const clearing=Math.max(0,1-Math.hypot(x-ORIGIN,z-ORIGIN)/18);
   h=h*(1-clearing)+18*clearing;
   return Math.max(3,Math.min(H-7,Math.floor(h)));
