@@ -598,7 +598,7 @@ vec3 lighting(vec3 n,float shade,vec3 w,float soft){
 float caustic(vec2 p,float t){p=floor(p*16.)/16.;vec2 q=p*.62+vec2(sin(p.y*.37+t*.4),cos(p.x*.41-t*.33))*.35;
  float a=vnoise(q+vec2(t*.23,t*.13)),b=vnoise(q*1.31+vec2(-t*.17,t*.21)+5.3);return pow(clamp(1.-abs(a-b)*3.2,0.,1.),5.);}
 // ---- Sky cloud layers (also used for reflections). Both are flat layers seen in perspective; the lower one is a patchy deck lit from the sun's side.
-float cfbm(vec2 p,float oct){float s=0.,a=.5;for(int i=0;i<4;i++){if(float(i)>=oct)break;s+=a*vnoise(p);p=p*2.07+vec2(11.3,7.9);a*=.5}return s;}
+float cfbm(vec2 p,float oct){float s=0.,a=.5;for(int i=0;i<4;i++){if(float(i)>=oct)break;s+=a*vnoise(p);p=p*2.07+vec2(11.3,7.9);a*=.5;}return s;}
 // Mid deck: rgb + alpha. q = sky quality (0 unlit and cheap, 1 lit, 2 finer detail).
 vec4 skyDeck(vec3 d,float q){
  if(d.y<.02)return vec4(0.);
@@ -819,8 +819,8 @@ void main(){vec3 d=normalize(cFwd+cRight*vNdc.x*cScale.x+cUp*vNdc.y*cScale.y);ve
  if(misc.x>.01){c=mix(c,vec3(.86,.9,1.),smoothstep(.9991,.9995,dot(d,-sunDir))*misc.x);
   float s=step(.9972,hash(floor(d.xz/(abs(d.y)+.35)*190.)))*smoothstep(.02,.25,d.y);c+=vec3(.85,.9,1.)*s*misc.x;}
  if(skyP.z>-.5&&d.y>.02){
-  if(skyP.z>.5){vec4 ci=skyCirrus(d);c=mix(c,ci.rgb,ci.a)}
-  vec4 dk=skyDeck(d,skyP.z);c=mix(c,dk.rgb,dk.a)}
+  if(skyP.z>.5){vec4 ci=skyCirrus(d);c=mix(c,ci.rgb,ci.a);}
+  vec4 dk=skyDeck(d,skyP.z);c=mix(c,dk.rgb,dk.a);}
  gl_FragColor=vec4(c,1.);}`;
 
 let mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
