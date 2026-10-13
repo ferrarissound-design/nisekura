@@ -135,7 +135,7 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
 @media(max-width:374px){#bar{width:calc(100vw - 16px);overflow-x:auto;justify-content:flex-start;touch-action:pan-x}}
 @media(max-height:480px){#compass{top:max(6px,env(safe-area-inset-top));width:min(220px,calc(100vw - 310px));min-width:170px}body.hud-details #compass{top:max(6px,env(safe-area-inset-top))}#stats{max-width:230px}#statsDetails{max-width:200px}.actions,#stick{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 58px)}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>GRAND VISTA · v5.2</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>LIVING WILDS · v6.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"><div id="compassHeading"></div></div>
  <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -151,7 +151,7 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v5.2</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v6.0</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -161,7 +161,7 @@ if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてく�
 // The world is generated on demand. Near 16x16 columns are real voxels; everything farther is a light LOD mesh.
 const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
 const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
-const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc']];
+const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341']];
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
 const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
@@ -173,10 +173,11 @@ try{const pref=JSON.parse(localStorage.getItem(HUD_KEY));hudMinimal=pref?.minima
 const player={x:32.5,y:25,z:32.5},keys={},joy={x:0,y:0};let saved=null;
 try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number.isFinite(saved.dayTime))dayTime=((saved.dayTime%1)+1)%1;if(Number.isFinite(saved.seed))seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
 // Saved worlds keep the generator and height they were created with. New worlds use GRAND VISTA terrain (v4).
-const terrainVersion=saved?.version===1?(saved.terrainVersion||1):4,GRAND=terrainVersion>=4;
+// v5 adds the natural vegetation system; v4 worlds keep their original trees, grass and flowers.
+const terrainVersion=saved?.version===1?(saved.terrainVersion||1):5,GRAND=terrainVersion>=4,VEG=terrainVersion>=5;
 const H=GRAND?192:96,SEA=GRAND?62:10,CHUNK_SIZE=CHUNK*CHUNK*H;
 // Quality presets: near = voxel radius in chunks, far = LOD view distance in blocks, split = LOD detail factor.
-const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320}};
+const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140,plant:.4,plantNear:2,fade:40},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220,plant:.75,plantNear:3,fade:72},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320,plant:1,plantNear:5,fade:110}};
 // First run picks a preset from the device; afterwards the player's choice is remembered. ?quality= overrides one session.
 function autoQuality(){try{const mem=navigator.deviceMemory||0,cores=navigator.hardwareConcurrency||4,coarse=matchMedia('(pointer:coarse)').matches;if((mem&&mem<=2)||cores<=2)return'low';if(!coarse&&cores>=8&&(!mem||mem>=8))return'high';return'standard'}catch(e){return'standard'}}
 let qualityName=autoQuality(),qualityAuto=true;try{const q=localStorage.getItem(QUALITY_KEY);if(QUALITY[q]){qualityName=q;qualityAuto=false}}catch(e){}
@@ -256,12 +257,144 @@ function treeKind(x,z,h,slope,hum,birch,r){const alt=h-SEA;if(slope>2||alt<3||al
 const mix3=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
 function grassColor(alt,hum){let c=mix3([.50,.72,.27],[.35,.59,.21],smooth(.48,.66,hum));c=mix3(c,[.64,.70,.33],smooth(.40,.26,hum)*.6);return mix3(c,[.55,.62,.36],smooth(30,72,alt))}
 function leafColor(alt,hum,birch){if(alt>=46)return[.19,.36,.23];if(birch>.22)return[.46,.63,.27];return mix3([.30,.57,.28],[.22,.47,.24],smooth(.5,.66,hum))}
+// ---- v5 vegetation (terrainVersion >= 5). Everything below is a pure function of (seed, x, z): chunks, LOD tiles and the LOD worker all agree,
+// and generation order never changes the result. Legacy worlds keep the v4 code above untouched.
+const clamp01=v=>v<0?0:v>1?1:v,f01=v=>clamp01(v*.95+.5);
+const VEGK={
+ // Flower patch grids: cell size, chance a cell holds a patch, radius range, salt. The big grid is rare and makes vast meadows.
+ FG:[{s:14,p:.26,r0:3,r1:7,k:101},{s:40,p:.2,r0:7,r1:15,k:203},{s:112,p:.07,r0:24,r1:46,k:307}],
+ // Colours: white, yellow, red, pink, purple, blue.
+ COL:[[.96,.945,.90],[.96,.80,.21],[.88,.22,.16],[.93,.53,.70],[.54,.37,.84],[.30,.52,.90]],
+ // Palettes: main colour (-1 = none), colour weights, shape weights [daisy, cup, spike, tiny].
+ PAL:[{m:0,w:[6,1.2,0,.3,0,.5],s:[.8,.2,0,0]},{m:1,w:[1,6,.3,0,0,0],s:[.3,.7,0,0]},{m:2,w:[1,.6,6,.5,0,0],s:[.2,.8,0,0]},{m:3,w:[1.5,0,.6,6,.6,0],s:[1,0,0,0]},
+  {m:4,w:[.4,0,0,.5,6,1.2],s:[.1,0,.9,0]},{m:5,w:[1,0,0,0,1,6],s:[.8,0,.2,0]},{m:-1,w:[1.3,1.3,1.1,1.1,1,1],s:[.5,.25,.15,.1]},{m:0,w:[3,1,0,0,1.3,3],s:[.1,0,0,.9]},{m:1,w:[0,3.2,0,0,1.6,3.2],s:[0,.8,.2,0]}],
+ PALMEAN:[]
+};
+for(const p of VEGK.PAL){let s=0,r=0,g=0,b=0;p.w.forEach((w,i)=>{s+=w;r+=w*VEGK.COL[i][0];g+=w*VEGK.COL[i][1];b+=w*VEGK.COL[i][2]});VEGK.PALMEAN.push([r/s,g/s,b/s])}
+function fieldClump(x,z){return f01(fbm(x/150+211.3,z/150+97.7,3))}
+function fieldGlade(x,z){return f01(fbm(x/34+311.1,z/34+51.9,2))}
+function fieldTone(x,z){return f01(fbm(x/95+411.7,z/95+171.3,3))}
+function fieldTall(x,z){return f01(fbm(x/44+611.9,z/44+231.1,3))}
+function fieldBare(x,z){return pn(x/12+711.2,z/12+331.4)*.5+.5}
+// Forest density 0..1: humid ground, large-scale clustering, small glades, thinning at coasts, cliffs and the treeline.
+function forestDensity(alt,moist,slope,L,clump,glade){
+ let d=smooth(.33,.58,moist);d*=.22+1.1*smooth(.25,.7,clump);d*=1-smooth(.6,.72,glade)*.92;d*=smooth(0,.7,L);d*=1-smooth(2,5.5,slope);d*=smooth(86,60,alt);if(alt<4)d*=.3;return clamp01(d)}
+function grassColor5(alt,dry,lush){let c=mix3([.50,.72,.27],[.67,.74,.31],dry);c=mix3(c,[.27,.51,.20],lush*(1-dry*.6)*.85);return mix3(c,[.55,.62,.38],smooth(34,76,alt))}
+// kind: 1 oak, 3 birch, 4 spruce, 5 shrub
+function leafColor5(kind,alt,dry,lush,v){let c;
+ if(kind===3)c=mix3([.50,.72,.27],[.60,.72,.26],dry);
+ else if(kind===4)c=mix3([.15,.38,.24],[.13,.29,.21],smooth(30,70,alt));
+ else if(kind===5)c=mix3([.36,.62,.23],[.52,.64,.26],dry);
+ else c=mix3(mix3([.33,.58,.27],[.22,.46,.23],lush),[.50,.60,.22],dry*.35);
+ return[c[0]*v,c[1]*v,c[2]*v]}
+const E={moist:0,dens:0,shrub:0,gd:0,tl:0,dry:0,lush:0,bare:0,fc:0,fp:6,wet:0},FP={cov:0,h:0};
+function flowerPatches(x,z){let best=0,bh=0;
+ for(const g of VEGK.FG){const ci=Math.floor(x/g.s),cj=Math.floor(z/g.s);
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ci+di,j=cj+dj,h0=rand(i*g.k+3,j*(g.k+14)+9);if(h0>=g.p)continue;
+   const px=(i+rand(i*7+g.k,j*3+5))*g.s,pz=(j+rand(i*11+3,j*5+g.k))*g.s,r=g.r0+(g.r1-g.r0)*rand(i*3+g.k,j*13+7),dx=x-px,dz=z-pz;
+   if(dx*dx+dz*dz>r*r*4.5)continue;
+   const a=Math.atan2(dz,dx),sq=.62+.76*rand(i+g.k,j*9+2),d=Math.hypot(dx*sq,dz/sq),rr=r*(1+.3*Math.sin(a*3+h0*40)+.2*Math.sin(a*5+h0*90)),c=1-d/rr;
+   if(c>best){best=c;bh=h0/g.p}}}
+ FP.cov=best<=0?0:smooth(0,.4,best);FP.h=bh}
+function palettePick(h,wet,alt){if(alt>=44)return h<.8?7:6;if(wet>.45&&h<.6)return 8;return h<.14?0:h<.27?1:h<.4?2:h<.53?3:h<.66?4:h<.78?5:6}
+// Environment of one column. sunny>0 on slopes facing the midday sun, L = distance-inland measure of the coast (<=0 is sea).
+function vegEnv(x,z,h,slope,sunny,L,hum){
+ const alt=h-SEA,wet=smooth(7,1.5,alt)*smooth(.35,.8,L),moist=clamp01(hum+.36*wet-.1*sunny),
+  clump=fieldClump(x,z),glade=fieldGlade(x,z),tone=fieldTone(x,z),tallf=fieldTall(x,z),dens=forestDensity(alt,moist,slope,L,clump,glade);
+ const dry=clamp01((.56-moist)*3+(.5-tone)*.9+sunny*.3),lush=clamp01((moist-.5)*2.2+wet*.4+dens*.5+(tone-.5)*.6-dry*.3),coast=smooth(.9,.1,L);
+ E.wet=wet;E.moist=moist;E.dens=dens;E.dry=dry;E.lush=lush;
+ E.bare=smooth(.66,.78,fieldBare(x,z))*(.45+.55*dry)*(1-dens)*(slope>=2?1:.7)*(alt>4?1:0);
+ E.gd=clamp01(.36+.5*lush-.2*dry+(tallf-.5)*.5)*(1-.75*coast*smooth(10,3,alt))*(slope>3?.55:1);
+ E.tl=smooth(.5,.72,tallf)*clamp01(.45+.8*lush)*(1-.6*dry);
+ const edge=4*dens*(1-dens),scrub=smooth(.05,.3,L)*(1-smooth(.3,.7,L))*(alt<14?.22:0);
+ E.shrub=alt<2?0:Math.min(.55,(edge*.30+dens*.085+(1-dens)*(.012+.08*dry)+scrub)*(slope>4?.4:1)*(alt>76?smooth(96,76,alt):1));
+ const meadow=clamp01(1.25-dens*2.1),beach=smooth(1,3.5,alt),alpine=smooth(40,50,alt)*smooth(100,88,alt)*.38,suit=Math.max(meadow*beach,alpine)*(1-smooth(4,7,slope));
+ if(suit>.02){flowerPatches(x,z);E.fc=Math.max(FP.cov*suit,suit*.014);E.fp=FP.cov>0?palettePick(FP.h,wet,alt):6}else{E.fc=0;E.fp=6}}
+// Species: 1 oak, 3 birch, 4 spruce. Conifers take over with altitude; birch groves follow a separate noise.
+function pickSpecies(alt,birch,u,u2){if(u2<smooth(24,52,alt))return 4;return u<smooth(0,.32,birch)*.85?3:1}
+function treeRng(x,z,salt){let a=(Math.imul(x,73856093)^Math.imul(z,19349663)^Math.imul(seed|0,83492791)^Math.imul(salt|0,2654435761))>>>0;
+ return()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}}
+function vh(x,y,z,sd){let n=Math.imul(x,374761393)^Math.imul(y,668265263)^Math.imul(z,1274126177)^Math.imul(sd|0,2147483629)^(seed|0);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
+// Voxel window of the chunk being generated: every shape is clipped to it, so a tree is identical whichever chunk builds it.
+let gX0=0,gX1=0,gZ0=0,gZ1=0;
+function blob(leaf,t,cx,cy,cz,rx,ry,rz,asym,phase,dens,sd){
+ const ex=rx*(1+asym)+1,ez=rz*(1+asym)+1,x0=Math.max(gX0,Math.floor(cx-ex)),x1=Math.min(gX1-1,Math.ceil(cx+ex)),z0=Math.max(gZ0,Math.floor(cz-ez)),z1=Math.min(gZ1-1,Math.ceil(cz+ez)),y0=Math.floor(cy-ry-1),y1=Math.ceil(cy+ry+1);
+ for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){const dx=x-cx,dz=z-cz,f=1+asym*Math.cos(Math.atan2(dz,dx)-phase),qh=(dx*dx/(rx*rx)+dz*dz/(rz*rz))/(f*f);if(qh>1)continue;
+  for(let y=y0;y<=y1;y++){const dy=y-cy,d2=qh+dy*dy/(ry*ry);if(d2>1)continue;
+   if(d2>.5){const e=(d2-.5)*2;if(vh(x,y,z,sd)<e*e*.55+e*(1-dens)*.7)continue}
+   else if(dens<.8&&vh(x,y,z,sd+7)<(.8-dens)*.35)continue;
+   leaf(x,y,z,t)}}}
+function growOak(write,leaf,x,h,z,R,A,giant,sd){
+ const H=Math.max(3,Math.round((4.4+R()*3.6)*A+(giant?5+R()*3:0))),thick=giant||H>=11?2:1,lean=R()<.34,la=R()*6.2832,ldx=Math.round(Math.cos(la)),ldz=Math.round(Math.sin(la)),leanAt=Math.floor(H*(.4+R()*.3));
+ let tx=x,tz=z;
+ for(let y=1;y<=H;y++){if(lean&&y===leanAt){tx+=ldx;tz+=ldz}write(tx,h+y,tz,4);if(thick===2){write(tx+1,h+y,tz,4);write(tx,h+y,tz+1,4);write(tx+1,h+y,tz+1,4)}}
+ if(thick===2)for(const f of[[-1,0],[2,0],[0,-1],[0,2],[-1,1],[2,1],[1,-1],[1,2]])if(R()<.45){write(x+f[0],h+1,z+f[1],4);if(R()<.3)write(x+f[0],h+2,z+f[1],4)}
+ const o=thick===2?.5:0,ccx=tx+o,ccz=tz+o,spread=(2.1+R()*1.3)*(.8+.2*A)+(giant?2.6:0)+H*.08,rx=spread*(.82+R()*.4),rz=spread*(.82+R()*.4),ry=(1.7+R()*1.4)*(.82+.18*A)+(giant?1.7:0)+H*.07,
+  asym=.12+R()*.4,phase=R()*6.2832,dens=.72+R()*.26,cy=h+H+ry*.15;
+ blob(leaf,5,ccx,cy,ccz,rx,ry,rz,asym,phase,dens,sd);
+ const nb=1+Math.floor(R()*2.6)+(giant?3:0);
+ for(let i=0;i<nb;i++){const a=R()*6.2832,rr=spread*(.45+R()*.45),k=.5+R()*.28,dy=ry*(.1+R()*.7),up=R()<.3?ry*.5:0;
+  blob(leaf,5,ccx+Math.cos(a)*rr,cy-dy+up,ccz+Math.sin(a)*rr,rx*k,ry*(k+.15),rz*k,asym,phase+a,dens,sd+i+1)}
+ const nl=2+Math.floor(R()*3)+(giant?3:0);
+ for(let i=0;i<nl;i++){const a=R()*6.2832,by=h+Math.floor(H*(.4+R()*.38)),len=2+Math.floor(R()*(giant?5.2:3.4)),ca=Math.cos(a),sa=Math.sin(a);let bx=tx,bz=tz,yy=by;
+  for(let s=1;s<=len;s++){bx=Math.round(tx+o+ca*s);bz=Math.round(tz+o+sa*s);yy=by+Math.floor(s*.5);write(bx,yy,bz,4)}
+  const br=1.3+R()*1.2+(giant?.8:0);blob(leaf,5,bx,yy+.4,bz,br,br*.8,br,.2,a,dens,sd+20+i)}}
+function growBirch(write,leaf,x,h,z,R,A,sd){
+ const H=Math.max(4,Math.round((5.6+R()*5)*A)),lean=R()<.28,la=R()*6.2832,ldx=Math.round(Math.cos(la)),ldz=Math.round(Math.sin(la)),leanAt=Math.floor(H*(.45+R()*.3));let tx=x,tz=z;
+ for(let y=1;y<=H;y++){if(lean&&y===leanAt){tx+=ldx;tz+=ldz}write(tx,h+y,tz,13)}
+ const rx=1.5+R()*1.3+.2*A,rz=rx*(.78+R()*.45),ry=2+R()*1.7+.3*A,asym=.1+R()*.35,phase=R()*6.2832,dens=.6+R()*.28,cy=h+H-ry*.25;
+ blob(leaf,14,tx,cy,tz,rx,ry,rz,asym,phase,dens,sd);
+ if(R()<.45){const a=R()*6.2832;blob(leaf,14,tx+Math.cos(a)*(rx+.5),h+Math.floor(H*(.5+R()*.2)),tz+Math.sin(a)*(rx+.5),rx*.6,ry*.55,rz*.6,.2,a,dens,sd+3)}
+ const n=2+Math.floor(R()*3);for(let i=0;i<n;i++){const y=h+Math.floor(H*(.45+R()*.4)),a=Math.floor(R()*4);leaf(tx+[1,-1,0,0][a],y,tz+[0,0,1,-1][a],14)}}
+function growSpruce(write,leaf,x,h,z,R,A,giant,tf,sd){
+ const H=Math.max(5,Math.round((8+R()*7.5)*A*(.55+.45*tf)+(giant?8+R()*4:0))),thick=giant||H>=21?2:1;
+ for(let y=1;y<=H-1;y++){write(x,h+y,z,4);if(thick===2){write(x+1,h+y,z,4);write(x,h+y,z+1,4);write(x+1,h+y,z+1,4)}}
+ const o=thick===2?.5:0,y0=Math.max(2,Math.floor(H*(.16+R()*.14))),L=H+2-y0,rmax=Math.min(6.2,(2+R()*1.5)*(.8+.2*A)*(.75+.25*tf)+(giant?1.9:0)),gap=2+(R()<.4?1:0),dens=.8+R()*.18;
+ for(let yl=H+2;yl>=y0;yl--){const k=H+2-yl,base=rmax*Math.pow(k/L,.88),tier=(k%gap===0?.95:-.25)*(.45+.55*k/L),wob=(vh(x,k,z,sd+9)-.5)*.9,r=k===0?0:Math.max(1,base+tier+wob);
+  const cx=x+o+Math.round((vh(x,k,z,sd+11)-.5)*1.3*(k/L)),cz=z+o+Math.round((vh(x,k,z,sd+12)-.5)*1.3*(k/L)),ri=Math.ceil(r);
+  for(let px=Math.max(gX0,Math.floor(cx-ri)-1);px<=Math.min(gX1-1,Math.ceil(cx+ri)+1);px++)for(let pz=Math.max(gZ0,Math.floor(cz-ri)-1);pz<=Math.min(gZ1-1,Math.ceil(cz+ri)+1);pz++){
+   const d2=(px-cx)*(px-cx)+(pz-cz)*(pz-cz);if(d2>r*r+.35)continue;
+   if(d2>(r-1)*(r-1)+.2&&vh(px,yl,pz,sd+13)>dens)continue;leaf(px,h+yl,pz,15)}}}
+function growShrub(write,leaf,x,h,z,R,sd){
+ const r=.9+R()*1.35,ry=.85+R()*.8,tall=ry>1.35&&R()<.5,dens=.7+R()*.25,cy=h+1.2+(tall?1:0)+ry*.2;
+ if(tall)write(x,h+1,z,4);blob(leaf,16,x,cy,z,r,ry,r*(.8+R()*.4),.3,R()*6.2832,dens,sd);
+ if(R()<.4){const a=R()*6.2832;blob(leaf,16,x+Math.cos(a)*r*.8,cy-.3,z+Math.sin(a)*r*.8,r*.6,ry*.7,r*.6,.2,a,dens,sd+2)}}
+function treeAge(R){const u=R();return u<.16?.55+.2*R():u<.92?.9+.25*R():1.2+.25*R()}
+// Rare giants own a ring of space: ordinary trees thin out around their crown.
+const elders=new Map();
+function elderAt(i,j){const key=i+','+j;let e=elders.get(key);if(e!==undefined)return e;e=null;
+ const tx=i*26+Math.floor(rand(i*17+3,j*29+5)*26),tz=j*26+Math.floor(rand(i*41+9,j*13+1)*26);
+ if(tx>=8&&tz>=8&&tx<W-8&&tz<W-8){const ci=columnInfo(tx>>4,tz>>4),k=(tz&15)*16+(tx&15),d=ci.dens[k];
+  if(ci.surf[k]===1&&d>.3&&rand(i*53+7,j*91+11)<.06+.3*(d-.3)/.7){const alt=ci.h[k]-SEA,conifer=alt>=36||ci.birch[k]<-.2&&alt>26;e={x:tx,z:tz,h:ci.h[k],kind:conifer?4:1,R:conifer?5.2:8.2,tf:smooth(84,62,alt)}}}
+ if(elders.size>3000)elders.clear();elders.set(key,e);return e}
+function growGiant(write,leaf,e){const R=treeRng(e.x,e.z,9),sd=e.x*7+e.z*3;if(e.kind===4)growSpruce(write,leaf,e.x,e.h,e.z,R,1.15,true,e.tf,sd);else growOak(write,leaf,e.x,e.h,e.z,R,1.1,true,sd)}
+// Trees and shrubs for one chunk. Candidates are visited in global cell order, so overlaps resolve identically in every chunk.
+function growVegetation(write,leaf,x0,z0){
+ gX0=x0;gX1=x0+CHUNK;gZ0=z0;gZ1=z0+CHUNK;const el=[];
+ for(let i=Math.floor((x0-14)/26);i<=Math.floor((x0+CHUNK+14)/26);i++)for(let j=Math.floor((z0-14)/26);j<=Math.floor((z0+CHUNK+14)/26);j++){const e=elderAt(i,j);if(e)el.push(e)}
+ for(let i=Math.floor((x0-9)/4);i<=Math.floor((x0+CHUNK+9)/4);i++)for(let j=Math.floor((z0-9)/4);j<=Math.floor((z0+CHUNK+9)/4);j++){
+  const tx=i*4+Math.floor(rand(i*7+1,j*13+5)*4),tz=j*4+Math.floor(rand(i*11+3,j*3+17)*4);
+  if(tx<4||tz<4||tx>=W-4||tz>=W-4)continue;
+  const ci=columnInfo(tx>>4,tz>>4),k=(tz&15)*16+(tx&15),d=ci.dens[k];if(d<.04||ci.surf[k]!==1)continue;
+  let p=Math.pow(d,1.15)*.8;for(const e of el){const dd=Math.hypot(tx-e.x,tz-e.z);if(dd<e.R+4.5)p*=smooth(e.R*.8,e.R+4.5,dd)}
+  if(rand(tx*3+11,tz*5+7)>=p)continue;if(vista&&Math.hypot(tx-vista.x,tz-vista.z)<12)continue;
+  const R=treeRng(tx,tz,1),h=ci.h[k],alt=h-SEA,sp=pickSpecies(alt,ci.birch[k],R(),R()),A=treeAge(R),sd=tx*5+tz*11;
+  if(sp===4)growSpruce(write,leaf,tx,h,tz,R,A,false,smooth(84,62,alt),sd);else if(sp===3)growBirch(write,leaf,tx,h,tz,R,A,sd);else growOak(write,leaf,tx,h,tz,R,A,false,sd)}
+ for(let i=Math.floor((x0-3)/3);i<=Math.floor((x0+CHUNK+3)/3);i++)for(let j=Math.floor((z0-3)/3);j<=Math.floor((z0+CHUNK+3)/3);j++){
+  const tx=i*3+Math.floor(rand(i*19+5,j*7+3)*3),tz=j*3+Math.floor(rand(i*5+9,j*23+1)*3);
+  if(tx<3||tz<3||tx>=W-3||tz>=W-3)continue;
+  const ci=columnInfo(tx>>4,tz>>4),k=(tz&15)*16+(tx&15),sp=ci.shrub[k];if(sp<.01||ci.surf[k]!==1||rand(tx*7+3,tz*17+5)>=sp)continue;
+  if(vista&&Math.hypot(tx-vista.x,tz-vista.z)<8)continue;growShrub(write,leaf,tx,ci.h[k],tz,treeRng(tx,tz,2),tx*3+tz*7)}
+ for(const e of el)growGiant(write,leaf,e)}
 function columnInfo(cx,cz){const key=cx+','+cz;let c=columns.get(key);if(c)return c;
- const x0=cx*CHUNK,z0=cz*CHUNK,P=CHUNK+2,hh=new Int16Array(P*P);
- for(let j=0;j<P;j++)for(let i=0;i<P;i++)hh[j*P+i]=height4(x0+i-1,z0+j-1);
+ const x0=cx*CHUNK,z0=cz*CHUNK,P=CHUNK+2,hh=new Int16Array(P*P),ll=VEG?new Float32Array(P*P):null;
+ for(let j=0;j<P;j++)for(let i=0;i<P;i++){hh[j*P+i]=height4(x0+i-1,z0+j-1);if(ll)ll[j*P+i]=gLand}
  c={h:new Int16Array(256),surf:new Uint8Array(256),slope:new Uint8Array(256),hum:new Float32Array(256),birch:new Float32Array(256)};
+ if(VEG)for(const n of['dens','shrub','gd','tl','dry','lush','fc'])c[n]=new Float32Array(256),c.fp=new Uint8Array(256);
  for(let z=0;z<16;z++)for(let x=0;x<16;x++){const k=z*16+x,p=(z+1)*P+x+1,h=hh[p],s=Math.max(Math.abs(h-hh[p-1]),Math.abs(h-hh[p+1]),Math.abs(h-hh[p-P]),Math.abs(h-hh[p+P]));
-  c.h[k]=h;c.slope[k]=Math.min(255,s);c.hum[k]=humidity(x0+x,z0+z);c.birch[k]=birchiness(x0+x,z0+z);c.surf[k]=surface4(x0+x,z0+z,h,s)}
+  c.h[k]=h;c.slope[k]=Math.min(255,s);c.hum[k]=humidity(x0+x,z0+z);c.birch[k]=birchiness(x0+x,z0+z);c.surf[k]=surface4(x0+x,z0+z,h,s);
+  if(VEG){vegEnv(x0+x,z0+z,h,s,Math.max(-1,Math.min(1,(hh[p-P]-hh[p+P])*.35)),ll[p],c.hum[k]);
+   c.dens[k]=E.dens;c.shrub[k]=E.shrub;c.gd[k]=E.gd;c.tl[k]=E.tl;c.dry[k]=E.dry;c.lush[k]=E.lush;c.fc[k]=E.fc;c.fp[k]=E.fp;if(c.surf[k]===1&&E.bare>.4)c.surf[k]=2}}
  columns.set(key,c);return c}
 // The scenic evaluation point: a hill near the coast that sees both open sea and high mountains.
 function findVista(){
@@ -272,14 +405,15 @@ function findVista(){
   const x=gx+i*S,z=gz+j*S;if(Math.abs(x-ORIGIN)>300||Math.abs(z-ORIGIN)>320)continue;
   const k=j*N+i,h=g[k],alt=h-SEA;if(alt<10||alt>58)continue;
   if(Math.max(Math.abs(g[k-1]-h),Math.abs(g[k+1]-h),Math.abs(g[k-N]-h),Math.abs(g[k+N]-h))>9)continue;
-  const eye=h+4;
+  const eye=h+4;let fb=0;
+  if(VEG){for(let a=0;a<8;a++){flowerPatches(x+Math.round(Math.cos(a*.785)*22),z+Math.round(Math.sin(a*.785)*22));fb+=FP.cov}fb*=1-smooth(.5,.64,humidity(x,z))}
   for(let d=0;d<dirs;d++){const a=d*Math.PI*2/dirs,sx=Math.sin(a),sz=Math.cos(a);let maxA=-1e9;sea[d]=0;mt[d]=0;
    for(let r=1;r<N;r++){const ii=Math.round(i+sx*r),jj=Math.round(j+sz*r);if(ii<0||jj<0||ii>=N||jj>=N)break;
     const hh=g[jj*N+ii],dist=r*S,ang=(Math.max(hh,SEA)-eye)/dist;
     if(ang>=maxA){if(hh<SEA-3&&dist>40)sea[d]+=1;if(hh>SEA+55&&dist>90)mt[d]+=(hh-SEA)/90}
     if(ang>maxA)maxA=ang}}
   for(let c=0;c<dirs;c++){let sv=0,mv=0;for(let o=-2;o<=2;o++){const q=(c+o+dirs)%dirs;sv+=sea[q];mv+=mt[q]}
-   const score=Math.min(sv,mv*3)*2+Math.min(sv,40)*.4+mv*1.5+alt*.14-Math.hypot(x-ORIGIN,z-ORIGIN)*.004-smooth(.5,.64,humidity(x,z))*4;
+   const score=Math.min(sv,mv*3)*2+Math.min(sv,40)*.4+mv*1.5+alt*.14-Math.hypot(x-ORIGIN,z-ORIGIN)*.004-smooth(.5,.64,humidity(x,z))*4+fb*1.2;
    if(!best||score>best.score)best={score,x,z,h,yaw:c*Math.PI*2/dirs}}}
  if(!best){for(let r=0;r<N/2&&!best;r++)for(let j=(N>>1)-r;j<=(N>>1)+r&&!best;j++)for(let i=(N>>1)-r;i<=(N>>1)+r;i++)if(g[j*N+i]>SEA+2){best={x:gx+i*S,z:gz+j*S,h:g[j*N+i],yaw:Math.PI/2};break}}
  if(!best)best={x:ORIGIN,z:ORIGIN,h:height4(ORIGIN,ORIGIN),yaw:Math.PI/2};
@@ -305,8 +439,9 @@ function generateChunk(cx,cz){
  const leaf=(x,y,z)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=5}};
  if(GRAND){
   const info=columnInfo(cx,cz);
-  for(let lz=0;lz<16;lz++)for(let lx=0;lx<16;lx++){const k=lz*16+lx,h=info.h[k],top=info.surf[k],sub=top===1?2:top===6?6:3;
+  for(let lz=0;lz<16;lz++)for(let lx=0;lx<16;lx++){const k=lz*16+lx,h=info.h[k],top=info.surf[k],sub=top===1||top===2?2:top===6?6:3;
    data[k]=11;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-4?sub:3;for(let y=h+1;y<=SEA;y++)data[y*256+k]=10}
+  if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);return data}
   // One tree candidate per 5x5 cell; canopies reach three blocks into neighbouring chunks.
   for(let i=Math.floor((x0-3)/5);i<=Math.floor((x0+CHUNK+2)/5);i++)for(let j=Math.floor((z0-3)/5);j<=Math.floor((z0+CHUNK+2)/5);j++){
    const tx=i*5+Math.floor(rand(i*7+1,j*13+5)*5),tz=j*5+Math.floor(rand(i*11+3,j*3+17)*5);
@@ -372,26 +507,30 @@ precision mediump float;
 // aMat packs material + 32*face (0-5 cube faces, 6 plant, 7 unlit) + 256 when the face is under a roof.
 const mainVS=wind=>`
 attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
-uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock; uniform float wind;
+uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock; uniform float wind; uniform float fade;
 varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade;
 void main(){
 float code=aMat;float shade=step(255.5,code);code-=shade*256.;float face=floor((code+.5)/32.);float m=code-face*32.;
 vec3 pos=aPos;
-${wind?`// Grass tufts (15) and flowers (17) bend from the root; leaves (5) drift slightly. Ground, trunks and animals stay still.
-if((m>14.5&&m<15.5)||(m>16.5&&m<17.5)){
+${wind?`// Plants (grass 15/20-22, flowers 17/23-25) bend from a fixed root; leaves (5) drift. Ground, trunks and animals stay still.
+if((m>14.5&&m<15.99)||(m>16.5&&m<17.99)||(m>19.5&&m<25.99)){
  float xFixed=step(.25,fract(aPos.x));
- // The two crossed quads share a stable plant origin and wind phase.
- vec2 root=vec2(aPos.x-mix(aUV.x,.5,xFixed),aPos.z-mix(.5,aUV.x,xFixed));
- float phase=dot(root,vec2(1.73,2.41));
- float gust=pow(.5+.5*sin(clock*.52+dot(root,vec2(.025,.018))),4.0);
- float flex=mix(1.0,1.25,step(16.5,m))*(.35+wind*.9);
- pos.x+=aUV.y*flex*(.014*sin(clock*1.35+phase)+gust*(.085+.045*sin(clock*2.2+phase*.8)));
- pos.z+=aUV.y*flex*(.012*sin(clock*1.05+phase*.63)+gust*.055*sin(clock*1.8+phase));
+ // The two crossed quads share a stable plant cell (rounded, because v5 plants sit off-centre).
+ vec2 root=floor(vec2(aPos.x-mix(aUV.x,.5,xFixed),aPos.z-mix(.5,aUV.x,xFixed))+.5);
+ // Distance thinning: plants drop out randomly toward the fade distance, so far meadows cost no fill.
+ float keep=1.-smoothstep(fade*.55,fade,length(root+.5-eye.xz));
+ if(fract(sin(dot(root,vec2(12.9898,78.233)))*43758.5453)>keep){gl_Position=vec4(0.,0.,2.,1.);col=aColor;uv=aUV;mat=m;rel=vec3(0.);vClk=clock;vFace=face;vShade=shade;return;}
+ // Gust fronts travel across the land, so neighbouring plants lean together; a small per-plant flutter rides on top.
+ float phase=dot(root,vec2(1.73,2.41)),front=dot(root,vec2(.82,.57));
+ float gust=pow(.5+.5*sin(front*.085-clock*(.8+wind*1.7)),2.4)*(.25+.95*wind),ripple=sin(front*.31-clock*(1.7+wind*2.2)+sin(root.y*.11)*1.8);
+ float amp=m<16.?.55:m<18.?1.1:m<21.?1.65:m<22.?.9:m<23.?.55:m<24.?1.1:m<25.?1.3:.8;
+ float bend=((m>16.5&&m<18.)||m>22.5)?aUV.y*aUV.y:pow(aUV.y,1.35);
+ pos.xz+=(vec2(.82,.57)*(gust*(.1+.03*ripple)+.014*sin(clock*1.35+phase)*(.4+wind))+vec2(-.57,.82)*.012*sin(clock*1.9+phase*.7)*(.5+wind))*amp*bend;
 }
 else if(m>4.5&&m<5.5){
- // The offset depends only on the vertex position, so neighbouring leaf faces stay joined.
- float ph=dot(aPos,vec3(.71,.37,.53));
- pos+=vec3(sin(clock*1.9+ph),.5*sin(clock*2.3+ph*1.3),cos(clock*1.6+ph*.8))*(.012+.03*wind);
+ // The offset depends only on the vertex position, so neighbouring leaf faces stay joined; gust fronts sway whole crowns.
+ float ph=dot(aPos,vec3(.71,.37,.53)),g=.5+.5*sin(dot(aPos.xz,vec2(.82,.57))*.07-clock*(.8+wind*1.7));
+ pos+=vec3(sin(clock*1.9+ph),.5*sin(clock*2.3+ph*1.3),cos(clock*1.6+ph*.8))*(.012+.03*wind)+vec3(.82,0.,.57)*g*g*.05*wind;
 }`:''}
 vec3 p=pos-eye;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
 float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
@@ -427,9 +566,18 @@ else if(mat<13.5){float ring=mod(floor(max(abs(q.x-7.5),abs(q.y-7.5))),3.);c=col
 else if(mat<14.5){float bark=step(.76,hash(vec2(floor(q.x/3.),floor(q.y/2.))));c=mix(vec3(.84,.83,.73),vec3(.23,.23,.20),bark)*col*(.9+n*.12);}
 else if(mat<15.5){float blade=mod(q.x,4.);float tip=7.+hash(vec2(floor(q.x/4.),0.))*9.;if(q.y>tip-abs(blade-1.)*3.||blade>2.)discard;c=col*(.7+uv.y*.3+n*.16);}
 else if(mat<16.5){float patch=step(.60,hash(floor(q/4.)));c=mix(vec3(.26,.16,.105),vec3(.91,.88,.76),patch)*col*(.91+n*.12);}
-else if(mat<17.5){float stem=step(abs(q.x-8.),1.)*step(q.y,10.);float flower=step(abs(q.x-8.),4.)*step(abs(q.y-12.),3.);if(max(stem,flower)<.5)discard;c=mix(vec3(.24,.44,.1),col,flower);if(abs(q.x-8.)<2.&&abs(q.y-12.)<2.)c=vec3(1.,.82,.2);}
+else if(mat<17.5){float fv=floor(fract(mat)*10.+.5),hx=abs(q.x-8.),hy=abs(q.y-12.),r2=hx*hx+hy*hy;
+ // Petal variants (v4 flowers are variant 0, unchanged).
+ float head=fv<.5?step(hx,4.)*step(hy,3.):fv<1.5?step(hx+hy,4.5):fv<2.5?max(step(hx,1.)*step(hy,4.),step(hy,1.)*step(hx,4.)):fv<3.5?step(r2,13.):step(r2,16.)*(step(4.,r2)+step(r2,1.5));
+ float stem=step(abs(q.x-8.),1.)*step(q.y,10.);if(max(stem,head)<.5)discard;c=mix(vec3(.24,.44,.1),col*(.9+n*.18),head);if(hx<2.&&hy<2.)c=vec3(1.,.82,.2);}
 else if(mat<18.5){c=col;}
-else{c=col*(.93+n*.08);if(n>.97)c=vec3(1.);}
+else if(mat<19.5){c=col*(.93+n*.08);if(n>.97)c=vec3(1.);}
+else if(mat<20.5){float b=mod(q.x,3.),tip=7.+hash(vec2(floor(q.x/3.),2.))*9.;if(b>1.||q.y>tip||(q.y>tip-2.&&b>.5))discard;c=col*(.68+uv.y*.42+n*.12);if(q.y>tip-1.5&&hash(vec2(floor(q.x/3.),5.))>.6)c=mix(c,vec3(.78,.70,.45),.6);}
+else if(mat<21.5){float dx=abs(q.x-8.),w=(1.+5.*sin(clamp(q.y/14.,0.,1.)*3.1416))*(1.-q.y/22.);if(dx>w||q.y>14.||(mod(q.y,3.)<1.&&dx>1.&&dx>w-1.5))discard;c=col*(.72+n*.2+step(dx,.9)*.12);}
+else if(mat<22.5){vec2 d=(q-vec2(7.5,5.5))/vec2(7.5,6.5);if(dot(d,d)>1.-.4*hash(q))discard;c=col*(.62+n*.35+uv.y*.2);}
+else if(mat<23.5){float hx=abs(q.x-7.5),cup=step(hx,1.2+1.6*sin(clamp((q.y-8.)/7.,0.,1.)*3.1416))*step(8.,q.y)*step(q.y,15.);if(q.y>13.&&mod(q.x,2.)<1.)cup=0.;float stem=step(abs(q.x-7.5),.6)*step(q.y,9.);if(max(cup,stem)<.5)discard;c=mix(vec3(.24,.44,.1),col*(.85+n*.25),cup);}
+else if(mat<24.5){float stem=step(abs(q.x-7.5),.6)*step(q.y,6.),sp=step(6.,q.y)*step(q.y,15.)*step(abs(q.x-7.5),q.y>12.?.6:1.6)*step(.3,hash(q));if(max(stem,sp)<.5)discard;c=mix(vec3(.24,.44,.1),col*(.82+n*.3),sp);}
+else{vec2 a=q-vec2(4.,9.),b=q-vec2(11.,11.),d=q-vec2(8.,6.);float head=min(1.,step(dot(a,a),3.)+step(dot(b,b),3.)+step(dot(d,d),2.5)),stem=step(abs(q.x-7.5),.6)*step(q.y,6.);if(max(head,stem)<.5)discard;c=mix(vec3(.26,.46,.12),col,head);}
 if(mat<9.5||mat>10.5){
  vec3 nrm=faceNormal(vFace);
  if(mat>17.5&&mat<18.5)c*=ambCol*1.15+dirCol*.6;
@@ -486,7 +634,7 @@ function initRenderer(){
  renderReady=false;
  try{mainProg=buildProgram(vertexSource,fragmentSource,['aPos','aColor','aUV','aMat'])}
  catch(windError){console.warn('Using compatible WebGL shader fallback:',windError);mainProg=buildProgram(fallbackVertexSource,fragmentSource,['aPos','aColor','aUV','aMat'])}
- mainU=uniformsOf(mainProg,['eye','yaw','pitch','aspect','proj','clock','wind','eyeF',...SKY_UNIFORMS]);
+ mainU=uniformsOf(mainProg,['eye','yaw','pitch','aspect','proj','clock','wind','fade','eyeF',...SKY_UNIFORMS]);
  // The far field is optional: if it cannot compile, the game still runs with the near field only.
  try{lodProg=buildProgram(lodVertexSource,lodFragmentSource,['lPos','lCol']);skyProg=buildProgram(skyVertexSource,skyFragmentSource,['sPos']);
   lodU=uniformsOf(lodProg,['org','yaw','pitch','aspect','proj','clock','hole','eyeF',...SKY_UNIFORMS]);skyU=uniformsOf(skyProg,['cFwd','cRight','cUp','cScale',...SKY_UNIFORMS]);lodOK=true}
@@ -512,6 +660,31 @@ function grow(w,need){if(w.n+need<=w.a.length)return;const b=new Float32Array(Ma
 function vert(w,x,y,z,r,g,b,u,v,m){const a=w.a,i=w.n;a[i]=x;a[i+1]=y;a[i+2]=z;a[i+3]=r;a[i+4]=g;a[i+5]=b;a[i+6]=u;a[i+7]=v;a[i+8]=m;w.n=i+9}
 const opaqueW=writer(1<<17),waterW=writer(1<<14),dyn=writer(1<<14);
 function emitPlant(w,x,y,z,flower,color,size,shaded=false){const code=(flower?17:15)+192+(shaded?256:0);for(const d of [0,1]){grow(w,36);const v=d?[[x+.5,y,z],[x+.5,y+size,z],[x+.5,y+size,z+1],[x+.5,y,z+1]]:[[x,y,z+.5],[x,y+size,z+.5],[x+1,y+size,z+.5],[x+1,y,z+.5]];const uv=[[0,0],[0,1],[1,1],[1,0]];for(let k=0;k<4;k++)vert(w,v[k][0],v[k][1],v[k][2],color[0],color[1],color[2],uv[k][0],uv[k][1],code)}}
+// v5 ground cover: plants sit off-centre in their cell; the shader recovers the cell from the rounded root.
+const PLANT_SHORT=15,PLANT_TALL=20,PLANT_FERN=21,PLANT_TUFT=22,FLOWER_SHAPES=[17,23,24,25];
+function emitPlantM(w,x,y,z,m,c,size,shaded,ox,oz){const code=m+192+(shaded?256:0),X=x+.5+ox,Z=z+.5+oz,uv=[[0,0],[0,1],[1,1],[1,0]];grow(w,72);
+ for(const v of[[[x,y,Z],[x,y+size,Z],[x+1,y+size,Z],[x+1,y,Z]],[[X,y,z],[X,y+size,z],[X,y+size,z+1],[X,y,z+1]]])for(let k=0;k<4;k++)vert(w,v[k][0],v[k][1],v[k][2],c[0],c[1],c[2],uv[k][0],uv[k][1],code)}
+const FPK={ci:0,sh:0};
+function flowerPick(wx,wz,fp){const P=VEGK.PAL[fp],zone=pn(wx/6.5+fp*7.1,wz/6.5+3.3)*.5+.5;FPK.ci=P.m>=0&&zone>.5?P.m:pickW(P.w,rand(wx*7+1,wz*3+2));FPK.sh=pickW(P.s,rand(wx*29+3,wz*5+11))}
+function pickW(ws,u){let t=0;for(const x of ws)t+=x;let a=u*t;for(let i=0;i<ws.length;i++){a-=ws[i];if(a<0)return i}return ws.length-1}
+// One plant per grass cell at most. keep < 1 thins the set deterministically (lower quality = subset of higher quality).
+function emitMeadow(w,wx,wz,y,k,info,g,ps,free2,keep){
+ const ox=(rand(wx*13+1,wz*7+2)-.5)*.44,oz=(rand(wx*3+5,wz*19+7)-.5)*.44,v=rand(wx*5+1,wz*17+3),fc=info.fc[k];
+ if(fc>0&&rand(wx*23+5,wz*11+9)<Math.min(.72,fc*.72)){if(v>=Math.min(1,keep*1.3))return;
+  // Flowers of one patch share a palette; noise zones let the main colour form drifts while the rest mixes in.
+  const fp=info.fp[k];flowerPick(wx,wz,fp);const ci=FPK.ci,sh=FPK.sh,r=rand(wx*11+7,wz*13+5),b=.88+.22*r,col=VEGK.COL[ci],
+   size=(sh===2?.7+.55*r:sh===3?.22+.14*r:sh===1?.5+.35*r:.42+.38*r)*(fp===8?1.2:1);
+  emitPlantM(w,wx,y,wz,FLOWER_SHAPES[sh]+Math.floor(rand(wx*17+9,wz*23+4)*5)*.1,[col[0]*b,col[1]*b,col[2]*b],free2?size:Math.min(size,.95),ps,ox,oz);return}
+ if(v>=keep||rand(wx*31+2,wz*7+8)>=info.gd[k])return;
+ const d=info.dens[k],lush=info.lush[k],dry=info.dry[k],rr=rand(wx*3+7,wz*29+1),r2=rand(wx*19+4,wz*3+13),vv=.88+.24*r2,
+  pT=free2?info.tl[k]*.62:0,pF=d*.42*(.4+lush),pB=(1-d)*.035+d*(1-d)*.2;
+ let m=PLANT_SHORT,size=.3+.28*r2,c=[g[0]*.88*vv,g[1]*.92*vv,g[2]*.82*vv];
+ if(rr<pT){m=PLANT_TALL;size=.95+.4*r2;c=[g[0]*(.95+.25*dry)*vv,g[1]*.97*vv,g[2]*.78*vv]}
+ else if(rr<pT+pF){m=PLANT_FERN;size=.45+.32*r2;c=[g[0]*.72*vv,g[1]*.94*vv,g[2]*.72*vv]}
+ else if(rr<pT+pF+pB){m=PLANT_TUFT;size=.5+.35*r2;c=[g[0]*.78*vv,g[1]*.86*vv,g[2]*.7*vv]}
+ else if(dry>.5&&rr>.86){size=.2+.12*r2;c=[g[0]*1.05*vv,g[1]*.98*vv,g[2]*.85*vv]}
+ emitPlantM(w,wx,y,wz,m,c,size,ps,ox,oz)}
+function plantLevel(cx,cz){return centerCX===null||Math.max(Math.abs(cx-centerCX),Math.abs(cz-centerCZ))<=Q.plantNear?0:1}
 const FLOWERS=['#e84837','#f5e4df','#f4d03f','#8a7ee0','#f08bb5'].map(rgb),LEGACY_FLOWERS=[rgb('#e84837'),rgb('#f5e4df')],LEGACY_GRASS=rgb('#609c35');
 
 // ---- Voxel mesher. The 3x3 chunk neighbourhood is copied into a padded byte grid (floor and ceiling layers included).
@@ -531,10 +704,14 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
   else{for(let y=0;y<H;y++)pad[(y+1)*PA+col]=0;open=0}
   roofs[col]=roof;if(open<ymin)ymin=open;if(inner&&top>ymax)ymax=top}
  opaqueW.n=0;waterW.n=0;
- const ystart=Math.max(0,ymin-1),grassSide=[0,0,0];let gcol=defsRGB[1],lcol=defsRGB[5];
+ const ystart=Math.max(0,ymin-1),grassSide=[0,0,0],lvl=VEG?plantLevel(cx,cz):0,keep=Q.plant*(lvl?.35:1);let gcol=defsRGB[1],lcol=defsRGB[5],lc14=lcol,lc15=lcol,lc16=lcol;
  for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){
   const wx=x0+x,wz=z0+z,k=z*16+x;
-  if(info){const alt=info.h[k]-SEA;gcol=grassColor(alt,info.hum[k]);lcol=leafColor(alt,info.hum[k],info.birch[k]);for(let i=0;i<3;i++)grassSide[i]=gcol[i]/defsRGB[1][i]}else grassSide[0]=grassSide[1]=grassSide[2]=1;
+  if(info&&VEG){const alt=info.h[k]-SEA,dry=info.dry[k],lush=info.lush[k],lv=.88+.24*(pn(wx/9+.3,wz/9+.7)*.5+.5);
+   // Dense flower patches tint the turf toward their colour, so meadows read as colour from a distance.
+   gcol=mix3(grassColor5(alt,dry,lush),VEGK.PALMEAN[info.fp[k]],Math.min(.3,info.fc[k]*.28));
+   lcol=leafColor5(1,alt,dry,lush,lv);lc14=leafColor5(3,alt,dry,lush,lv);lc15=leafColor5(4,alt,dry,lush,lv);lc16=leafColor5(5,alt,dry,lush,lv);for(let i=0;i<3;i++)grassSide[i]=gcol[i]/defsRGB[1][i]}
+  else if(info){const alt=info.h[k]-SEA;gcol=grassColor(alt,info.hum[k]);lcol=leafColor(alt,info.hum[k],info.birch[k]);for(let i=0;i<3;i++)grassSide[i]=gcol[i]/defsRGB[1][i]}else grassSide[0]=grassSide[1]=grassSide[2]=1;
   for(let y=ystart;y<=ymax;y++){
    const p=(y+1)*PA+(z+1)*PW+x+1,t=pad[p];if(!t)continue;
    const water=t===10;
@@ -543,7 +720,7 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
     let mat=t,c=defsRGB[t];
     if(t===1){if(F.n[1]>0)c=gcol;else if(F.n[1]===0){mat=12;c=grassSide}else{mat=2;c=defsRGB[2]}}
     else if(t===4||t===13){if(F.n[1]){mat=13;c=t===13?BIRCH_TOP:LOG_TOP}else if(t===13||(!GRAND&&rand(wx*9,wz*7)>.62)){mat=14;c=WHITE}}
-    else if(t===5)c=lcol;else if(t===12)mat=19;
+    else if(t===5)c=lcol;else if(t===14||t===15||t===16){mat=5;c=t===14?lc14:t===15?lc15:lc16}else if(t===12)mat=19;
     // Faces whose open neighbour lies under a roof (canopy, overhang) lose direct sunlight in the shader.
     const shaded=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy,pa=p+F.off,code=mat+32*fi+(shaded?256:0);
     for(let q=0;q<4;q++){const ao=F.ao[q],a1=occ(pad[pa+ao[0]]),a2=occ(pad[pa+ao[1]]),a3=occ(pad[pa+ao[2]]);sh[q]=1-(a1&&a2?3:a1+a2+a3)*.13}
@@ -552,18 +729,19 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
      for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0;vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],d/30,shore,0,F.uv[k][0],F.uv[k][1],code)}}
     else for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=sh[kk];vert(w,wx+v[0],y+v[1],wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0],F.uv[kk][1],code)}}
    if(t===1&&!pad[p+PA]){const ps=roofs[(z+1)*PW+x+1]>y+1;
-    if(info){const forest=smooth(.5,.64,info.hum[k]),r1=rand(wx*23,wz*11),meadow=1-smooth(.36,.5,info.hum[k]),fp=meadow*smooth(.05,.35,pn(wx/24+12.5,wz/24+44.4))*.5+.02;
+    if(VEG&&info)emitMeadow(opaqueW,wx,wz,y+1,k,info,gcol,ps,y+2<H&&!pad[p+2*PA],keep);
+    else if(info){const forest=smooth(.5,.64,info.hum[k]),r1=rand(wx*23,wz*11),meadow=1-smooth(.36,.5,info.hum[k]),fp=meadow*smooth(.05,.35,pn(wx/24+12.5,wz/24+44.4))*.5+.02;
      if(r1<fp)emitPlant(opaqueW,wx,y+1,wz,true,FLOWERS[Math.floor(rand(wx*3,wz*19)*FLOWERS.length)],.7,ps);
      else if(r1<fp+.16+.26*(1-forest))emitPlant(opaqueW,wx,y+1,wz,false,[gcol[0]*.86,gcol[1]*.9,gcol[2]*.8],.6+rand(wz,wx)*.3,ps)}
     else if(rand(wx*23,wz*11)>.61){const fl=rand(wx*3,wz*19)>.86;emitPlant(opaqueW,wx,y+1,wz,fl,fl?LEGACY_FLOWERS[rand(wx,wz)>.5?0:1]:LEGACY_GRASS,fl?.7:.65+rand(wz,wx)*.25,ps)}}
   }}
  const key=cx+','+cz;let ch=chunks.get(key);if(!ch){ch={buffer:gl.createBuffer(),water:gl.createBuffer(),cx,cz};chunks.set(key,ch)}
- ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;
+ ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;ch.plantLvl=lvl;
  gl.bindBuffer(gl.ARRAY_BUFFER,ch.buffer);gl.bufferData(gl.ARRAY_BUFFER,opaqueW.a.subarray(0,opaqueW.n),gl.STATIC_DRAW);
  gl.bindBuffer(gl.ARRAY_BUFFER,ch.water);gl.bufferData(gl.ARRAY_BUFFER,waterW.a.subarray(0,waterW.n),gl.STATIC_DRAW)}
 
 // ---- Near-field streaming. Chunks load in square rings; only complete rings are drawn, LOD covers the rest.
-let chunkQueue=[],centerCX=null,centerCZ=null,readyR=-1,streamDirty=true;
+let relevelQueue=[],chunkQueue=[],centerCX=null,centerCZ=null,readyR=-1,streamDirty=true;
 const chunkInWorld=(x,z)=>x>=0&&z>=0&&x<CHUNKS&&z<CHUNKS;
 function computeReady(){const R=Q.near+1;readyR=-1;for(let r=0;r<=R;r++){for(let i=-r;i<=r;i++)for(const [x,z]of[[centerCX+i,centerCZ-r],[centerCX+i,centerCZ+r],[centerCX-r,centerCZ+i],[centerCX+r,centerCZ+i]])if(chunkInWorld(x,z)&&!chunks.has(x+','+z))return;readyR=r}}
 function isTitleOpen(){return paused&&!$('menu').classList.contains('hidden')}
@@ -580,10 +758,13 @@ function streamChunks(initial=false){
   for(let x=cx-R;x<=cx+R;x++)for(let z=cz-R;z<=cz+R;z++)if(chunkInWorld(x,z)&&!chunks.has(x+','+z))chunkQueue.push([x,z]);
   chunkQueue.sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])||(a[0]-cx)**2+(a[1]-cz)**2-(b[0]-cx)**2-(b[1]-cz)**2);
   computeReady();
+  relevelQueue=VEG?[...chunks.values()].filter(ch=>ch.plantLvl!==plantLevel(ch.cx,ch.cz)).map(ch=>[ch.cx,ch.cz]).sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])):[];
  }
  let built=0;const start=performance.now();
  if(initial){while(chunkQueue.length&&Math.max(Math.abs(chunkQueue[0][0]-cx),Math.abs(chunkQueue[0][1]-cz))<=1){rebuild(...chunkQueue.shift());built++}}
  else while(chunkQueue.length&&built<4&&(built===0||performance.now()-start<Q.budget*loadScale)){rebuild(...chunkQueue.shift());built++}
+ // Plant detail rings follow the player one chunk per frame, after any missing terrain.
+ if(!built&&!initial&&relevelQueue.length){const [x,z]=relevelQueue.shift(),ch=chunks.get(x+','+z);if(ch&&ch.plantLvl!==plantLevel(x,z))rebuild(x,z)}
  if(built)computeReady();
  return built
 }
@@ -600,18 +781,28 @@ function waterColor(d){return d<=1?[.36,.72,.74]:d<5?mix3([.36,.72,.74],[.19,.55
 const STONE=defsRGB[3],DIRT=[.49,.36,.24],SAND=defsRGB[6],SNOW=defsRGB[12],CANOPY=[0,5,7,6,8,2];
 // Pure tile mesher: writes vertices into lw and returns bounds. Runs on the main thread or inside the LOD worker.
 function* tileMesh(s,x0,z0){
- const N=LOD_N,n=N+2,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n);
+ const N=LOD_N,n=N+2,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n),ls=new Float32Array(n*n);
  for(let j=0;j<n;j++){for(let i=0;i<n;i++){const x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1),k=j*n+i;
    if(x<0||z<0||x>=W||z>=W){hs[k]=VOID;continue}
-   if(GRAND){hs[k]=height4(x,z);hum[k]=humidity(x,z);bir[k]=birchiness(x,z)}else hs[k]=height(x,z)}
+   if(GRAND){hs[k]=height4(x,z);ls[k]=gLand;hum[k]=humidity(x,z);bir[k]=birchiness(x,z)}else hs[k]=height(x,z)}
   if((j&3)===3)yield}
  const top=new Float32Array(n*n),gnd=new Float32Array(n*n),surf=new Uint8Array(n*n),can=new Uint8Array(n*n),tc=[],lc=[];
  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i,h=hs[k],x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1);
   if(h===VOID||h<SEA){top[k]=gnd[k]=SEA+.875;surf[k]=10;tc[k]=h===VOID?WATER_DEEP:waterColor(SEA-h);continue}
   let sl=0;for(const nk of[k-1,k+1,k-n,k+n])if(nk>=0&&nk<n*n&&hs[nk]!==VOID)sl=Math.max(sl,Math.abs(h-hs[nk]));const slope=sl/s;
-  const su=GRAND?surface4(x,z,h,Math.round(slope*1.5)):h<=SEA+1?6:1;surf[k]=su;
+  let su=GRAND?surface4(x,z,h,Math.round(slope*1.5)):h<=SEA+1?6:1,c=0;
+  if(VEG){
+   // Same environment as the near field: forest density decides how many cells carry a canopy, flower patches tint the turf.
+   const alt=h-SEA;vegEnv(x,z,h,Math.round(slope),0,ls[k],hum[k]);if(su===1&&E.bare>.4)su=2;surf[k]=su;
+   tc[k]=su===1?mix3(grassColor5(alt,E.dry,E.lush),VEGK.PALMEAN[E.fp],Math.min(.55,E.fc*.6)):su===2?DIRT:su===6?SAND:su===12?SNOW:STONE;
+   if(su===1){const tp=Math.pow(E.dens,1.15)*.8;
+    if(rand(x*13+5,z*7+3)<1-Math.exp(-tp*1.55)){const R=treeRng(x,z,5),sp=pickSpecies(alt,bir[k],R(),R()),A=treeAge(R);
+     c=Math.max(2,Math.min(10,Math.round(sp===4?(8+R()*7.5)*A*(.55+.45*smooth(84,62,alt))*.55+1:sp===3?(5.6+R()*5)*A*.8+1:(4.4+R()*3.6)*A+2)));lc[k]=leafColor5(sp,alt,E.dry,E.lush,.84+R()*.22)}
+    else if(rand(x*29+1,z*31+7)<1-Math.exp(-E.shrub*2.2)){c=2;lc[k]=leafColor5(5,alt,E.dry,E.lush,.9)}}
+   can[k]=c;gnd[k]=h+1;top[k]=h+1+c;continue}
+  surf[k]=su;
   tc[k]=su===1?(GRAND?grassColor(h-SEA,hum[k]):defsRGB[1]):su===6?SAND:su===12?SNOW:STONE;
-  let c=0;if(su===1){if(GRAND){const kind=treeKind(x,z,h,Math.round(slope),hum[k],bir[k],rand(x*13+5,z*7+3));if(kind){c=CANOPY[kind]+(rand(x,z*3)>.5?1:0);const lf=leafColor(h-SEA,hum[k],bir[k]),v=.84+rand(z,x*3)*.22;lc[k]=[lf[0]*v,lf[1]*v,lf[2]*v]}}
+  if(su===1){if(GRAND){const kind=treeKind(x,z,h,Math.round(slope),hum[k],bir[k],rand(x*13+5,z*7+3));if(kind){c=CANOPY[kind]+(rand(x,z*3)>.5?1:0);const lf=leafColor(h-SEA,hum[k],bir[k]),v=.84+rand(z,x*3)*.22;lc[k]=[lf[0]*v,lf[1]*v,lf[2]*v]}}
    else if(rand(x*13+5,z*7+3)<.3){c=5;lc[k]=defsRGB[5]}}
   can[k]=c;gnd[k]=h+1;top[k]=h+1+c}
  yield;
@@ -654,11 +845,12 @@ function lodVisit(size,x0,z0,F){
 // ---- LOD worker: tile meshes are built off the main thread when Workers are available (falls back to frame-sliced generators).
 function lodWorkerSource(){
  const k=v=>JSON.stringify(v);
- return `'use strict';const W=${W},H=${H},SEA=${SEA},ORIGIN=${ORIGIN},GRAND=${GRAND},terrainVersion=${terrainVersion},seed=${k(seed)},LOD_N=${LOD_N},VOID=${VOID};
+ return `'use strict';const W=${W},H=${H},SEA=${SEA},ORIGIN=${ORIGIN},GRAND=${GRAND},VEG=${VEG},terrainVersion=${terrainVersion},seed=${k(seed)},LOD_N=${LOD_N},VOID=${VOID};
 const perm=new Uint8Array(${k(Array.from(perm))}),defsRGB=${k(defsRGB)},CANOPY=${k(CANOPY)},STONE=${k(STONE)},DIRT=${k(DIRT)},SAND=${k(SAND)},SNOW=${k(SNOW)},WATER_DEEP=${k(WATER_DEEP)};
-const smooth=${smooth},mix3=${mix3};let gLand=0,gMount=0;
+const smooth=${smooth},mix3=${mix3},clamp01=${clamp01},f01=${f01},VEGK=${k(VEGK)},E=${k(E)},FP=${k(FP)};let gLand=0,gMount=0;
 const lw={buf:new ArrayBuffer(1<<20),n:0};lw.i16=new Int16Array(lw.buf);lw.u8=new Uint8Array(lw.buf);
-${[rand,noise,height,grad,pn,fbm,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,waterColor,lgrow,lvert,tileMesh].join('\n')}
+${[rand,noise,height,grad,pn,fbm,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,waterColor,lgrow,lvert,tileMesh,
+ fieldClump,fieldGlade,fieldTone,fieldTall,fieldBare,forestDensity,grassColor5,leafColor5,flowerPatches,palettePick,vegEnv,pickSpecies,treeRng,treeAge].join('\n')}
 onmessage=e=>{const{id,step,x0,z0}=e.data,it=tileMesh(step,x0,z0);let r;while(!(r=it.next()).done);const bytes=lw.u8.slice(0,lw.n*12);postMessage({id,bytes,r:r.value},[bytes.buffer])};`}
 let lodWorker=null,lodPending=new Map(),lodNextId=1;
 function startLodWorker(){
@@ -815,7 +1007,7 @@ function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayT
  // The title keeps a low golden sun beside the scenic view.
  const a=cam.yaw+.95,e=.16;return skyEnv([Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)])}
 function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,0)}
-function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.wind)gl.uniform1f(u.wind,windStr)}
+function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wind)gl.uniform1f(u.wind,windStr)}
 function render(cam,titleOpen,w,h){
  const aspect=w/h,F=makeFrustum(cam,aspect),underwater=!titleOpen&&get(Math.floor(cam.x),Math.floor(cam.y),Math.floor(cam.z))===10,env=environment(titleOpen,cam);
  const far=lodOK?Q.far:(Q.near+1)*CHUNK,fog=[far*.6,far*.8,far*.97,underwater?1:0];
