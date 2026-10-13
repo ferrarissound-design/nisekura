@@ -113,11 +113,12 @@ if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてく�
 const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
 const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
 const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc']];
-let flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
+let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
 const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
+let timeOverride=null;try{const q=new URLSearchParams(location.search).get('time');if(q!==null&&Number.isFinite(+q))timeOverride=((+q%1)+1)%1}catch(e){}
 const player={x:32.5,y:25,z:32.5},keys={},joy={x:0,y:0};let saved=null;
-try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number.isFinite(saved.seed))seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
+try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number.isFinite(saved.dayTime))dayTime=((saved.dayTime%1)+1)%1;if(Number.isFinite(saved.seed))seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
 // Saved worlds keep the generator and height they were created with. New worlds use GRAND VISTA terrain (v4).
 const terrainVersion=saved?.version===1?(saved.terrainVersion||1):4,GRAND=terrainVersion>=4;
 const H=GRAND?192:96,SEA=GRAND?62:10,CHUNK_SIZE=CHUNK*CHUNK*H;
@@ -289,45 +290,61 @@ function faceUV(v,f){return f.n[1]?[v[0],v[2]]:f.n[0]?[v[2],v[1]]:[v[0],v[1]]}
 
 // ---- Shaders. No uniform is shared between a vertex and fragment stage, so mixed precision cannot break linking on iOS.
 const SKY_GLSL=`
-uniform vec3 sunDir; uniform vec3 zenithCol; uniform vec3 horizonCol; uniform vec3 sunCol; uniform vec3 lightCol; uniform vec4 fogP;
+uniform vec3 sunDir; uniform vec3 zenithCol; uniform vec3 horizonCol; uniform vec3 sunCol; uniform vec4 fogP;
+uniform vec3 dirLight; uniform vec3 dirCol; uniform vec3 ambCol; uniform vec4 misc;
+float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
+float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
 vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,sqrt(clamp(y,0.,1.)));float s=max(dot(d,sunDir),0.);
  c+=sunCol*(.18*pow(s,5.)+.45*pow(s,40.));return mix(c,horizonCol*.9,clamp(-y*4.,0.,1.));}
 vec3 fogMix(vec3 c,vec3 rel,float wy){float d=length(rel);vec3 dir=rel/max(d,.001);
- if(fogP.w>.5)return mix(c,vec3(.09,.28,.40),1.-exp(-d/13.));
+ if(fogP.w>.5)return mix(c,vec3(.09,.28,.40)*min(vec3(1.),ambCol*1.6),1.-exp(-d/19.));
  float f=1.-exp(-pow(d/fogP.x,1.6));f*=1.-.45*clamp((wy-${SEA+25}.)/140.,0.,1.);f=max(f,smoothstep(fogP.y,fogP.z,d));
- return mix(c,skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),clamp(f,0.,1.));}`;
+ return mix(c,skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),clamp(f,0.,1.));}
+vec3 faceNormal(float f){return f<.5?vec3(1.,0.,0.):f<1.5?vec3(-1.,0.,0.):f<2.5?vec3(0.,1.,0.):f<3.5?vec3(0.,-1.,0.):f<4.5?vec3(0.,0.,1.):f<5.5?vec3(0.,0.,-1.):vec3(0.,1.,0.);}
+// Sun (or moon) direct light plus a sky/ground ambient. Faces under a roof keep only drifting canopy gaps.
+vec3 lighting(vec3 n,float shade,vec3 w,float soft){
+ float nd=mix(max(dot(n,dirLight),0.),.3+.45*max(dirLight.y,0.),soft);vec3 amb=ambCol*(.8+.2*n.y);
+ if(shade>.5){vec2 p=floor(w.xz*8.)/8.*.42+misc.y*vec2(.11,.06)*(.4+misc.z);float g=vnoise(p)*.65+vnoise(p*2.7+5.3)*.35;nd*=smoothstep(.56,.66,g)*step(.5,n.y)*.95;amb*=.76;}
+ return amb+dirCol*nd;}
+float caustic(vec2 p,float t){p=floor(p*16.)/16.;float a=sin(p.x*1.7+t*1.3+sin(p.y*1.3+t*.8)*1.6),b=sin(p.y*1.9-t*1.1+sin(p.x*1.1-t*.6)*1.6);return pow(max(0.,1.-abs(a+b)*.7),5.);}`;
 const PRECISION=`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
 precision mediump float;
 #endif
 `;
+// aMat packs material + 32*face (0-5 cube faces, 6 plant, 7 unlit) + 256 when the face is under a roof.
 const mainVS=wind=>`
 attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
-uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock;
-varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk;
+uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock; uniform float wind;
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade;
 void main(){
+float code=aMat;float shade=step(255.5,code);code-=shade*256.;float face=floor((code+.5)/32.);float m=code-face*32.;
 vec3 pos=aPos;
-${wind?`// Only grass tufts (15) and flowers (17) bend; solid terrain and animals stay still.
-if((aMat>14.5&&aMat<15.5)||(aMat>16.5&&aMat<17.5)){
+${wind?`// Grass tufts (15) and flowers (17) bend from the root; leaves (5) drift slightly. Ground, trunks and animals stay still.
+if((m>14.5&&m<15.5)||(m>16.5&&m<17.5)){
  float xFixed=step(.25,fract(aPos.x));
  // The two crossed quads share a stable plant origin and wind phase.
  vec2 root=vec2(aPos.x-mix(aUV.x,.5,xFixed),aPos.z-mix(.5,aUV.x,xFixed));
  float phase=dot(root,vec2(1.73,2.41));
  float gust=pow(.5+.5*sin(clock*.52+dot(root,vec2(.025,.018))),4.0);
- float flex=mix(1.0,1.25,step(16.5,aMat));
+ float flex=mix(1.0,1.25,step(16.5,m))*(.35+wind*.9);
  pos.x+=aUV.y*flex*(.014*sin(clock*1.35+phase)+gust*(.085+.045*sin(clock*2.2+phase*.8)));
  pos.z+=aUV.y*flex*(.012*sin(clock*1.05+phase*.63)+gust*.055*sin(clock*1.8+phase));
+}
+else if(m>4.5&&m<5.5){
+ // The offset depends only on the vertex position, so neighbouring leaf faces stay joined.
+ float ph=dot(aPos,vec3(.71,.37,.53));
+ pos+=vec3(sin(clock*1.9+ph),.5*sin(clock*2.3+ph*1.3),cos(clock*1.6+ph*.8))*(.012+.03*wind);
 }`:''}
 vec3 p=pos-eye;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
 float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
-gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);col=aColor;uv=aUV;mat=aMat;rel=p;vClk=clock;}`;
+gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);col=aColor;uv=aUV;mat=m;rel=p;vClk=clock;vFace=face;vShade=shade;}`;
 // Pixel materials are evaluated in face-local UVs: no external texture/CDN requests.
 const fragmentSource=PRECISION+`
-varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk;
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade;
 uniform vec3 eyeF;`+SKY_GLSL+`
-float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
-void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.;
+void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.;vec3 w=rel+eyeF;
 if(mat<.5){c=col;}
 else if(mat<1.5){float fleck=step(.77,n);c=col*(.76+n*.40)+vec3(.025,.045,.008)*fleck;}
 else if(mat<2.5){float pebble=step(.84,n);c=mix(col*(.70+n*.5),col*1.32,pebble*.55);}
@@ -338,9 +355,16 @@ else if(mat<6.5){c=col*(.90+n*.16);if(n>.94)c*=.80;}
 else if(mat<7.5){float seam=step(3.,mod(q.y,4.));float knot=step(.86,hash(vec2(floor(q.x/3.),floor(q.y/4.))));c=col*(.93+n*.14-seam*.28-knot*.15);}
 else if(mat<8.5){float seam=max(step(3.,mod(q.y,4.)),step(7.,mod(q.x+floor(q.y/4.)*4.,8.)));c=mix(col*(.80+n*.26),vec3(.69,.64,.55)*length(col),seam*.75);}
 else if(mat<9.5){float edge=step(.94,max(abs(uv.x-.5),abs(uv.y-.5))*2.);float shine=step(.91,mod(uv.x+uv.y,.9));c=mix(col*.70,vec3(.86,.96,1.),max(edge,shine*.65));alpha=.22+edge*.48+shine*.12;}
-else if(mat<10.5){vec3 w=rel+eyeF;vec2 g=vec2(sin(w.x*.9+w.z*.4+vClk*1.6)+sin(w.x*.31-w.z*.73+vClk*1.1),cos(w.z*.83-w.x*.35+vClk*1.3)+cos(w.x*.52+w.z*.27-vClk*.9))*.05;
- vec3 nrm=normalize(vec3(g.x,1.,g.y));vec3 v=normalize(rel);vec3 r=reflect(v,nrm);r.y=abs(r.y);float fres=.03+.97*pow(1.-abs(dot(v,nrm)),5.);
- c=mix(vec3(.13,.47,.62)*(.92+n*.06),skyColor(r),clamp(fres,0.,.8))+sunCol*pow(max(dot(r,sunDir),0.),140.)*.9;alpha=mix(.6,.94,fres);}
+else if(mat<10.5){
+ // Water: col.r = depth below the surface (0..1 for 0..30 blocks), col.g = shoreline at this corner.
+ float dep=col.r,shore=col.g;vec3 body=mix(vec3(.16,.60,.64),vec3(.03,.20,.42),smoothstep(0.,.45,dep))*(ambCol+dirCol*max(dirLight.y,0.)*.8);
+ if(rel.y>0.&&vFace>1.5&&vFace<2.5){c=mix(body*1.7,skyColor(vec3(0.,1.,0.)),.3);alpha=.78;}
+ else{vec2 g=vec2(sin(w.x*.9+w.z*.4+vClk*1.6)+sin(w.x*.31-w.z*.73+vClk*1.1),cos(w.z*.83-w.x*.35+vClk*1.3)+cos(w.x*.52+w.z*.27-vClk*.9))*.05;
+  vec3 nrm=normalize(vec3(g.x,1.,g.y));vec3 v=normalize(rel);vec3 r=reflect(v,nrm);r.y=abs(r.y);float fres=.03+.97*pow(1.-abs(dot(v,nrm)),5.);
+  c=mix(body*(.92+n*.06),skyColor(r),clamp(fres,0.,.8))+dirCol*pow(max(dot(r,dirLight),0.),140.)*1.4;
+  float foam=step(.05,shore)*step(1.02-shore*.55,vnoise(floor(w.xz*16.)/16.*2.1+vec2(vClk*.35,-vClk*.2))+.18*sin(vClk*1.7+floor(w.x*16.)/16.+w.z));
+  c=mix(c,vec3(.95,.98,1.)*(ambCol+dirCol*.7),foam*.85);
+  alpha=mix(mix(.4,.86,smoothstep(0.,.4,dep)),.95,fres)+foam*.35;}}
 else if(mat<11.5){c=col*(.65+n*.5);}
 else if(mat<12.5){float grass=step(12.+floor(hash(vec2(q.x,1.))*3.),q.y);c=mix(vec3(.48,.32,.18),vec3(.35,.57,.17),grass)*(.78+n*.38)*col;}
 else if(mat<13.5){float ring=mod(floor(max(abs(q.x-7.5),abs(q.y-7.5))),3.);c=col*(.70+step(.5,ring)*.3+n*.12);}
@@ -350,33 +374,46 @@ else if(mat<16.5){float patch=step(.60,hash(floor(q/4.)));c=mix(vec3(.26,.16,.10
 else if(mat<17.5){float stem=step(abs(q.x-8.),1.)*step(q.y,10.);float flower=step(abs(q.x-8.),4.)*step(abs(q.y-12.),3.);if(max(stem,flower)<.5)discard;c=mix(vec3(.24,.44,.1),col,flower);if(abs(q.x-8.)<2.&&abs(q.y-12.)<2.)c=vec3(1.,.82,.2);}
 else if(mat<18.5){c=col;}
 else{c=col*(.93+n*.08);if(n>.97)c=vec3(1.);}
-gl_FragColor=vec4(fogMix(c*lightCol,rel,rel.y+eyeF.y),alpha);}`;
+if(mat<9.5||mat>10.5){
+ vec3 nrm=faceNormal(vFace);
+ if(mat>17.5&&mat<18.5)c*=ambCol*1.15+dirCol*.6;
+ else if(vFace>6.5)c*=ambCol+dirCol*.5;
+ else c*=lighting(nrm,vShade,w,step(6.,vFace));
+ // Light ripples on shallow sea and lake beds.
+ if(vFace>1.5&&vFace<2.5&&mat>.5&&w.y<${SEA}.5&&w.y>${SEA-14}.)c+=caustic(w.xz,vClk)*dirCol*.6*(1.-(${SEA+1}.-w.y)/15.);}
+gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
 const vertexSource=mainVS(true),fallbackVertexSource=mainVS(false);
 // Far LOD terrain: 16-bit positions relative to the tile origin, origin relative to the camera (precise far away).
+// lPos.w packs material + 8*face.
 const lodVertexSource=`
 attribute vec4 lPos; attribute vec4 lCol;
 uniform vec3 org; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock;
-varying vec3 vCol; varying vec3 vRel; varying float vMat; varying float vClk;
+varying vec3 vCol; varying vec3 vRel; varying float vMat; varying float vClk; varying float vFace;
 void main(){vec3 p=lPos.xyz*.125+org;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
 float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
-gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);vCol=lCol.rgb;vRel=p;vMat=lPos.w;vClk=clock;}`;
+float face=floor((lPos.w+.5)/8.);
+gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);vCol=lCol.rgb;vRel=p;vMat=lPos.w-face*8.;vFace=face;vClk=clock;}`;
 const lodFragmentSource=PRECISION+`
-varying vec3 vCol; varying vec3 vRel; varying float vMat; varying float vClk;
+varying vec3 vCol; varying vec3 vRel; varying float vMat; varying float vClk; varying float vFace;
 uniform vec4 hole; uniform vec3 eyeF;`+SKY_GLSL+`
-float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 void main(){
  // The near voxel field covers this square; LOD fragments under it are hidden.
  if(vRel.x>hole.x&&vRel.x<hole.z&&vRel.z>hole.y&&vRel.z<hole.w)discard;
  vec3 w=vRel+eyeF;float d=length(vRel);vec3 c=vCol;
  if(vMat>.5&&vMat<1.5){vec2 g=vec2(sin(w.x*.09+w.z*.05+vClk*.9)+sin(w.x*.031-w.z*.07+vClk*.6)*.8,cos(w.z*.083-w.x*.04+vClk*.8)+cos(w.x*.05+w.z*.027-vClk*.7)*.8)*.045;
   vec3 nrm=normalize(vec3(g.x,1.,g.y));vec3 v=vRel/max(d,.001);vec3 r=reflect(v,nrm);r.y=abs(r.y);float fres=.03+.97*pow(1.-abs(dot(v,nrm)),5.);
-  c=mix(c,skyColor(r),clamp(fres,0.,.85))+sunCol*pow(max(dot(r,sunDir),0.),180.)*1.1;}
- else{float n=hash(floor(w.xz-.01)+floor(w.y-.01)*17.);c*=1.+(n-.5)*.16*(1.-smoothstep(90.,380.,d));if(vMat>1.5)c*=.9+.14*hash(floor(w.xz*.5-.01)+3.7);}
- gl_FragColor=vec4(fogMix(c*lightCol,vRel,w.y),1.);}`;
+  c=mix(c*(ambCol+dirCol*max(dirLight.y,0.)*.8),skyColor(r),clamp(fres,0.,.85))+dirCol*pow(max(dot(r,dirLight),0.),180.)*1.6;}
+ else{float n=hash(floor(w.xz-.01)+floor(w.y-.01)*17.);c*=1.+(n-.5)*.16*(1.-smoothstep(90.,380.,d));if(vMat>1.5)c*=.9+.14*hash(floor(w.xz*.5-.01)+3.7);
+  c*=lighting(faceNormal(vFace),0.,w,0.);}
+ gl_FragColor=vec4(fogMix(c,vRel,w.y),1.);}`;
 const skyVertexSource=`attribute vec2 sPos; varying vec2 vNdc; void main(){vNdc=sPos;gl_Position=vec4(sPos,.9999,1.);}`;
 const skyFragmentSource=PRECISION+`varying vec2 vNdc; uniform vec3 cFwd; uniform vec3 cRight; uniform vec3 cUp; uniform vec2 cScale;`+SKY_GLSL+`
 void main(){vec3 d=normalize(cFwd+cRight*vNdc.x*cScale.x+cUp*vNdc.y*cScale.y);vec3 c=skyColor(d);
- c=mix(c,vec3(1.,.97,.88),smoothstep(.9986,.9994,dot(d,sunDir)));gl_FragColor=vec4(c,1.);}`;
+ c=mix(c,vec3(1.,.97,.88),smoothstep(.9986,.9994,dot(d,sunDir))*(1.-misc.x));
+ // Night: a moon opposite the sun and pixel stars above the horizon.
+ if(misc.x>.01){c=mix(c,vec3(.86,.9,1.),smoothstep(.9991,.9995,dot(d,-sunDir))*misc.x);
+  float s=step(.9972,hash(floor(d.xz/(abs(d.y)+.35)*190.)))*smoothstep(.02,.25,d.y);c+=vec3(.85,.9,1.)*s*misc.x;}
+ gl_FragColor=vec4(c,1.);}`;
 
 let mainProg,lodProg,skyProg,mainU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
 function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
@@ -386,14 +423,14 @@ function buildProgram(vsrc,fsrc,attribs){
  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
  return p
 }
-const SKY_UNIFORMS=['sunDir','zenithCol','horizonCol','sunCol','lightCol','fogP'];
+const SKY_UNIFORMS=['sunDir','zenithCol','horizonCol','sunCol','fogP','dirLight','dirCol','ambCol','misc'];
 function uniformsOf(p,names){const u={};for(const n of names)u[n]=gl.getUniformLocation(p,n);return u}
 const MAXQ=16384;
 function initRenderer(){
  renderReady=false;
  try{mainProg=buildProgram(vertexSource,fragmentSource,['aPos','aColor','aUV','aMat'])}
  catch(windError){console.warn('Using compatible WebGL shader fallback:',windError);mainProg=buildProgram(fallbackVertexSource,fragmentSource,['aPos','aColor','aUV','aMat'])}
- mainU=uniformsOf(mainProg,['eye','yaw','pitch','aspect','proj','clock','eyeF',...SKY_UNIFORMS]);
+ mainU=uniformsOf(mainProg,['eye','yaw','pitch','aspect','proj','clock','wind','eyeF',...SKY_UNIFORMS]);
  // The far field is optional: if it cannot compile, the game still runs with the near field only.
  try{lodProg=buildProgram(lodVertexSource,lodFragmentSource,['lPos','lCol']);skyProg=buildProgram(skyVertexSource,skyFragmentSource,['sPos']);
   lodU=uniformsOf(lodProg,['org','yaw','pitch','aspect','proj','clock','hole','eyeF',...SKY_UNIFORMS]);skyU=uniformsOf(skyProg,['cFwd','cRight','cUp','cScale',...SKY_UNIFORMS]);lodOK=true}
@@ -418,7 +455,7 @@ function writer(n){return{a:new Float32Array(n),n:0}}
 function grow(w,need){if(w.n+need<=w.a.length)return;const b=new Float32Array(Math.max(w.a.length*2,w.n+need));b.set(w.a.subarray(0,w.n));w.a=b}
 function vert(w,x,y,z,r,g,b,u,v,m){const a=w.a,i=w.n;a[i]=x;a[i+1]=y;a[i+2]=z;a[i+3]=r;a[i+4]=g;a[i+5]=b;a[i+6]=u;a[i+7]=v;a[i+8]=m;w.n=i+9}
 const opaqueW=writer(1<<17),waterW=writer(1<<14),dyn=writer(1<<14);
-function emitPlant(w,x,y,z,flower,color,size){for(const d of [0,1]){grow(w,36);const v=d?[[x+.5,y,z],[x+.5,y+size,z],[x+.5,y+size,z+1],[x+.5,y,z+1]]:[[x,y,z+.5],[x,y+size,z+.5],[x+1,y+size,z+.5],[x+1,y,z+.5]];const uv=[[0,0],[0,1],[1,1],[1,0]];for(let k=0;k<4;k++)vert(w,v[k][0],v[k][1],v[k][2],color[0],color[1],color[2],uv[k][0],uv[k][1],flower?17:15)}}
+function emitPlant(w,x,y,z,flower,color,size,shaded=false){const code=(flower?17:15)+192+(shaded?256:0);for(const d of [0,1]){grow(w,36);const v=d?[[x+.5,y,z],[x+.5,y+size,z],[x+.5,y+size,z+1],[x+.5,y,z+1]]:[[x,y,z+.5],[x,y+size,z+.5],[x+1,y+size,z+.5],[x+1,y,z+.5]];const uv=[[0,0],[0,1],[1,1],[1,0]];for(let k=0;k<4;k++)vert(w,v[k][0],v[k][1],v[k][2],color[0],color[1],color[2],uv[k][0],uv[k][1],code)}}
 const FLOWERS=['#e84837','#f5e4df','#f4d03f','#8a7ee0','#f08bb5'].map(rgb),LEGACY_FLOWERS=[rgb('#e84837'),rgb('#f5e4df')],LEGACY_GRASS=rgb('#609c35');
 
 // ---- Voxel mesher. The 3x3 chunk neighbourhood is copied into a padded byte grid (floor and ceiling layers included).
@@ -451,16 +488,18 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
     if(t===1){if(F.n[1]>0)c=gcol;else if(F.n[1]===0){mat=12;c=grassSide}else{mat=2;c=defsRGB[2]}}
     else if(t===4||t===13){if(F.n[1]){mat=13;c=t===13?BIRCH_TOP:LOG_TOP}else if(t===13||(!GRAND&&rand(wx*9,wz*7)>.62)){mat=14;c=WHITE}}
     else if(t===5)c=lcol;else if(t===12)mat=19;
-    // Faces whose open neighbour lies under a roof (canopy, overhang) receive less sky light.
-    const shadow=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy?.62:1,ln=F.l*shadow,pa=p+F.off;
+    // Faces whose open neighbour lies under a roof (canopy, overhang) lose direct sunlight in the shader.
+    const shaded=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy,pa=p+F.off,code=mat+32*fi+(shaded?256:0);
     for(let q=0;q<4;q++){const ao=F.ao[q],a1=occ(pad[pa+ao[0]]),a2=occ(pad[pa+ao[1]]),a3=occ(pad[pa+ao[2]]);sh[q]=1-(a1&&a2?3:a1+a2+a3)*.13}
     const flip=sh[0]+sh[2]<sh[1]+sh[3],w=water||t===9?waterW:opaqueW,drop=water&&!pad[p+PA]?.12:0;grow(w,36);
-    for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=ln*sh[kk];vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0],F.uv[kk][1],mat)}}
-   if(t===1&&!pad[p+PA]){
+    if(water){let d=1,q=p-PA;while(pad[q]===10&&d<30){d++;q-=PA}
+     for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0;vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],d/30,shore,0,F.uv[k][0],F.uv[k][1],code)}}
+    else for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=sh[kk];vert(w,wx+v[0],y+v[1],wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0],F.uv[kk][1],code)}}
+   if(t===1&&!pad[p+PA]){const ps=roofs[(z+1)*PW+x+1]>y+1;
     if(info){const forest=smooth(.5,.64,info.hum[k]),r1=rand(wx*23,wz*11),meadow=1-smooth(.36,.5,info.hum[k]),fp=meadow*smooth(.05,.35,pn(wx/24+12.5,wz/24+44.4))*.5+.02;
-     if(r1<fp)emitPlant(opaqueW,wx,y+1,wz,true,FLOWERS[Math.floor(rand(wx*3,wz*19)*FLOWERS.length)],.7);
-     else if(r1<fp+.16+.26*(1-forest))emitPlant(opaqueW,wx,y+1,wz,false,[gcol[0]*.86,gcol[1]*.9,gcol[2]*.8],.6+rand(wz,wx)*.3)}
-    else if(rand(wx*23,wz*11)>.61){const fl=rand(wx*3,wz*19)>.86;emitPlant(opaqueW,wx,y+1,wz,fl,fl?LEGACY_FLOWERS[rand(wx,wz)>.5?0:1]:LEGACY_GRASS,fl?.7:.65+rand(wz,wx)*.25)}}
+     if(r1<fp)emitPlant(opaqueW,wx,y+1,wz,true,FLOWERS[Math.floor(rand(wx*3,wz*19)*FLOWERS.length)],.7,ps);
+     else if(r1<fp+.16+.26*(1-forest))emitPlant(opaqueW,wx,y+1,wz,false,[gcol[0]*.86,gcol[1]*.9,gcol[2]*.8],.6+rand(wz,wx)*.3,ps)}
+    else if(rand(wx*23,wz*11)>.61){const fl=rand(wx*3,wz*19)>.86;emitPlant(opaqueW,wx,y+1,wz,fl,fl?LEGACY_FLOWERS[rand(wx,wz)>.5?0:1]:LEGACY_GRASS,fl?.7:.65+rand(wz,wx)*.25,ps)}}
   }}
  const key=cx+','+cz;let ch=chunks.get(key);if(!ch){ch={buffer:gl.createBuffer(),water:gl.createBuffer(),cx,cz};chunks.set(key,ch)}
  ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;
@@ -521,15 +560,15 @@ function* buildTile(t){
  yield;
  lw.n=0;let ymin=1e9,ymax=-1e9;const always=s<=2;
  const wall=(dir,xa,xb,za,zb,y0,y1,c0,c1,l,m)=>{if(y1<=y0)return;lgrow(4);
-  if(dir<2){const x=dir===0?xb:xa;lvert(x,y0,za,c0,l,m);lvert(x,y1,za,c1,l,m);lvert(x,y1,zb,c1,l,m);lvert(x,y0,zb,c0,l,m)}
+  m+=8*[0,1,4,5][dir];if(dir<2){const x=dir===0?xb:xa;lvert(x,y0,za,c0,l,m);lvert(x,y1,za,c1,l,m);lvert(x,y1,zb,c1,l,m);lvert(x,y0,zb,c0,l,m)}
   else{const z=dir===2?zb:za;lvert(xa,y0,z,c0,l,m);lvert(xa,y1,z,c1,l,m);lvert(xb,y1,z,c1,l,m);lvert(xb,y0,z,c0,l,m)}
   if(y0<ymin)ymin=y0};
  for(let j=1;j<=N;j++){for(let i=1;i<=N;i++){
   const k=j*n+i,xa=(i-1)*s,xb=i*s,za=(j-1)*s,zb=j*s,mt=top[k],su=surf[k];
-  lgrow(4);const m=su===10?1:can[k]?2:0,c=can[k]?lc[k]:tc[k];lvert(xa,mt,za,c,1,m);lvert(xb,mt,za,c,1,m);lvert(xb,mt,zb,c,1,m);lvert(xa,mt,zb,c,1,m);
+  lgrow(4);const m=su===10?1:can[k]?2:0,c=can[k]?lc[k]:tc[k];lvert(xa,mt,za,c,1,m+16);lvert(xb,mt,za,c,1,m+16);lvert(xb,mt,zb,c,1,m+16);lvert(xa,mt,zb,c,1,m+16);
   if(mt>ymax)ymax=mt;if(mt<ymin)ymin=mt;
   if(su===10)continue;
-  const g=gnd[k],lightOf=[.79,.68,.85,.73],nks=[k+1,k-1,k+n,k-n],borders=[i===N,i===1,j===N,j===1];
+  const g=gnd[k],lightOf=[1,1,1,1],nks=[k+1,k-1,k+n,k-n],borders=[i===N,i===1,j===N,j===1];
   for(let d=0;d<4;d++){const nt=top[nks[d]],border=borders[d];let bottom;
    if(border)bottom=Math.min(mt,nt)-s*1.5;else if(always)bottom=Math.min(mt,nt)-2;else if(mt>nt)bottom=nt;else continue;
    if(bottom>=mt)continue;
@@ -540,7 +579,7 @@ function* buildTile(t){
  if(!t.buffer)t.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,t.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(lw.buf,0,lw.n*12),gl.STATIC_DRAW);
  t.quads=lw.n/4;t.ymin=Math.max(0,Math.floor(ymin));t.ymax=Math.ceil(ymax)+1;t.ready=true}
 function buildOcean(){oceanTiles=[];for(let ox=-1;ox<=1;ox++)for(let oz=-1;oz<=1;oz++){if(!ox&&!oz)continue;lw.n=0;lgrow(4);const y=SEA+.875;
- lvert(0,y,0,WATER_DEEP,1,1);lvert(W,y,0,WATER_DEEP,1,1);lvert(W,y,W,WATER_DEEP,1,1);lvert(0,y,W,WATER_DEEP,1,1);
+ lvert(0,y,0,WATER_DEEP,1,17);lvert(W,y,0,WATER_DEEP,1,17);lvert(W,y,W,WATER_DEEP,1,17);lvert(0,y,W,WATER_DEEP,1,17);
  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(lw.buf,0,lw.n*12),gl.STATIC_DRAW);
  oceanTiles.push({x0:ox*W,z0:oz*W,size:W,buffer:b,quads:1,ymin:SEA,ymax:SEA+1})}}
 function makeFrustum(cam,aspect){const kx=aspect/1.35,ky=1/1.35;return{x:cam.x,y:cam.y,z:cam.z,cy:Math.cos(cam.yaw),sy:Math.sin(cam.yaw),cp:Math.cos(cam.pitch),sp:Math.sin(cam.pitch),kx,ky,nx:1/Math.hypot(1,kx),ny:1/Math.hypot(1,ky)}}
@@ -579,7 +618,7 @@ function mine(){if(paused)return;swing=1;hit=ray();if(!hit)return;if(hit.t===11)
 function place(){if(paused)return;swing=1;hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
 function jump(){if(flying)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
 function toggleFlight(){if(paused||suspended)return;flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
-function save(){if(resettingWorld)return false;try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player,yaw,pitch}));dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true}catch(e){$('saveInfo').textContent='保存できません。ブラウザの保存容量・設定を確認してください';return false}}
+function save(){if(resettingWorld)return false;try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player,yaw,pitch,dayTime}));dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true}catch(e){$('saveInfo').textContent='保存できません。ブラウザの保存容量・設定を確認してください';return false}}
 function clearInput(){for(const k in keys)delete keys[k];joy.x=joy.y=0;$('knob').style.transform='';mineHeld=placeHeld=riseHeld=descendHeld=false;lookId=stickId=null}
 function pause(){paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
@@ -608,7 +647,7 @@ let swing=0,walkPhase=0;const particles=[],cows=[];
 function surface(x,z,from=H-3){for(let y=Math.min(H-3,Math.floor(from));y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
 {const cx0=vista?vista.x-10:ORIGIN-7,cz0=vista?vista.z-10:ORIGIN-3;for(let i=0;i<300&&cows.length<7;i++){let x=cx0+rand(i,321)*22,z=cz0+rand(i,632)*21,y=surface(x,z);if(Math.hypot(x-player.x,z-player.z)>3&&cows.every(c=>Math.hypot(c.x-x,c.z-z)>2)&&y>SEA+1&&y<H-5&&get(Math.floor(x),y-1,Math.floor(z))===1&&cowFits(x,y,z))cows.push({x,y,z,angle:rand(i,13)*6.28,phase:i,wait:0})}}
-function cuboid(w,x,y,z,sx,sy,sz,color,mat=0,transform=null){const c=typeof color==='string'?rgb(color):color;for(const f of faces){grow(w,36);const l=mat===18?Math.max(.84,f.l):f.l;for(const v of f.v){const p=[x+v[0]*sx,y+v[1]*sy,z+v[2]*sz],q=transform?transform(p):p,uv=faceUV(v,f);vert(w,q[0],q[1],q[2],c[0]*l,c[1]*l,c[2]*l,uv[0],uv[1],mat)}}}
+function cuboid(w,x,y,z,sx,sy,sz,color,mat=0,transform=null){const c=typeof color==='string'?rgb(color):color;faces.forEach((f,fi)=>{grow(w,36);const code=mat+32*fi;for(const v of f.v){const p=[x+v[0]*sx,y+v[1]*sy,z+v[2]*sz],q=transform?transform(p):p,uv=faceUV(v,f);vert(w,q[0],q[1],q[2],c[0],c[1],c[2],uv[0],uv[1],code)}})}
 function burst(x,y,z,color){for(let i=0;i<12;i++)particles.push({x,y,z,vx:(Math.random()-.5)*3,vy:1+Math.random()*2,vz:(Math.random()-.5)*3,life:.7,color})}
 function drawData(buffer,w){if(!w.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,w.a.subarray(0,w.n),gl.DYNAMIC_DRAW);drawQuads(buffer,w.n/36,bind,36)}
 function animateWorld(dt){swing=Math.max(0,swing-dt*3.5);const moving=Math.hypot(joy.x,joy.y)> .1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD;if(moving&&ground)walkPhase+=dt*9;
@@ -640,7 +679,7 @@ cuboid(a,-.08,-.48,-.02,.16,.35,.20,'#b6835d',0,transform);cuboid(a,-.095,-.60,-
 cuboid(a,-.045,-.30,.02,.09,.66,.09,'#93612e',4,transform);
 cuboid(a,-.20,.28,-.02,.40,.09,.14,'#48545a',0,transform);cuboid(a,-.16,.37,-.02,.32,.19,.14,'#9aa8aa',3,transform);cuboid(a,-.10,.56,-.02,.20,.07,.14,'#79888d',0,transform);
 gl.clear(gl.DEPTH_BUFFER_BIT);drawData(toolBuffer,a)}
-function drawOutline(){if(!hit)return;let a=[],c=[.10,.14,.10];for(const f of faces)for(let i=0;i<4;i++)for(const k of [i,(i+1)%4]){const v=f.v[k];a.push(hit.x+(v[0]-.5)*1.007+.5,hit.y+(v[1]-.5)*1.007+.5,hit.z+(v[2]-.5)*1.007+.5,...c,0,0,0)}bind(outline);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.DYNAMIC_DRAW);gl.drawArrays(gl.LINES,0,a.length/9)}
+function drawOutline(){if(!hit)return;let a=[],c=[.10,.14,.10];for(const f of faces)for(let i=0;i<4;i++)for(const k of [i,(i+1)%4]){const v=f.v[k];a.push(hit.x+(v[0]-.5)*1.007+.5,hit.y+(v[1]-.5)*1.007+.5,hit.z+(v[2]-.5)*1.007+.5,...c,0,0,224)}bind(outline);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.DYNAMIC_DRAW);gl.drawArrays(gl.LINES,0,a.length/9)}
 function moveAxis(axis,d){
  const steps=Math.max(1,Math.ceil(Math.abs(d)/.18)),step=d/steps;
  for(let i=0;i<steps;i++){const old=player[axis];player[axis]+=step;if(collides(player)){player[axis]=old;return false}}
@@ -665,15 +704,26 @@ function titleCamera(){
  return{x,y:Math.min(H-3,Math.max(SEA+8,height(Math.floor(x),Math.floor(z))+12)),z,yaw:panoramaYaw,pitch:-.05};
 }
 const norm=v=>{const l=Math.hypot(...v);return v.map(c=>c/l)};
-const ENV_DAY={sun:norm([.42,.6,.68]),zenith:[.22,.46,.86],horizon:[.71,.83,.95],sunCol:[1,.9,.72],light:[1,1,1]};
-function environment(titleOpen,cam){if(!titleOpen)return ENV_DAY;const a=cam.yaw+.62;return{sun:norm([Math.sin(a)*.96,.2,Math.cos(a)*.96]),zenith:[.25,.42,.76],horizon:[.98,.80,.63],sunCol:[1,.7,.4],light:[1.06,.97,.87]}}
-function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform3fv(u.lightCol,env.light);gl.uniform4fv(u.fogP,fog)}
-function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600)}
+// Sky palettes keyed by sun elevation: night, twilight, golden hour, day.
+const SKY_KEYS=[[-.18,{z:[.015,.03,.08],h:[.05,.08,.16],g:[0,0,0],a:[.13,.17,.27],d:[.17,.21,.33]}],[-.04,{z:[.10,.15,.32],h:[.52,.38,.40],g:[.8,.35,.2],a:[.30,.29,.36],d:[.10,.06,.05]}],[.10,{z:[.25,.40,.72],h:[1,.74,.52],g:[1,.62,.32],a:[.56,.52,.54],d:[.80,.52,.30]}],[.45,{z:[.22,.46,.86],h:[.71,.83,.95],g:[1,.9,.72],a:[.66,.68,.72],d:[.44,.43,.38]}]];
+function skyEnv(sun){const e=sun[1];let i=0;while(i<SKY_KEYS.length-2&&e>SKY_KEYS[i+1][0])i++;
+ const [e0,k0]=SKY_KEYS[i],[e1,k1]=SKY_KEYS[i+1],t=Math.max(0,Math.min(1,(e-e0)/(e1-e0))),m=key=>mix3(k0[key],k1[key],t);
+ // Below the horizon the moon (opposite the sun) becomes the directional light.
+ const dir=e>-.1?norm([sun[0],Math.max(sun[1],.04),sun[2]]):norm([-sun[0],-sun[1],-sun[2]]);
+ return{sun,zenith:m('z'),horizon:m('h'),sunCol:m('g'),amb:m('a'),dirCol:m('d'),dir,night:smooth(-.02,-.2,e)}}
+// dayTime 0.25 = sunrise in the east, 0.5 = noon, 0.75 = sunset in the west.
+function sunFromTime(t){const a=(t-.25)*Math.PI*2;return norm([Math.cos(a),Math.sin(a)*.72,.42])}
+function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayTime));
+ // The title keeps a low golden sun beside the scenic view.
+ const a=cam.yaw+.95,e=.16;return skyEnv([Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)])}
+function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,0)}
+function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.wind)gl.uniform1f(u.wind,windStr)}
 function render(cam,titleOpen,w,h){
  const aspect=w/h,F=makeFrustum(cam,aspect),underwater=!titleOpen&&get(Math.floor(cam.x),Math.floor(cam.y),Math.floor(cam.z))===10,env=environment(titleOpen,cam);
  const far=lodOK?Q.far:(Q.near+1)*CHUNK,fog=[far*.6,far*.8,far*.97,underwater?1:0];
- gl.clearColor(...(underwater?[.09,.28,.40]:env.horizon),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
- if(lodOK){
+ gl.clearColor(...(underwater?mix3([0,0,0],[.09,.28,.40],Math.min(1,env.amb[1]*1.6)):env.horizon),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ // Underwater the fog closes within a few dozen blocks, so the far pass is skipped there.
+ if(lodOK&&!underwater){
   // Far pass: sky, LOD terrain, ocean beyond the world and clouds, with its own depth range.
   useProgram(skyProg,1);setEnv(skyU,env,fog);const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
   gl.uniform3f(skyU.cFwd,sy*cp,sp,cy*cp);gl.uniform3f(skyU.cRight,cy,0,-sy);gl.uniform3f(skyU.cUp,-sp*sy,cp,-sp*cy);gl.uniform2f(skyU.cScale,aspect/1.35,1/1.35);
@@ -684,7 +734,7 @@ function render(cam,titleOpen,w,h){
   if(readyR>=0)gl.uniform4f(lodU.hole,(centerCX-readyR)*CHUNK-cam.x+.01,(centerCZ-readyR)*CHUNK-cam.z+.01,(centerCX+readyR+1)*CHUNK-cam.x-.01,(centerCZ+readyR+1)*CHUNK-cam.z-.01);else gl.uniform4f(lodU.hole,1,1,-1,-1);
   for(const t of lodDraw){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,t.quads,bindLod,12)}
   for(const t of oceanTiles)if(sphereVisible(F,t.x0+W/2,SEA,t.z0+W/2,W*.71)){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,1,bindLod,12)}
-  const drift=time*1.2,R=Math.min(1000,Q.far*.8);if(Math.hypot(cam.x-drift-cloudAX,cam.z-cloudAZ)>R*.35)buildClouds(cam.x-drift,cam.z);
+  const drift=cloudDrift,R=Math.min(1000,Q.far*.8);if(Math.hypot(cam.x-drift-cloudAX,cam.z-cloudAZ)>R*.35)buildClouds(cam.x-drift,cam.z);
   useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,farNear,farFar);gl.uniform3f(mainU.eye,cam.x-drift,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x,cam.y,cam.z);
   if(cloudQuads)drawQuads(cloudBuffer,cloudQuads,bind,36);
   gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -732,14 +782,20 @@ function updateCompass(){
  else compassWarning.classList.add('hidden');
 }
 
+// A full day lasts 20 minutes; nights pass 2.5x faster so building time stays mostly in daylight.
+const DAY_SECONDS=1200;
+function advanceDay(dt){if(timeOverride!==null){dayTime=timeOverride;return}const e=sunFromTime(dayTime)[1];dayTime=(dayTime+dt/DAY_SECONDS*(e<-.12?2.5:1))%1}
+function clockText(){const m=Math.floor(dayTime*1440);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 let last=performance.now(),frames=0,fps=60,fpsTime=0,renderScale=1,perfTime=0,perfFrames=0,lastCompassUpdate=-Infinity;
 function frame(now){
  const raw=Math.max(0,(now-last)/1000),dt=Math.min(.035,raw);last=now;
  if(suspended||contextLost){requestAnimationFrame(frame);return}
  const titleOpen=isTitleOpen();
  if(now-lastCompassUpdate>=100||paused){updateCompass();lastCompassUpdate=now}
- if(!paused){time+=dt;update(dt);animateWorld(dt)}
+ if(!paused){time+=dt;update(dt);animateWorld(dt);advanceDay(dt)}
  else if(titleOpen)time+=dt*.65; // Keep the background grass, water, and clouds alive.
+ // Wind alternates between calm spells and gusty periods; grass, leaves and clouds share it.
+ windStr=Math.min(1,Math.max(0,.45+.55*Math.sin(time*.07)*Math.sin(time*.031+1.7)+.25*Math.sin(time*.19)));cloudDrift+=dt*(.5+windStr*1.6);
  streamChunks();
  // Dynamic resolution: drop render scale when the frame rate sags, recover when there is headroom.
  perfFrames++;perfTime+=raw;if(perfTime>2){const f=perfFrames/perfTime;if(f<44&&renderScale>.6)renderScale=Math.max(.6,renderScale-.1);else if(f>57&&renderScale<1)renderScale=Math.min(1,renderScale+.05);perfFrames=0;perfTime=0}
@@ -751,7 +807,7 @@ function frame(now){
  lodWork(Q.budget*.6,64);
  if(!titleOpen)$('target').textContent=hit?defs[hit.t][0]:'';
  frames++;fpsTime+=raw;
- if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('stats').textContent=`${flying?'飛行':creative?'自由建築':'素材集め'} · ${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''}`}
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('stats').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'} · ${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''}`}
  $('hint').style.opacity=now>toastUntil?'0':'1';
  if(now-lastSave>15000&&!paused){save();lastSave=now}
  requestAnimationFrame(frame)

@@ -3,7 +3,7 @@ const script=fs.readFileSync(__dirname+'/index.html','utf8').match(/<script>([\s
 function boot(saved,session={},prefs={}){const nodes={},storage={...prefs},events={},windowEvents={};if(saved)storage['nisekura-v1']=saved;let triangles=0;
 const gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true,createBuffer:()=>({}),getAttribLocation:()=>1,bufferData:(_,data)=>{assert(data.every(Number.isFinite));triangles+=data.length}}, {get:(o,k)=>k in o?o[k]:(()=>({}))});
 const node=()=>({style:{},classList:{values:new Set(),add(n){this.values.add(n)},remove(n){this.values.delete(n)},toggle(n,on){if(on)this.values.add(n);else this.values.delete(n)},contains(n){return this.values.has(n)}},addEventListener(){},appendChild(){},getContext:()=>gl,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:112,height:112})});
-const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v},document:{getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=(n,f)=>windowEvents[n]=f;c.confirm=()=>true;c.location={pathname:'/jocraft/',href:'/jocraft/'};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,get triangles(){return triangles},events,windowEvents,nodes,session}}
+const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v,removeItem:k=>{delete session[k]}},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v,removeItem:k=>{delete storage[k]}},document:{getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=(n,f)=>windowEvents[n]=f;c.confirm=()=>true;c.location={pathname:'/jocraft/',href:'/jocraft/'};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,get triangles(){return triangles},events,windowEvents,nodes,session}}
 const run=(b,code)=>vm.runInContext(code,b.c);
 function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++)for(let y=0;y<y1;y++){h^=api.get(x,y,z);h=Math.imul(h,16777619)}return h>>>0}
 
@@ -97,7 +97,7 @@ const resetTest=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:96,te
 assert.equal(run(resetTest,'terrainVersion'),3);
 resetTest.nodes.reset.onclick();
 assert.equal(resetTest.storage['nisekura-v1'],undefined,'reset must remove the saved world');
-assert.match(resetTest.c.location.href,/\\?seed=\\d+/,'reset must navigate to a newly seeded world');
+assert.match(resetTest.c.location.href,/\?seed=\d+/,'reset must navigate to a newly seeded world');
 resetTest.c.onblur();
 resetTest.c.document.hidden=true;resetTest.events.visibilitychange();
 resetTest.windowEvents.pagehide();
@@ -122,4 +122,22 @@ assert.equal(fingerprint(pure1.api,0,64,0,64,40),1029875420,'v1 terrain identica
 run(pure3,'paused=false;for(let i=0;i<200;i++)frame(i*16)');assert([...pure3.api.lodTiles.values()].some(t=>t.ready),'legacy worlds also get far LOD');
 console.log('PASS: legacy 64/256/2048 saves, byte-identical legacy terrain, legacy far view');
 
+// ---- Phase 3: day cycle, sky palettes, packed lighting attributes, water depth/shoreline data.
+{const d=boot();const env=t=>JSON.parse(run(d,`JSON.stringify(skyEnv(sunFromTime(${t})))`));
+ const noon=env(.5),dusk=env(.74),night=env(0);const lum=c=>c[0]*.3+c[1]*.59+c[2]*.11;
+ assert(noon.night===0&&night.night>.99,'night factor follows the sun');assert(lum(noon.amb)>lum(dusk.amb)&&lum(dusk.amb)>lum(night.amb),'ambient dims toward night');
+ assert(night.dir[1]>0&&noon.dir[1]>0,'directional light (sun or moon) comes from above');assert(dusk.horizon[0]>dusk.horizon[2],'sunset horizon is warm');
+ for(const e of[noon,dusk,night])assert(Math.abs(Math.hypot(...e.dir)-1)<1e-6&&[...e.amb,...e.dirCol,...e.zenith,...e.horizon].every(Number.isFinite));
+ run(d,'paused=false;dayTime=.5');const t0=run(d,'dayTime');run(d,'for(let i=0;i<600;i++)advanceDay(.1)');const dayStep=run(d,'dayTime')-t0;
+ run(d,'dayTime=.0');run(d,'for(let i=0;i<600;i++)advanceDay(.1)');const nightStep=run(d,'dayTime');assert(dayStep>0&&nightStep>dayStep*2,'nights pass faster than days');
+ run(d,'dayTime=.61');assert(run(d,'save()'));const e2=boot(d.storage['nisekura-v1']);assert(Math.abs(run(e2,'dayTime')-.61)<1e-9,'time of day is saved');
+ assert.match(run(d,'clockText()'),/^14:38$/);
+ // Every opaque vertex packs material + 32*face (+256 under a roof); water carries depth (0..1) and a shoreline flag.
+ const V=d.api.vista;let wx=null;for(let x=V.x;x<V.x+700&&wx===null;x+=16)if(d.api.height(x,V.z)<run(d,'SEA')-4)wx=x;assert(wx!==null,'sea east of the vista');
+ run(d,`rebuild(${wx>>4},${V.z>>4})`);const water=JSON.parse(run(d,'JSON.stringify(Array.from(waterW.a.subarray(0,waterW.n)))'));assert(water.length>0,'water mesh exists');
+ for(let i=0;i<water.length;i+=9){assert(water[i+3]>0&&water[i+3]<=1,'water depth encoded');assert(water[i+4]===0||water[i+4]===1,'shoreline flag');assert.equal(water[i+8]%32,10)}
+ run(d,`rebuild(${V.x>>4},${V.z>>4})`);const op=JSON.parse(run(d,'JSON.stringify(Array.from(opaqueW.a.subarray(0,opaqueW.n)))'));let shaded=0,plants=0;
+ for(let i=0;i<op.length;i+=9){const code=op[i+8],m=code%32,face=Math.floor(code%256/32);assert(m<=19&&face<=6&&code<512,'packed material code '+code);if(code>=256)shaded++;if(face===6)plants++}
+ assert(plants>0,'plants use the soft plant face');assert(shaded>0,'canopy shade is flagged for dappled light');
+ console.log('PASS: day cycle, sky palettes, moonlight, saved time of day, packed face/shade codes, water depth & shoreline data')}
 // Performance is profiled in a real browser (Node's vm sandbox makes global lookups ~10x slower); see README.
