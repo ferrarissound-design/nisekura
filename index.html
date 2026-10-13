@@ -499,7 +499,7 @@ function* scanSpots(out){
  for(const kind of Object.keys(cand)){const list=cand[kind].sort((a,b)=>b.score-a.score).slice(0,16),ref=[];
   for(const c of list){let bx=c.x,bz=c.z,bh=height4(bx,bz),yaw=c.yaw;
    if(kind==='summit'){for(let it=0;it<10;it++){let moved=false;for(const [a,b] of D8){const nh=height4(bx+a*4,bz+b*4);if(nh>bh){bh=nh;bx+=a*4;bz+=b*4;moved=true;break}}if(!moved)break}}
-   else if(kind==='cliff'){const dx=Math.sin(yaw),dz=Math.cos(yaw);for(let t=0;t<40;t+=2){const nx=Math.round(bx+dx*2),nz=Math.round(bz+dz*2),nh=height4(nx,nz);if(nh<bh-3){bx-=Math.round(dx*8);bz-=Math.round(dz*8);bh=height4(bx,bz);break}bx=nx;bz=nz;bh=nh}}
+   else if(kind==='cliff'){const dx=Math.sin(yaw),dz=Math.cos(yaw);for(let t=0;t<40;t+=2){const nx=Math.round(bx+dx*2),nz=Math.round(bz+dz*2),nh=height4(nx,nz);if(nh<bh-3){bx-=Math.round(dx*3);bz-=Math.round(dz*3);bh=height4(bx,bz);break}bx=nx;bz=nz;bh=nh}}
    // A clearing nearby: the least wooded point of a small ring that keeps the height of the spot.
    let bd=dens(bx,bz),px=bx,pz=bz;
    for(let r=8;r<=24&&bd>.12;r+=8)for(let d=0;d<8;d++){const x=Math.round(bx+Math.cos(d*.785)*r),z=Math.round(bz+Math.sin(d*.785)*r),h=height4(x,z);
@@ -1135,6 +1135,12 @@ window.addEventListener('pageshow',()=>{suspended=false;clearInput();last=perfor
 let swing=0,walkPhase=0;const particles=[],cows=[];
 // "絶景スポットへ": the title button cycles through the best cliffs, summits, valleys and river plains of this world.
 let spotList=null,spotIdx=-1,spotBusy=false;
+// Stand on open ground: the nearest point (within ~20 blocks) with no trunk or leaf block above it, at the spot's height.
+function clearSpot(s){const wood=t=>t===4||t===5||t===13||t===14||t===15||t===16;
+ const ground=(x,z)=>{let y=Math.min(H-3,height4(x,z)+14);while(y>1){const t=get(x,y,z);if(t&&t!==10&&!wood(t))break;y--}return y};
+ const open=(x,z)=>{const g=ground(x,z);if(Math.abs(g-s.h)>4)return -1;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++)for(let dy=1;dy<=10;dy++)if(wood(get(x+dx,g+dy,z+dz)))return -1;return g+1};
+ for(let r=0;r<=20;r+=4)for(let d=0;d<(r?8:1);d++){const x=Math.round(s.x+Math.cos(d*.785)*r),z=Math.round(s.z+Math.sin(d*.785)*r),y=open(x,z);if(y>0)return{x,z,y}}
+ return{x:s.x,z:s.z,y:surface(s.x,s.z)}}
 function nextSpot(){
  if(!GRAND||spotBusy)return;
  if(!spotList){spotBusy=true;const out={},it=scanSpots(out),btn=$('spots');btn.textContent='探索中…';
@@ -1144,8 +1150,8 @@ function nextSpot(){
     spotBusy=false;btn.textContent='絶景スポットへ';return nextSpot()}}catch(e){console.warn('Spot search failed:',e);spotBusy=false;btn.textContent='絶景スポットへ';return}
    setTimeout(step,0)};step();return}
  if(!spotList.length){toast('この世界では絶景スポットが見つかりませんでした');return}
- spotIdx=(spotIdx+1)%spotList.length;const s=spotList[spotIdx];
- flying=false;player.x=s.x+.5;player.z=s.z+.5;player.y=surface(s.x,s.z)+.02;vy=0;yaw=s.yaw;pitch=-.1;streamChunks(true);dirty=true;play();
+ spotIdx=(spotIdx+1)%spotList.length;const s=spotList[spotIdx],c=clearSpot(s);
+ flying=false;player.x=c.x+.5;player.z=c.z+.5;player.y=c.y+.02;vy=0;yaw=s.yaw;pitch=s.kind==='cliff'?-.3:-.1;streamChunks(true);dirty=true;play();
  toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${SPOT_KINDS[s.kind]}（標高${s.h-SEA}m）`)}
 function surface(x,z,from=H-3){for(let y=Math.min(H-3,Math.floor(from));y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
