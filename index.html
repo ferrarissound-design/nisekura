@@ -609,7 +609,7 @@ vec4 skyDeck(vec3 d,float q){
  float dens=smoothstep(th,th+.26,n);
  if(dens<.01)return vec4(0.);
  float lit=.7;
- if(q>.5){vec2 sd=sunDir.xz/max(sunDir.y,.25);float nS=cfbm(pn+sd*.11,oct);lit=clamp(.78+(nS-n)*4.6-.22*smoothstep(0.,.3,n-th),0.,1.);}
+ if(q>.5){vec2 sd=sunDir.xz/max(sunDir.y,.25);float nS=cfbm(pn+sd*.11,oct-1.);lit=clamp(.78+(nS-n)*4.6-.22*smoothstep(0.,.3,n-th),0.,1.);}
  vec3 litC=ambCol*.95+dirCol*.95,shC=ambCol*vec3(.74,.80,.98)*.9;
  vec3 c=mix(shC,litC,lit);
  c=mix(c,horizonCol*1.05,smoothstep(.5,0.,d.y)*.45);
@@ -1312,15 +1312,16 @@ function render(cam,titleOpen,w,h){
  // Underwater the fog closes within a few dozen blocks, so the far pass is skipped there.
  if(lodOK&&!underwater){
   // Far pass: sky, LOD terrain, ocean beyond the world and clouds, with its own depth range.
-  useProgram(skyProg,1);setEnv(skyU,env,fog);const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
-  gl.uniform3f(skyU.cFwd,sy*cp,sp,cy*cp);gl.uniform3f(skyU.cRight,cy,0,-sy);gl.uniform3f(skyU.cUp,-sp*sy,cp,-sp*cy);gl.uniform2f(skyU.cScale,aspect/1.35,1/1.35);
-  gl.disable(gl.DEPTH_TEST);gl.depthMask(false);gl.bindBuffer(gl.ARRAY_BUFFER,skyBuffer);gl.vertexAttribPointer(0,2,gl.FLOAT,false,8,0);gl.drawArrays(gl.TRIANGLES,0,3);gl.enable(gl.DEPTH_TEST);gl.depthMask(true);
   lodFrame++;lodDraw.length=0;lodRequests.length=0;for(let x=0;x<W;x+=512)for(let z=0;z<W;z+=512)lodVisit(512,x,z,F);
   const farNear=readyR>=1?2:.25,farFar=Q.far*1.15;
   useProgram(lodProg,2);setEnv(lodU,env,fog);setView(lodU,cam,aspect,farNear,farFar);gl.uniform3f(lodU.eyeF,cam.x,cam.y,cam.z);
   if(readyR>=0)gl.uniform4f(lodU.hole,(centerCX-readyR)*CHUNK-cam.x+.01,(centerCZ-readyR)*CHUNK-cam.z+.01,(centerCX+readyR+1)*CHUNK-cam.x-.01,(centerCZ+readyR+1)*CHUNK-cam.z-.01);else gl.uniform4f(lodU.hole,1,1,-1,-1);
   for(const t of lodDraw){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,t.quads,bindLod,12)}
   for(const t of oceanTiles)if(sphereVisible(F,t.x0+W/2,SEA,t.z0+W/2,W*.71)){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,1,bindLod,12)}
+  // The sky is drawn after the far terrain with the depth test on, so its (costly) cloud layers only run for pixels that really show sky.
+  useProgram(skyProg,1);setEnv(skyU,env,fog);const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  gl.uniform3f(skyU.cFwd,sy*cp,sp,cy*cp);gl.uniform3f(skyU.cRight,cy,0,-sy);gl.uniform3f(skyU.cUp,-sp*sy,cp,-sp*cy);gl.uniform2f(skyU.cScale,aspect/1.35,1/1.35);
+  gl.depthMask(false);gl.bindBuffer(gl.ARRAY_BUFFER,skyBuffer);gl.vertexAttribPointer(0,2,gl.FLOAT,false,8,0);gl.drawArrays(gl.TRIANGLES,0,3);gl.depthMask(true);
   const drift=cloudDrift;updateClouds(cam.x-drift,cam.z);
   useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,farNear,farFar);gl.uniform3f(mainU.eye,cam.x-drift,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x-drift,cam.y,cam.z); // fragments see the cloud's own coordinates
   if(cloudQuads)drawQuads(cloudBuffer,cloudQuads,bind,36);
