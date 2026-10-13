@@ -15,12 +15,16 @@
 
 .actions button{height:46px}.actions #fly.active{background:#5283aacc;border-color:#beeeff}.actions #down:disabled{opacity:.3;pointer-events:none}
 @media(max-height:480px){.actions{bottom:78px;gap:5px}.actions button{height:40px}.top{top:max(6px,env(safe-area-inset-top))}}
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">にせくら<small>SKY EXPLORER · v3.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay"><div class="panel"><div class="eyebrow">EXPLORE / MINE / BUILD</div><h1>にせくら</h1><p>目の前の森も、足元の石も、ぜんぶ材料。<br>掘って、集めて、あなただけの世界をつくろう。</p><button id="play" class="primary">世界に入る →</button><div class="row"><button id="mode">モード：素材集め</button><button id="home">出発地点へ</button></div><p>スマホ：左スティックで移動・画面をスワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>世界はこのブラウザに自動保存。横画面がおすすめ。</p><div class="row"><button id="save">保存する</button><button id="reset">新しい世界</button></div><p id="saveInfo">オリジナルのブロック建築ゲーム / v3.0 — SKY EXPLORER</p></div></div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">にせくら<small>OCEAN HORIZON · v4.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay"><div class="panel"><div class="eyebrow">EXPLORE / MINE / BUILD</div><h1>にせくら</h1><p>目の前の森も、足元の石も、ぜんぶ材料。<br>掘って、集めて、あなただけの世界をつくろう。</p><button id="play" class="primary">世界に入る →</button><div class="row"><button id="mode">モード：素材集め</button><button id="home">出発地点へ</button></div><p>スマホ：左スティックで移動・画面をスワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>2048×2048の世界。ブラウザに自動保存。横画面がおすすめ。</p><div class="row"><button id="save">保存する</button><button id="reset">新しい世界</button></div><p id="saveInfo">オリジナルのブロック建築ゲーム / v4.0 — OCEAN HORIZON</p></div></div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world'),gl=canvas.getContext('webgl',{antialias:false,alpha:false});
 if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてください。';throw Error('WebGL unavailable')}
-const W=256,H=96,CHUNK=8,CHUNKS=W/CHUNK,VIEW_RADIUS=6,SEA=10,KEY='nisekura-v1',blocks=new Uint8Array(W*W*H),changes=new Map(),chunks=new Map();
+// Far terrain is generated on demand. Only visible 8x8 voxel chunks stay in memory.
+const W=2048,H=96,CHUNK=8,CHUNKS=W/CHUNK,VIEW_RADIUS=8,SEA=10,KEY='nisekura-v1',blocks=new Map(),changes=new Map(),chunks=new Map();
+const ORIGIN=W/2,CHUNK_SIZE=CHUNK*CHUNK*H;
+const chunkKey=(x,z)=>Math.floor(x/CHUNK)+','+Math.floor(z/CHUNK);
+const localIdx=(x,y,z)=>(y*CHUNK+z%CHUNK)*CHUNK+x%CHUNK;
 const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50']];
 let flying=false,suspended=false,riseHeld=false,descendHeld=false;
 const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
@@ -28,25 +32,58 @@ try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number
 const player={x:32.5,y:25,z:32.5},keys={},joy={x:0,y:0};let saved=null;
 try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
 const idx=(x,y,z)=>x+W*(z+W*y),inside=(x,y,z)=>x>=0&&z>=0&&y>=0&&x<W&&z<W&&y<H;
-function get(x,y,z){return inside(x,y,z)?blocks[idx(x,y,z)]:0}
-function set(x,y,z,t){if(inside(x,y,z))blocks[idx(x,y,z)]=t}
+function get(x,y,z){if(!inside(x,y,z))return 0;const i=idx(x,y,z);if(changes.has(i))return changes.get(i);return ensureVoxelChunk(Math.floor(x/CHUNK),Math.floor(z/CHUNK))[localIdx(x,y,z)]}
+function set(x,y,z,t){if(!inside(x,y,z))return;changes.set(idx(x,y,z),t);const data=blocks.get(chunkKey(x,z));if(data)data[localIdx(x,y,z)]=t}
 function solid(x,y,z){const t=get(x,y,z);return t!==0&&t!==10}
 function rand(x,z){let n=Math.imul(x+seed,374761393)^Math.imul(z,668265263);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295}
 function noise(x,z,s){const a=Math.floor(x/s),b=Math.floor(z/s);let u=x/s-a,v=z/s-b;u=u*u*(3-2*u);v=v*v*(3-2*v);return(rand(a,b)*(1-u)+rand(a+1,b)*u)*(1-v)+(rand(a,b+1)*(1-u)+rand(a+1,b+1)*u)*v}
 // Keep existing saved terrain stable; new worlds have a lake next to the clearing.
-const terrainVersion=saved?.version===1?(saved.terrainVersion||1):2;
-function height(x,z){let h=8+noise(x,z,19)*12+noise(x,z,7)*4;if(terrainVersion===2){const lake=Math.exp(-((x-43)**2/95+(z-40)**2/180));h-=lake*9;const clearing=Math.max(0,1-Math.hypot(x-31,z-30)/6);h=h*(1-clearing)+15*clearing}return Math.max(3,Math.floor(h))}
-function generate(){blocks.fill(0);for(let x=0;x<W;x++)for(let z=0;z<W;z++){let h=height(x,z);for(let y=0;y<=Math.max(h,SEA);y++)set(x,y,z,y===0?11:y>h?10:y===h?(h<=SEA+1?6:1):y>h-3?2:3)}for(let x=3;x<W-3;x++)for(let z=3;z<W-3;z++){let h=height(x,z);if(h>SEA+1&&rand(x*13,z*17)>.979&&Math.hypot(x-32,z-32)>(terrainVersion===2?8:4)){for(let y=h+1;y<h+5;y++)set(x,y,z,4);for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=3;dy<=5;dy++)if(Math.abs(dx)+Math.abs(dz)+(dy===5?1:0)<4&&!get(x+dx,h+dy,z+dz))set(x+dx,h+dy,z+dz,5)}}}
-generate();
+const terrainVersion=saved?.version===1?(saved.terrainVersion||1):3;
+function height(x,z){
+ if(terrainVersion===3){
+  const continent=noise(x,z,270)*.7+noise(x,z,80)*.3;
+  const coast=Math.max(0,Math.min(1,(x-(ORIGIN+90)+(noise(x,z,110)-.5)*85)/150));
+  let h=5+continent*31+(noise(x,z,29)-.5)*6-coast*22;
+  const clearing=Math.max(0,1-Math.hypot(x-ORIGIN,z-ORIGIN)/18);
+  h=h*(1-clearing)+18*clearing;
+  return Math.max(3,Math.min(H-7,Math.floor(h)));
+ }
+ let h=8+noise(x,z,19)*12+noise(x,z,7)*4;
+ if(terrainVersion===2){const lake=Math.exp(-((x-43)**2/95+(z-40)**2/180));h-=lake*9;const clearing=Math.max(0,1-Math.hypot(x-31,z-30)/6);h=h*(1-clearing)+15*clearing}
+ return Math.max(3,Math.floor(h))
+}
+function ensureVoxelChunk(cx,cz){
+ const key=cx+','+cz;
+ if(blocks.has(key))return blocks.get(key);
+ const data=new Uint8Array(CHUNK_SIZE),x0=cx*CHUNK,z0=cz*CHUNK;
+ const write=(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H)data[localIdx(x,y,z)]=t};
+ for(let x=x0;x<x0+CHUNK;x++)for(let z=z0;z<z0+CHUNK;z++){
+  const h=height(x,z);
+  for(let y=0;y<=Math.max(h,SEA);y++)write(x,y,z,y===0?11:y>h?10:y===h?(h<=SEA+1?6:1):y>h-3?2:3);
+ }
+ // Include tree origins two cells across neighboring chunk borders to avoid seams.
+ for(let x=Math.max(3,x0-2);x<Math.min(W-3,x0+CHUNK+2);x++)for(let z=Math.max(3,z0-2);z<Math.min(W-3,z0+CHUNK+2);z++){
+  const h=height(x,z);
+  if(h<=SEA+1||rand(x*13,z*17)<=.979||Math.hypot(x-(terrainVersion===3?ORIGIN:32),z-(terrainVersion===3?ORIGIN:32))<=(terrainVersion===3?12:terrainVersion===2?8:4))continue;
+  for(let y=h+1;y<h+5;y++)write(x,y,z,4);
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=3;dy<=5;dy++){
+   const bx=x+dx,bz=z+dz,by=h+dy;
+   if(Math.abs(dx)+Math.abs(dz)+(dy===5?1:0)>=4||bx<x0||bx>=x0+CHUNK||bz<z0||bz>=z0+CHUNK||by>=H)continue;
+   if(!data[localIdx(bx,by,bz)])write(bx,by,bz,5);
+  }
+ }
+ blocks.set(key,data);
+ return data
+}
 // v1/v2 stored linear indices in a 64-wide world. Decode using their original stride.
 if(saved?.version===1&&Array.isArray(saved.changes)){
  const oldW=Number.isInteger(saved.worldWidth)&&saved.worldWidth>0?saved.worldWidth:64;
  const oldH=Number.isInteger(saved.worldHeight)&&saved.worldHeight>0?saved.worldHeight:40;
  for(const [i,t]of saved.changes)if(Number.isInteger(i)&&i>=0&&i<oldW*oldW*oldH&&Number.isInteger(t)&&t>=0&&t<defs.length){
-  const x=i%oldW,z=Math.floor(i/oldW)%oldW,y=Math.floor(i/(oldW*oldW));if(inside(x,y,z)){const j=idx(x,y,z);blocks[j]=t;changes.set(j,t)}
+  const x=i%oldW,z=Math.floor(i/oldW)%oldW,y=Math.floor(i/(oldW*oldW));if(inside(x,y,z)){const j=idx(x,y,z);changes.set(j,t)}
  }
 }
-function spawn(){player.x=32.5;player.z=32.5;let y=H-3;while(y>0&&!solid(32,y-1,32))y--;player.y=y+.02;vy=0}
+function spawn(){player.x=ORIGIN+.5;player.z=ORIGIN+.5;let y=H-3;while(y>0&&!solid(ORIGIN,y-1,ORIGIN))y--;player.y=y+.02;vy=0}
 spawn();if(saved?.player&&['x','y','z'].every(k=>Number.isFinite(saved.player[k]))){Object.assign(player,saved.player);yaw=Number.isFinite(saved.yaw)?saved.yaw:0;pitch=Number.isFinite(saved.pitch)?Math.max(-1.5,Math.min(1.5,saved.pitch)):0}
 function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
 // Pixel materials are evaluated in face-local UVs: no external texture/CDN requests.
@@ -81,7 +118,7 @@ else if(mat<14.5){float bark=step(.76,hash(vec2(floor(q.x/3.),floor(q.y/2.))));c
 else if(mat<15.5){float blade=mod(q.x,4.);float tip=7.+hash(vec2(floor(q.x/4.),0.))*9.;if(q.y>tip-abs(blade-1.)*3.||blade>2.)discard;c=col*(.7+uv.y*.3+n*.16);}
 else if(mat<16.5){float patch=step(.60,hash(floor(q/4.)));c=mix(vec3(.26,.16,.105),vec3(.91,.88,.76),patch)*col*(.91+n*.12);}
 else if(mat<17.5){float stem=step(abs(q.x-8.),1.)*step(q.y,10.);float flower=step(abs(q.x-8.),4.)*step(abs(q.y-12.),3.);if(max(stem,flower)<.5)discard;c=mix(vec3(.24,.44,.1),col,flower);if(abs(q.x-8.)<2.&&abs(q.y-12.)<2.)c=vec3(1.,.82,.2);}
-float fog=smoothstep(32.,52.,depth);gl_FragColor=vec4(mix(c,sky,fog),alpha);}`;
+float fog=smoothstep(38.,64.,depth);gl_FragColor=vec4(mix(c,sky,fog),alpha);}`;
 const prog=gl.createProgram();gl.attachShader(prog,shader(gl.VERTEX_SHADER,vertexSource));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(prog));gl.useProgram(prog);
 const uniforms={};for(const n of ['eye','yaw','pitch','aspect','sky','clock'])uniforms[n]=gl.getUniformLocation(prog,n);
 const ap=gl.getAttribLocation(prog,'aPos'),ac=gl.getAttribLocation(prog,'aColor'),au=gl.getAttribLocation(prog,'aUV'),am=gl.getAttribLocation(prog,'aMat');
@@ -111,6 +148,8 @@ function streamChunks(initial=false){
  const cx=Math.floor(player.x/CHUNK),cz=Math.floor(player.z/CHUNK),center=cx+','+cz;
  if(center!==chunkCenter||initial){chunkCenter=center;chunkQueue=[];
   for(const [key,ch]of chunks)if(Math.hypot(ch.cx-cx,ch.cz-cz)>VIEW_RADIUS+1){gl.deleteBuffer(ch.buffer);gl.deleteBuffer(ch.water);chunks.delete(key)}
+  // Keep old edits in the sparse changes map, not in ever-growing voxel buffers.
+  for(const key of blocks.keys()){const [bx,bz]=key.split(',').map(Number);if(Math.hypot(bx-cx,bz-cz)>VIEW_RADIUS+3)blocks.delete(key)}
   for(let x=Math.max(0,cx-VIEW_RADIUS);x<=Math.min(CHUNKS-1,cx+VIEW_RADIUS);x++)for(let z=Math.max(0,cz-VIEW_RADIUS);z<=Math.min(CHUNKS-1,cz+VIEW_RADIUS);z++)if(Math.hypot(x-cx,z-cz)<=VIEW_RADIUS&&!chunks.has(x+','+z))chunkQueue.push([x,z]);
   chunkQueue.sort((a,b)=>(a[0]-cx)**2+(a[1]-cz)**2-(b[0]-cx)**2-(b[1]-cz)**2);
  }
@@ -151,7 +190,7 @@ const outline=gl.createBuffer(),dynamicBuffer=gl.createBuffer(),toolBuffer=gl.cr
 let swing=0,walkPhase=0;const particles=[],cows=[];
 function surface(x,z){for(let y=H-3;y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
-for(let i=0;i<180&&cows.length<7;i++){let x=25+rand(i,321)*22,z=29+rand(i,632)*21,y=surface(x,z);if(Math.hypot(x-player.x,z-player.z)>3&&cows.every(c=>Math.hypot(c.x-x,c.z-z)>2)&&y>SEA+1&&y<H-5&&get(Math.floor(x),y-1,Math.floor(z))===1&&cowFits(x,y,z))cows.push({x,y,z,angle:rand(i,13)*6.28,phase:i,wait:0})}
+for(let i=0;i<180&&cows.length<7;i++){let x=ORIGIN-7+rand(i,321)*22,z=ORIGIN-3+rand(i,632)*21,y=surface(x,z);if(Math.hypot(x-player.x,z-player.z)>3&&cows.every(c=>Math.hypot(c.x-x,c.z-z)>2)&&y>SEA+1&&y<H-5&&get(Math.floor(x),y-1,Math.floor(z))===1&&cowFits(x,y,z))cows.push({x,y,z,angle:rand(i,13)*6.28,phase:i,wait:0})}
 function cuboid(a,x,y,z,sx,sy,sz,color,mat=0,transform=null){const c=typeof color==='string'?rgb(color):color;for(const f of faces)for(const k of tris){const v=f.v[k],p=[x+v[0]*sx,y+v[1]*sy,z+v[2]*sz];a.push(...(transform?transform(p):p),...c.map(n=>n*(mat===18?Math.max(.84,f.l):f.l)),...faceUV(v,f),mat)}}
 function burst(x,y,z,color){for(let i=0;i<12;i++)particles.push({x,y,z,vx:(Math.random()-.5)*3,vy:1+Math.random()*2,vz:(Math.random()-.5)*3,life:.7,color})}
 function drawData(buffer,a){if(!a.length)return;bind(buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,a.length/9)}
@@ -169,7 +208,7 @@ cuboid(a,-.48,1.40,.52,.17,.12,.21,'#73543c',0,rot);cuboid(a,.31,1.40,.52,.17,.1
 }
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
 // Broad, flat clouds are intentionally cuboid, like the rest of this world.
-for(let i=0;i<12;i++){let x=((i*17+time*.16)%100)-18,z=(i*29%100)-12;cuboid(a,x,32+(i%3)*1.2,z,7+(i%3)*2,.65,3.5,'#f4f6ec',18);cuboid(a,x+2,32.65+(i%3)*1.2,z+.8,4,.2,2,'#fffdf3',18)}
+for(let i=0;i<12;i++){let x=player.x+((i*17+time*.16)%100)-50,z=player.z+(i*29%100)-50;cuboid(a,x,32+(i%3)*1.2,z,7+(i%3)*2,.65,3.5,'#f4f6ec',18);cuboid(a,x+2,32.65+(i%3)*1.2,z+.8,4,.2,2,'#fffdf3',18)}
 drawData(dynamicBuffer,a)}
 function drawTool(){if(paused)return;const a=[],bob=Math.sin(walkPhase)*.025,kick=Math.sin(swing*Math.PI),aspect=canvas.width/canvas.height;
 const transform=p=>{let x=p[0],y=p[1],z=p[2];const angle=-.40-kick*.65,xx=x*Math.cos(angle)-y*Math.sin(angle),yy=x*Math.sin(angle)+y*Math.cos(angle);x=xx+Math.min(.70,aspect*.42)-kick*.15;y=yy-.51+bob+kick*.06;z+=1.12;const py=Math.cos(pitch)*y+Math.sin(pitch)*z,pz=-Math.sin(pitch)*y+Math.cos(pitch)*z;return[player.x+Math.cos(yaw)*x+Math.sin(yaw)*pz,player.y+1.62+py,player.z-Math.sin(yaw)*x+Math.cos(yaw)*pz]};
