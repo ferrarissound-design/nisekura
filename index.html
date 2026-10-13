@@ -602,7 +602,7 @@ float cfbm(vec2 p,float oct){float s=0.,a=.5;for(int i=0;i<4;i++){if(float(i)>=o
 // Mid deck: rgb + alpha. q = sky quality (0 unlit and cheap, 1 lit, 2 finer detail).
 vec4 skyDeck(vec3 d,float q){
  if(d.y<.02)return vec4(0.);
- float hz=smoothstep(.02,.24,d.y),oct=q>1.5?4.:q>.5?3.:2.;
+ float hz=smoothstep(.02,.24,d.y),oct=q>1.5?4.:q>.5?3.:q<-.5?1.:2.;
  vec2 p=d.xz/(d.y+.085)*520.-vec2(skyP.x,0.),pn=p/820.+vec2(3.1,1.7);
  float n=cfbm(pn,oct),th=.67-skyP.y*.27;
  if(q>.5)n-=.07*(1.-vnoise(p/175.));
@@ -653,7 +653,7 @@ vec4 waterShade(vec3 v,vec2 g,float D,float sand,float fp){
  vec3 glint=dirCol*pow(max(dot(r,dirLight),0.),mix(900.,60.,rough))*mix(1.7,.6,rough);
  vec3 refl=skyColor(r);
  #ifndef WATER_LITE
- if(wq>.5){vec4 dk=skyDeck(r,0.);refl=mix(refl,dk.rgb,dk.a*.8);}  // clouds are mirrored in the sea
+ if(skyP.z>.5&&fp<60.){vec4 dk=skyDeck(r,fp>3.?-1.:0.);refl=mix(refl,dk.rgb,dk.a*.8);}  // clouds are mirrored in the sea (one octave far away)
  #endif
  return vec4(refl*F+(1.-F)*(1.-T)*sc+glint,F+(1.-F)*(1.-T));}`;
 const PRECISION=`#ifdef GL_FRAGMENT_PRECISION_HIGH
@@ -1302,7 +1302,7 @@ function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayT
  // The title keeps a low golden sun beside the scenic view.
  const a=cam.yaw+.95,e=.16;return skyEnv([Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)])}
 function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,0);if(u.skyP)gl.uniform4f(u.skyP,cloudDrift%40000,.5+.22*Math.sin(time*.0031+1.3)+.12*Math.sin(time*.0113),Q.sky,0)}
-function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>0?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
+function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>1?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
 // Same as underCol() in the shaders: the colour water fades to at the camera's depth.
 function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.11,.42,.44],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
 function render(cam,titleOpen,w,h){

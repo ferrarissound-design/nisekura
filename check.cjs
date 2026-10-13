@@ -371,7 +371,7 @@ const SEA_=62;
  // Shaders: layers exist in the sky shader, clouds are mirrored in the sea, the new uniform is wired and stage-local.
  const sky=d.api.skyFragmentSource,water=R('waterFragmentSource');
  assert(sky.includes('skyDeck(d,')&&sky.includes('skyCirrus(d)')&&sky.includes('uniform vec4 skyP'),'sky fragment draws both cloud layers');
- assert(water.includes('skyDeck(r,0.)'),'water mirrors clouds');assert(!R('fragmentSource').includes('skyDeck(r'),'terrain shader has no reflection code');
+ assert(water.includes('skyDeck(r,fp>3.?-1.:0.)'),'water mirrors clouds');assert(!R('fragmentSource').includes('skyDeck(r'),'terrain shader has no reflection code');
  assert(R('SKY_UNIFORMS').includes('skyP'));
  // A far rebuild is spread over frames: the old mesh stays until the new one is ready.
  R('Q=QUALITY.standard;cloudGen=null;buildClouds(500,500);var __t=0;performance.now=()=>(__t+=1)');const q0=R('cloudQuads'),ax0=R('cloudAX');R('updateClouds(500+cloudRadius()*.5,500)');assert(R('cloudGen')!==null&&R('cloudAX')===ax0&&R('cloudQuads')===q0,'rebuild starts without replacing the visible mesh');
