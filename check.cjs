@@ -140,4 +140,19 @@ console.log('PASS: legacy 64/256/2048 saves, byte-identical legacy terrain, lega
  for(let i=0;i<op.length;i+=9){const code=op[i+8],m=code%32,face=Math.floor(code%256/32);assert(m<=19&&face<=6&&code<512,'packed material code '+code);if(code>=256)shaded++;if(face===6)plants++}
  assert(plants>0,'plants use the soft plant face');assert(shaded>0,'canopy shade is flagged for dappled light');
  console.log('PASS: day cycle, sky palettes, moonlight, saved time of day, packed face/shade codes, water depth & shoreline data')}
+// ---- Phase 4: LOD worker matches the main-thread mesher; benchmark never writes the save; presets cap memory.
+{const d=boot();const src=run(d,'lodWorkerSource()');let out=null;
+ const wc={Math,Int16Array,Uint8Array,Float32Array,ArrayBuffer,JSON,Number,Array,postMessage:m=>out=m};vm.createContext(wc);vm.runInContext(src,wc);
+ for(const [step,x0,z0] of [[2,960,704],[8,512,1024],[16,1536,0]]){
+  wc.onmessage({data:{id:7,step,x0,z0}});assert.equal(out.id,7);
+  const main=JSON.parse(run(d,`(()=>{const it=tileMesh(${step},${x0},${z0});let r;while(!(r=it.next()).done);return JSON.stringify({r:r.value,b:Array.from(lw.u8.subarray(0,lw.n*12))})})()`));
+  assert.equal(JSON.stringify(out.r),JSON.stringify(main.r),'worker tile bounds match');assert.equal(out.bytes.length,main.b.length,'worker tile size matches');
+  for(let i=0;i<main.b.length;i+=97)assert.equal(out.bytes[i],main.b[i],'worker tile bytes match')}
+ for(const q of['low','standard','high'])assert(run(d,`QUALITY.${q}.lodCap`)>=100);
+ assert.equal(run(d,'autoQuality()'),'standard','unknown devices default to standard');
+ const before=d.storage['nisekura-v1'];run(d,'startBench()');assert.equal(run(d,'paused'),false);
+ for(let i=1;i<=400;i++)run(d,`frame(${i*100})`);
+ const rep=d.c.__bench;assert(rep,'benchmark report produced');assert(rep.frames>100&&[rep.avgFps,rep.low1Fps,rep.worstMs,rep.gpuMB].every(Number.isFinite));
+ assert.equal(run(d,'save()'),false,'benchmark never saves');run(d,'pause()');assert.equal(d.storage['nisekura-v1'],before,'save untouched by benchmark');
+ console.log(`PASS: LOD worker output identical to main thread, quality caps, benchmark (${rep.frames} frames, GPU est ${rep.gpuMB} MB) without saving`)}
 // Performance is profiled in a real browser (Node's vm sandbox makes global lookups ~10x slower); see README.
