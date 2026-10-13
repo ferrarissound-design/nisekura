@@ -604,12 +604,12 @@ vec4 skyDeck(vec3 d,float q){
  if(d.y<.02)return vec4(0.);
  float hz=smoothstep(.02,.24,d.y),oct=q>1.5?4.:q>.5?3.:2.;
  vec2 p=d.xz/(d.y+.085)*520.-vec2(skyP.x,0.),pn=p/820.+vec2(3.1,1.7);
- float n=cfbm(pn,oct),th=.60-skyP.y*.30;
+ float n=cfbm(pn,oct),th=.67-skyP.y*.27;
  if(q>.5)n-=.07*(1.-vnoise(p/175.));
- float dens=smoothstep(th,th+.15,n);
+ float dens=smoothstep(th,th+.26,n);
  if(dens<.01)return vec4(0.);
  float lit=.7;
- if(q>.5){vec2 sd=sunDir.xz/max(sunDir.y,.25);float nS=cfbm(pn+sd*.11,oct);lit=clamp(.66+(nS-n)*4.6-.34*smoothstep(0.,.3,n-th),0.,1.);}
+ if(q>.5){vec2 sd=sunDir.xz/max(sunDir.y,.25);float nS=cfbm(pn+sd*.11,oct);lit=clamp(.78+(nS-n)*4.6-.22*smoothstep(0.,.3,n-th),0.,1.);}
  vec3 litC=ambCol*.95+dirCol*.95,shC=ambCol*vec3(.74,.80,.98)*.9;
  vec3 c=mix(shC,litC,lit);
  c=mix(c,horizonCol*1.05,smoothstep(.5,0.,d.y)*.45);
@@ -719,10 +719,10 @@ else if(mat<17.5){float fv=floor(fract(mat)*10.+.5),hx=abs(q.x-8.),hy=abs(q.y-12
 else if(mat<18.5){
  // Cloud faces: col.r = height in the cloud, col.g = tint, col.b = depth inside it (0 at the surface of a thin part, 1 deep in a thick one).
  vec3 n3=faceNormal(vFace),v3=normalize(rel);float lam=dot(n3,dirLight),puff=vnoise(w.xz*.085+w.y*.06);
- vec3 sh=ambCol*vec3(.86,.92,1.06)*(.62+.38*col.r);
+ vec3 sh=ambCol*vec3(.92,.97,1.08)*(.74+.26*col.r);
  vec3 sun=dirCol*(.5+.65*max(lam,0.))*(1.-.6*col.b)*clamp(.5+.6*lam,0.,1.);
  c=(sh+sun*1.2)*mix(.9,1.07,puff)*(.9+.12*col.g);
- if(vFace>2.5&&vFace<3.5)c*=.8;
+ if(vFace>2.5&&vFace<3.5)c*=.9;
  c+=dirCol*pow(max(dot(v3,dirLight),0.),5.)*(1.-col.b)*(.35+.65*(1.-col.r))*.5;}
 else if(mat<19.5){c=col*(.93+n*.08);if(n>.97)c=vec3(1.);}
 else if(mat<20.5){float b=mod(q.x,3.),tip=7.+hash(vec2(floor(q.x/3.),2.))*9.;if(b>1.||q.y>tip||(q.y>tip-2.&&b>.5))discard;c=col*(.68+uv.y*.42+n*.12);if(q.y>tip-1.5&&hash(vec2(floor(q.x/3.),5.))>.6)c=mix(c,vec3(.78,.70,.45),.6);}
