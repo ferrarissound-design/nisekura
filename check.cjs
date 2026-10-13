@@ -16,6 +16,26 @@ assert.equal(run(b,'terrainVersion'),4,'v4 save reloads as v4');
 run(b,'paused=false;for(let i=0;i<120;i++)update(1/60)');assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(run(b,'ground'));
 console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
+// ---- Compass headings, route home, title/menu state and world-edge warnings.
+assert.equal(run(a,'compassBearing(0,-10)'),0,'-Z is north');
+assert.equal(run(a,'compassBearing(10,0)'),90,'+X is east');
+assert.equal(run(a,'compassDelta(350,10)'),-20,'bearing wraps correctly');
+run(a,'paused=false;yaw=0;updateCompass()');
+assert.equal(a.nodes.compassHeading.textContent,'S 180°','yaw 0 points south');
+assert.match(a.nodes.compassHomeText.textContent,/出発地点/);
+assert(!a.nodes.compass.classList.contains('hidden'));
+run(a,'yaw=Math.PI/2;updateCompass()');
+assert.equal(a.nodes.compassHeading.textContent,'E 90°','yaw PI/2 points east');
+run(a,'player.x=1356.5;player.z=.5;updateCompass()');
+assert.match(a.nodes.compassWarning.textContent,/北の端まで 0m/);
+assert(!a.nodes.compassWarning.classList.contains('hidden'));
+run(a,'player.x=1024.5;player.z=1024.5;updateCompass()');
+assert(a.nodes.compassWarning.classList.contains('hidden'),'warning hides in the interior');
+run(a,'paused=true;updateCompass()');
+assert(a.nodes.compass.classList.contains('hidden'),'compass hides in the menu');
+run(a,'spawn();yaw=0');
+console.log('PASS: compass cardinal directions, home marker, boundary warning, menu state');
+
 // ---- Terrain composition: scenic point, mountains, ocean, inland water, beaches, forests.
 const V=a.api.vista;assert(V&&Number.isFinite(V.x)&&Number.isFinite(V.yaw),'vista is computed');
 assert(Math.abs(a.api.player.x-(V.x+.5))<1e-9&&Math.abs(a.api.player.z-(V.z+.5))<1e-9,'new world starts at the vista');

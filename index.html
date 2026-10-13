@@ -73,7 +73,25 @@ body:has(#menu:not(.hidden)) #bar{display:none}
  #menu .title-button{height:45px}
 }
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>GRAND VISTA · v5.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
+
+/* Exploration compass: unobtrusive, read-only HUD for touch and desktop. */
+#compass{position:fixed;z-index:7;top:calc(max(12px,env(safe-area-inset-top)) + 80px);left:50%;transform:translateX(-50%);width:min(292px,calc(100vw - 36px));pointer-events:none;text-align:center;font-size:11px;color:#f4faf4;text-shadow:0 1px 3px #071717}
+#compassTrack{position:relative;height:28px;overflow:hidden;background:#112b30b9;border:1px solid #e8fff277;border-radius:7px;box-shadow:0 2px 8px #0004;backdrop-filter:blur(4px)}
+#compassTrack::after{content:"";position:absolute;top:0;left:50%;height:28px;width:2px;background:#ffda8c;box-shadow:0 0 5px #0009;transform:translateX(-50%)}
+.compass-tick{position:absolute;top:6px;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:#e6f4f2}
+.compass-tick.cardinal{font-weight:900;font-size:12px;top:4px;color:#fff4ce}
+#compassHeading{position:absolute;right:7px;top:6px;font-size:9px;color:#d8eef2;background:#183338b8;padding:1px 3px;border-radius:3px}
+#compassInfo{display:flex;justify-content:center;align-items:center;gap:5px;margin-top:4px}
+#compassHome,#compassWarning{display:flex;align-items:center;gap:5px;background:#10292bd9;border:1px solid #ffffff46;border-radius:6px;padding:3px 7px;white-space:nowrap}
+#compassHomeArrow{display:inline-block;font-size:13px;color:#ffe49e;transform-origin:center}
+#compassWarning{color:#ffe4bd;background:#64371ddd;border-color:#ffd39b80;font-weight:700}
+body:has(#menu:not(.hidden)) #compass,body:has(#craft:not(.hidden)) #compass{display:none!important}
+@media(max-height:480px){#compass{top:calc(max(6px,env(safe-area-inset-top)) + 56px);width:min(255px,calc(100vw - 220px));min-width:172px}#compassInfo{font-size:10px}}
+
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>GRAND VISTA · v5.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="compass" class="hidden" aria-label="探索コンパス">
+ <div id="compassTrack"><div id="compassHeading"></div></div>
+ <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
+</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
 <div class="title-stage">
  <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">あの山の向こうへ！</span></div>
  <div class="title-menu">
@@ -81,7 +99,7 @@ body:has(#menu:not(.hidden)) #bar{display:none}
   <div class="title-pair"><button id="mode" class="title-button">モード：素材集め</button><button id="quality" class="title-button">画質：標準</button></div>
   <button id="home" class="title-button">出発地点へ戻る</button>
   <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
 <div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v5.0</span></div>
@@ -676,11 +694,44 @@ function render(cam,titleOpen,w,h){
  gl.depthMask(true);gl.disable(gl.BLEND);
  if(!titleOpen){hit=ray();drawOutline();drawTool()}else hit=null;
 }
-let last=performance.now(),frames=0,fps=60,fpsTime=0,renderScale=1,perfTime=0,perfFrames=0;
+// Navigation HUD uses only the existing player coordinates and yaw; it never queries terrain.
+const compassHUD=$('compass'),compassTrack=$('compassTrack'),compassHeading=$('compassHeading');
+const compassHomeText=$('compassHomeText'),compassHomeArrow=$('compassHomeArrow'),compassWarning=$('compassWarning');
+const compassNames=['N','NE','E','SE','S','SW','W','NW'];
+const compassTicks=compassNames.map((name,i)=>{const tick=document.createElement('span');tick.className='compass-tick'+(i%2===0?' cardinal':'');tick.textContent=name;compassTrack.appendChild(tick);return tick});
+const homeX=(vista?vista.x:ORIGIN)+.5,homeZ=(vista?vista.z:ORIGIN)+.5;
+const compassNormalize=d=>(d%360+360)%360;
+const compassDelta=(target,heading)=>compassNormalize(target-heading+180)-180;
+const compassBearing=(dx,dz)=>compassNormalize(Math.atan2(dx,-dz)*180/Math.PI);
+function updateCompass(){
+ if(paused||suspended){compassHUD.classList.add('hidden');return}
+ compassHUD.classList.remove('hidden');
+ // Engine yaw=0 looks toward +Z (south), yaw=PI/2 toward +X (east).
+ const heading=compassNormalize(180-yaw*180/Math.PI);
+ const center=(compassTrack.getBoundingClientRect().width||292)/2,pxPerDegree=center/126;
+ for(let i=0;i<8;i++){
+  const delta=compassDelta(i*45,heading),tick=compassTicks[i];
+  tick.style.display=Math.abs(delta)>126?'none':'block';
+  if(Math.abs(delta)<=126)tick.style.left=(center+delta*pxPerDegree)+'px';
+ }
+ compassHeading.textContent=compassNames[Math.round(heading/45)%8]+' '+Math.round(heading)+'°';
+ const hx=homeX-player.x,hz=homeZ-player.z,homeDistance=Math.hypot(hx,hz);
+ const bearing=compassBearing(hx,hz),turn=homeDistance<1?0:compassDelta(bearing,heading);
+ compassHomeArrow.style.transform='rotate('+turn+'deg)';
+ compassHomeText.textContent='⌂ 出発地点 '+Math.round(homeDistance)+'m';
+ const edgeDistances=[player.z,W-1-player.x,W-1-player.z,player.x];
+ const edgeNames=['北','東','南','西'];
+ const nearest=Math.min(...edgeDistances),edge=edgeDistances.indexOf(nearest);
+ if(nearest<=100){compassWarning.textContent='⚠ '+edgeNames[edge]+'の端まで '+Math.max(0,Math.floor(nearest))+'m';compassWarning.classList.remove('hidden')}
+ else compassWarning.classList.add('hidden');
+}
+
+let last=performance.now(),frames=0,fps=60,fpsTime=0,renderScale=1,perfTime=0,perfFrames=0,lastCompassUpdate=-Infinity;
 function frame(now){
  const raw=Math.max(0,(now-last)/1000),dt=Math.min(.035,raw);last=now;
  if(suspended||contextLost){requestAnimationFrame(frame);return}
  const titleOpen=isTitleOpen();
+ if(now-lastCompassUpdate>=100||paused){updateCompass();lastCompassUpdate=now}
  if(!paused){time+=dt;update(dt);animateWorld(dt)}
  else if(titleOpen)time+=dt*.65; // Keep the background grass, water, and clouds alive.
  streamChunks();
