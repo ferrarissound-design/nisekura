@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#172b26"><title>JOCRAFT2 — 小さな世界、大きな冒険</title><style>
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#172b26"><title>JOCRAFT2 — 遠くまで続く、ブロックの大地</title><style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;overflow:hidden;background:#172b26;color:#fff;font-family:system-ui,sans-serif;touch-action:none;user-select:none}canvas{display:block;width:100vw;height:100dvh}button{font:inherit;color:inherit;border:1px solid #ffffff44;background:#142c2bdd;border-radius:10px;padding:12px;cursor:pointer;touch-action:none}button:active{background:#5e9264}.top{position:fixed;top:max(12px,env(safe-area-inset-top));left:16px;right:16px;display:flex;justify-content:space-between;pointer-events:none}.top>*{pointer-events:auto}.brand{font-weight:900;letter-spacing:3px;text-shadow:0 2px 4px #000}.brand small{display:block;font-size:10px;letter-spacing:1px;color:#def0dc}#stats{font-size:11px;margin-top:6px;text-shadow:0 1px 3px #000}#cross{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font-size:26px;text-shadow:0 1px 2px #000;pointer-events:none}#bar{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:4px;background:#102322ad;padding:5px;border-radius:12px}#bar button{padding:4px;width:48px;height:56px;border-radius:6px;font-size:10px;position:relative}#bar button.selected{border:2px solid #efffc5;background:#668155}#bar i{display:block;width:22px;height:22px;margin:0 auto 3px;box-shadow:inset -5px -5px #0003,inset 3px 3px #fff3}#bar b{position:absolute;right:3px;top:1px;font-size:10px}#hint{position:fixed;left:50%;top:65%;transform:translateX(-50%);background:#132b26bb;border-radius:20px;padding:7px 15px;font-size:12px;pointer-events:none;white-space:nowrap}#stick{position:fixed;bottom:105px;left:24px;width:112px;height:112px;border:2px solid #fff5;background:#fff1;border-radius:50%}#knob{position:absolute;left:32px;top:32px;width:44px;height:44px;border-radius:50%;background:#ffffff66;border:2px solid #fff8;pointer-events:none}.actions{position:fixed;right:18px;bottom:104px;display:grid;grid-template-columns:64px 64px;gap:8px}.actions button{height:54px;font-size:12px;background:#17352a99}.actions #jump{grid-column:2;background:#47735ac9}.overlay{position:fixed;inset:0;background:linear-gradient(120deg,#102823d9,#122b2a66);display:flex;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(5px)}.panel{width:min(440px,100%);background:#142c28ed;border:1px solid #a9c69766;border-radius:22px;padding:28px;box-shadow:0 24px 80px #0005}.eyebrow{color:#b7d987;font-size:11px;letter-spacing:4px}h1{font-size:52px;margin:12px 0 4px;letter-spacing:6px}p{font-size:13px;line-height:1.9;color:#c6d8cc}.primary{background:#b9d68b;color:#203927;font-weight:800;width:100%;margin:12px 0}.row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;font-size:12px}.hidden{display:none!important}#craft button{display:block;width:100%;margin:8px 0}#target{position:fixed;top:56%;width:100%;text-align:center;font-size:11px;text-shadow:0 1px 3px #000;pointer-events:none}@media(pointer:fine){#stick,.actions{opacity:.65}}@media(max-height:480px){.panel{padding:16px}h1{font-size:34px}p{margin:8px 0}.actions{bottom:85px}#stick{bottom:85px;width:100px;height:100px}#knob{left:26px;top:26px}}
 
 /* Compact pixel HUD leaves the center and landscape unobstructed. */
@@ -46,6 +46,7 @@ body:has(#menu:not(.hidden)) #bar{display:none}
 #menu .title-button:hover{background:linear-gradient(#bac4ab,#859d7c)}
 #menu .title-button:active{background:linear-gradient(#607858,#a0b497);box-shadow:inset 2px 2px 0 #32472e,inset -2px -2px 0 #d4e5c6}
 .title-pair{display:flex;gap:8px;margin-top:8px}
+.title-menu>.title-pair:first-of-type{margin-top:0}
 .title-pair .title-button{flex:1;min-width:0}
 .title-help{margin:9px auto 0;color:#fff;text-align:center;font-size:11px;text-shadow:1px 2px 3px #000;max-width:100%}
 .title-help summary{cursor:pointer;touch-action:manipulation;list-style:none;text-decoration:underline;text-underline-offset:3px}
@@ -72,42 +73,50 @@ body:has(#menu:not(.hidden)) #bar{display:none}
  #menu .title-button{height:45px}
 }
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>OCEAN HORIZON · v4.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>GRAND VISTA · v5.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
 <div class="title-stage">
- <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">さあ、冒険しよう！</span></div>
+ <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">あの山の向こうへ！</span></div>
  <div class="title-menu">
   <button id="play" class="title-button">シングルプレイ</button>
-  <button id="mode" class="title-button">モード：素材集め</button>
+  <div class="title-pair"><button id="mode" class="title-button">モード：素材集め</button><button id="quality" class="title-button">画質：標準</button></div>
   <button id="home" class="title-button">出発地点へ戻る</button>
   <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>2048×2048の世界。自動保存・横画面推奨。</p></details>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · OCEAN HORIZON</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v4.1</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v5.0</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
-const $=id=>document.getElementById(id),canvas=$('world'),gl=canvas.getContext('webgl',{antialias:false,alpha:false});
+const $=id=>document.getElementById(id),canvas=$('world');
+const gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'})||canvas.getContext('experimental-webgl');
 if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてください。';throw Error('WebGL unavailable')}
-// Far terrain is generated on demand. Only visible 8x8 voxel chunks stay in memory.
-const W=2048,H=96,CHUNK=8,CHUNKS=W/CHUNK,VIEW_RADIUS=8,SEA=10,KEY='nisekura-v1',blocks=new Map(),changes=new Map(),chunks=new Map();
-const ORIGIN=W/2,CHUNK_SIZE=CHUNK*CHUNK*H;
-const chunkKey=(x,z)=>Math.floor(x/CHUNK)+','+Math.floor(z/CHUNK);
-const localIdx=(x,y,z)=>(y*CHUNK+z%CHUNK)*CHUNK+x%CHUNK;
-const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50']];
-let flying=false,suspended=false,riseHeld=false,descendHeld=false;
+// The world is generated on demand. Near 16x16 columns are real voxels; everything farther is a light LOD mesh.
+const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
+const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
+const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc']];
+let flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false;
 const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
 const player={x:32.5,y:25,z:32.5},keys={},joy={x:0,y:0};let saved=null;
-try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
+try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number.isFinite(saved.seed))seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
+// Saved worlds keep the generator and height they were created with. New worlds use GRAND VISTA terrain (v4).
+const terrainVersion=saved?.version===1?(saved.terrainVersion||1):4,GRAND=terrainVersion>=4;
+const H=GRAND?192:96,SEA=GRAND?62:10,CHUNK_SIZE=CHUNK*CHUNK*H;
+// Quality presets: near = voxel radius in chunks, far = LOD view distance in blocks, split = LOD detail factor.
+const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8}};
+let qualityName='standard';try{const q=localStorage.getItem(QUALITY_KEY);if(QUALITY[q])qualityName=q}catch(e){}
+let Q=QUALITY[qualityName];
 const idx=(x,y,z)=>x+W*(z+W*y),inside=(x,y,z)=>x>=0&&z>=0&&y>=0&&x<W&&z<W&&y<H;
-function get(x,y,z){if(!inside(x,y,z))return 0;const i=idx(x,y,z);if(changes.has(i))return changes.get(i);return ensureVoxelChunk(Math.floor(x/CHUNK),Math.floor(z/CHUNK))[localIdx(x,y,z)]}
-function set(x,y,z,t){if(!inside(x,y,z))return;changes.set(idx(x,y,z),t);const data=blocks.get(chunkKey(x,z));if(data)data[localIdx(x,y,z)]=t}
+const chunkKey=(x,z)=>Math.floor(x/CHUNK)+','+Math.floor(z/CHUNK);
+const localIdx=(x,y,z)=>(y*CHUNK+(z&15))*CHUNK+(x&15);
+let lastCX=-1,lastCZ=-1,lastData=null;
+function get(x,y,z){if(!inside(x,y,z))return 0;const cx=x>>4,cz=z>>4;if(cx!==lastCX||cz!==lastCZ||!lastData){lastData=voxelChunk(cx,cz);lastCX=cx;lastCZ=cz}return lastData[localIdx(x,y,z)]}
+function set(x,y,z,t){if(!inside(x,y,z))return;const i=idx(x,y,z),key=chunkKey(x,z);if(!changes.has(i)){let list=changeIndex.get(key);if(!list)changeIndex.set(key,list=[]);list.push(i)}changes.set(i,t);const data=blocks.get(key);if(data)data[localIdx(x,y,z)]=t}
 function solid(x,y,z){const t=get(x,y,z);return t!==0&&t!==10}
 function rand(x,z){let n=Math.imul(x+seed,374761393)^Math.imul(z,668265263);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295}
 function noise(x,z,s){const a=Math.floor(x/s),b=Math.floor(z/s);let u=x/s-a,v=z/s-b;u=u*u*(3-2*u);v=v*v*(3-2*v);return(rand(a,b)*(1-u)+rand(a+1,b)*u)*(1-v)+(rand(a,b+1)*(1-u)+rand(a+1,b+1)*u)*v}
-// Keep existing saved terrain stable; new worlds have a lake next to the clearing.
-const terrainVersion=saved?.version===1?(saved.terrainVersion||1):3;
+// Legacy generators (v1-v3) stay byte-identical so saved edits line up with the original terrain.
 function height(x,z){
  if(terrainVersion===3){
   const continent=noise(x,z,270)*.7+noise(x,z,80)*.3;
@@ -115,17 +124,123 @@ function height(x,z){
   let h=5+continent*31+(noise(x,z,29)-.5)*6-coast*30;
   const clearing=Math.max(0,1-Math.hypot(x-ORIGIN,z-ORIGIN)/18);
   h=h*(1-clearing)+18*clearing;
-  return Math.max(3,Math.min(H-7,Math.floor(h)));
+  return Math.max(3,Math.min(96-7,Math.floor(h)));
  }
  let h=8+noise(x,z,19)*12+noise(x,z,7)*4;
  if(terrainVersion===2){const lake=Math.exp(-((x-43)**2/95+(z-40)**2/180));h-=lake*9;const clearing=Math.max(0,1-Math.hypot(x-31,z-30)/6);h=h*(1-clearing)+15*clearing}
  return Math.max(3,Math.floor(h))
 }
-function ensureVoxelChunk(cx,cz){
- const key=cx+','+cz;
- if(blocks.has(key))return blocks.get(key);
+// ---- GRAND VISTA terrain: seeded gradient noise, continents, ridged mountains, rivers, lakes and islands.
+const smooth=(a,b,v)=>{v=(v-a)/(b-a);v=v<0?0:v>1?1:v;return v*v*(3-2*v)};
+const perm=new Uint8Array(512);
+{const p=new Uint8Array(256);for(let i=0;i<256;i++)p[i]=i;let s=(Math.imul(seed|0,2654435761)^0x9e3779b9)>>>0||1;for(let i=255;i>0;i--){s^=s<<13;s^=s>>>17;s^=s<<5;s>>>=0;const j=s%(i+1),t=p[i];p[i]=p[j];p[j]=t}for(let i=0;i<512;i++)perm[i]=p[i&255]}
+function grad(h,x,z){switch(h&7){case 0:return x+z;case 1:return z-x;case 2:return x-z;case 3:return-x-z;case 4:return x;case 5:return-x;case 6:return z;default:return-z}}
+function pn(x,z){const X=Math.floor(x),Z=Math.floor(z),xf=x-X,zf=z-Z,xi=X&255,zi=Z&255,u=xf*xf*xf*(xf*(xf*6-15)+10),v=zf*zf*zf*(zf*(zf*6-15)+10),a=perm[xi]+zi,b=perm[xi+1]+zi;
+ const n00=grad(perm[a],xf,zf),n10=grad(perm[b],xf-1,zf),n01=grad(perm[a+1],xf,zf-1),n11=grad(perm[b+1],xf-1,zf-1),n0=n00+u*(n10-n00);return n0+v*(n01+u*(n11-n01)-n0)}
+function fbm(x,z,oct){let s=0,a=1,n=0;for(let o=0;o<oct;o++){s+=pn(x,z)*a;n+=a;a*=.5;x=x*2.03+17.1;z=z*2.03+9.7}return s/n}
+let gLand=0,gMount=0;
+function height4(x,z){
+ const wx=x+62*fbm(x/530+11.3,z/530+4.1,3),wz=z+62*fbm(x/530+71.9,z/530+23.7,3);
+ // A long eastern coastline with bays and capes; the world rim is always ocean.
+ const coastX=ORIGIN+190+125*fbm(wz/720+3.3,.5,3)+38*pn(wz/150+9.1,1.7);
+ let L=(coastX-wx)/95+.4*fbm(x/240+31.7,z/240+8.9,4);
+ if(wx>coastX+45)L=Math.max(L,(fbm(x/150+91.1,z/150+17.4,4)-.36)*5.5-.12);
+ L=Math.min(L,(Math.min(x,z,W-1-x,W-1-z)-170)/75+.35*pn(x/190+50.5,z/190+3.3));
+ gLand=L;gMount=0;
+ if(L<=0){const deep=Math.min(1,-L/1.4);return Math.max(4,Math.floor(SEA-1-deep*(4+deep*24)+pn(x/41,z/41)*1.4))}
+ const c=smooth(0,.75,L),hills=fbm(x/210+5.5,z/210+66.1,4);
+ let h=SEA+1+c*(4+11*(hills*.5+.5))+pn(x/37+.5,z/37+.5)*2.2*c;
+ // Mountain ranges rise inland; ridged noise gives sharp crests and long spurs.
+ const m=smooth(0,1,(L-1.1+1.9*fbm(x/640+40.2,z/640+40.7,3))/2.7);
+ if(m>0){let r=0,a=1,f=1/290;for(let o=0;o<4;o++){const n=1-Math.abs(pn(wx*f+7.7*o,wz*f+3.1*o));r+=n*n*a;a*=.5;f*=2.05}r/=1.875;h+=m*(12+r*r*118)}
+ gMount=m;
+ // Rivers follow zero lines of stretched noise, so they run roughly east toward the sea and cut valleys.
+ const rm=smooth(-.12,.18,pn(x/900+60.1,z/900+12.3));
+ if(rm>0){const rv=Math.abs(pn(wx/820+17.7,wz/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8)),w=.026+.012*c;
+  const valley=(1-smooth(w,w*5.5,rv))*rm,ch=(1-smooth(w*.35,w,rv))*rm,fl=SEA+2+(h-SEA)*.08;
+  if(h>fl)h-=(h-fl)*valley;h+=(SEA-3-h)*ch}
+ if(L>.7&&m<.35&&h>SEA-4){const t=smooth(.26,.4,fbm(x/240+300.5,z/240+300.5,2))*(1-m/.35)*smooth(.7,1.2,L);if(t>0)h+=(SEA-4-h)*t}
+ if(h>H-34)h=H-34+(h-(H-34))*.45;
+ return Math.max(4,Math.min(H-10,Math.floor(h)))
+}
+function humidity(x,z){return fbm(x/430+500.3,z/430+500.9,3)*.5+.5}
+function birchiness(x,z){return pn(x/170+77.7,z/170+33.3)}
+function surface4(x,z,h,slope){const alt=h-SEA,j=rand(x*7+3,z*5+1);
+ if(alt<=1+(j>.6?1:0))return h<SEA-12?3:6;
+ if(alt>92+j*8)return slope>=5?3:12;
+ if(slope>=4||alt>78+j*6)return 3;
+ return 1}
+// 0 none, 1 oak, 2 big oak, 3 birch, 4 spruce, 5 bush
+function treeKind(x,z,h,slope,hum,birch,r){const alt=h-SEA;if(slope>2||alt<3||alt>=80)return 0;const forest=smooth(.5,.64,hum);
+ if(alt>=46)return r<(.14+.6*forest)*smooth(80,62,alt)?4:0;
+ let p=.03+.72*forest;if(alt<6)p*=.35;
+ if(r>=p)return r<p+.03*(1-forest)?5:0;
+ if(alt>=36&&r<p*.5)return 4;
+ if(birch>.22)return 3;
+ return rand(z*7+1,x*3+9)<.1*forest?2:1}
+const mix3=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+function grassColor(alt,hum){let c=mix3([.50,.72,.27],[.35,.59,.21],smooth(.48,.66,hum));c=mix3(c,[.64,.70,.33],smooth(.40,.26,hum)*.6);return mix3(c,[.55,.62,.36],smooth(30,72,alt))}
+function leafColor(alt,hum,birch){if(alt>=46)return[.19,.36,.23];if(birch>.22)return[.46,.63,.27];return mix3([.30,.57,.28],[.22,.47,.24],smooth(.5,.66,hum))}
+function columnInfo(cx,cz){const key=cx+','+cz;let c=columns.get(key);if(c)return c;
+ const x0=cx*CHUNK,z0=cz*CHUNK,P=CHUNK+2,hh=new Int16Array(P*P);
+ for(let j=0;j<P;j++)for(let i=0;i<P;i++)hh[j*P+i]=height4(x0+i-1,z0+j-1);
+ c={h:new Int16Array(256),surf:new Uint8Array(256),slope:new Uint8Array(256),hum:new Float32Array(256),birch:new Float32Array(256)};
+ for(let z=0;z<16;z++)for(let x=0;x<16;x++){const k=z*16+x,p=(z+1)*P+x+1,h=hh[p],s=Math.max(Math.abs(h-hh[p-1]),Math.abs(h-hh[p+1]),Math.abs(h-hh[p-P]),Math.abs(h-hh[p+P]));
+  c.h[k]=h;c.slope[k]=Math.min(255,s);c.hum[k]=humidity(x0+x,z0+z);c.birch[k]=birchiness(x0+x,z0+z);c.surf[k]=surface4(x0+x,z0+z,h,s)}
+ columns.set(key,c);return c}
+// The scenic evaluation point: a hill near the coast that sees both open sea and high mountains.
+function findVista(){
+ const S=16,R=576,N=R*2/S+1,g=new Int16Array(N*N),gx=ORIGIN-R,gz=ORIGIN-R;
+ for(let j=0;j<N;j++)for(let i=0;i<N;i++)g[j*N+i]=height4(gx+i*S,gz+j*S);
+ const dirs=16,sea=new Float32Array(dirs),mt=new Float32Array(dirs);let best=null;
+ for(let j=4;j<N-4;j++)for(let i=4;i<N-4;i++){
+  const x=gx+i*S,z=gz+j*S;if(Math.abs(x-ORIGIN)>300||Math.abs(z-ORIGIN)>320)continue;
+  const k=j*N+i,h=g[k],alt=h-SEA;if(alt<10||alt>58)continue;
+  if(Math.max(Math.abs(g[k-1]-h),Math.abs(g[k+1]-h),Math.abs(g[k-N]-h),Math.abs(g[k+N]-h))>9)continue;
+  const eye=h+4;
+  for(let d=0;d<dirs;d++){const a=d*Math.PI*2/dirs,sx=Math.sin(a),sz=Math.cos(a);let maxA=-1e9;sea[d]=0;mt[d]=0;
+   for(let r=1;r<N;r++){const ii=Math.round(i+sx*r),jj=Math.round(j+sz*r);if(ii<0||jj<0||ii>=N||jj>=N)break;
+    const hh=g[jj*N+ii],dist=r*S,ang=(Math.max(hh,SEA)-eye)/dist;
+    if(ang>=maxA){if(hh<SEA-3&&dist>40)sea[d]+=1;if(hh>SEA+55&&dist>90)mt[d]+=(hh-SEA)/90}
+    if(ang>maxA)maxA=ang}}
+  for(let c=0;c<dirs;c++){let sv=0,mv=0;for(let o=-2;o<=2;o++){const q=(c+o+dirs)%dirs;sv+=sea[q];mv+=mt[q]}
+   const score=Math.min(sv,mv*3)*2+Math.min(sv,40)*.4+mv*1.5+alt*.14-Math.hypot(x-ORIGIN,z-ORIGIN)*.004-smooth(.5,.64,humidity(x,z))*4;
+   if(!best||score>best.score)best={score,x,z,h,yaw:c*Math.PI*2/dirs}}}
+ if(!best){for(let r=0;r<N/2&&!best;r++)for(let j=(N>>1)-r;j<=(N>>1)+r&&!best;j++)for(let i=(N>>1)-r;i<=(N>>1)+r;i++)if(g[j*N+i]>SEA+2){best={x:gx+i*S,z:gz+j*S,h:g[j*N+i],yaw:Math.PI/2};break}}
+ if(!best)best={x:ORIGIN,z:ORIGIN,h:height4(ORIGIN,ORIGIN),yaw:Math.PI/2};
+ const h=height4(best.x,best.z);return{x:best.x,z:best.z,yaw:best.yaw,eye:Math.max(h,SEA)+7.5}}
+const vista=GRAND?findVista():null;
+function voxelChunk(cx,cz){const key=cx+','+cz;let data=blocks.get(key);if(data)return data;data=generateChunk(cx,cz);
+ const list=changeIndex.get(key);if(list)for(const i of list){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));data[localIdx(x,y,z)]=changes.get(i)}
+ blocks.set(key,data);return data}
+const ensureVoxelChunk=voxelChunk;
+function growTree(write,leaf,x,h,z,kind){const r=rand(x*5+1,z*9+2);
+ if(kind===5){write(x,h+1,z,4);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)if(Math.abs(dx)+Math.abs(dz)<2||r>.5)leaf(x+dx,h+1,z+dz);leaf(x,h+2,z);return}
+ if(kind===4){const th=7+Math.floor(r*4);for(let y=h+1;y<=h+th;y++)write(x,y,z,4);
+  for(let y=h+3;y<=h+th+1;y++){const k=h+th+1-y,rr=k===0?0:k<3?1:k%2?1.5:2.3+Math.min(1,(k-3)/5)*.8,ri=Math.ceil(rr);
+   for(let dx=-ri;dx<=ri;dx++)for(let dz=-ri;dz<=ri;dz++)if(dx*dx+dz*dz<=rr*rr+.3&&(dx||dz||y>h+th))leaf(x+dx,y,z+dz)}return}
+ const birch=kind===3,big=kind===2,th=(big?6:birch?5:4)+Math.floor(r*3);
+ for(let y=h+1;y<=h+th;y++)write(x,y,z,birch?13:4);
+ if(big){for(let dy=-2;dy<=2;dy++)for(let dx=-3;dx<=3;dx++)for(let dz=-3;dz<=3;dz++)if(dx*dx+dz*dz+dy*dy*1.8<=10.5-(rand(x+dx*3,z+dz*5+dy)>.7?2:0))leaf(x+dx,h+th+dy,z+dz);return}
+ for(let dy=th-2;dy<=th+1;dy++){const rad=dy<th?2:1;for(let dx=-rad;dx<=rad;dx++)for(let dz=-rad;dz<=rad;dz++){
+  if(Math.abs(dx)===rad&&Math.abs(dz)===rad&&(rad===1?dy===th+1:birch||rand(x+dx,z+dz+dy)>.55))continue;leaf(x+dx,h+dy,z+dz)}}}
+function generateChunk(cx,cz){
  const data=new Uint8Array(CHUNK_SIZE),x0=cx*CHUNK,z0=cz*CHUNK;
  const write=(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H)data[localIdx(x,y,z)]=t};
+ const leaf=(x,y,z)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=5}};
+ if(GRAND){
+  const info=columnInfo(cx,cz);
+  for(let lz=0;lz<16;lz++)for(let lx=0;lx<16;lx++){const k=lz*16+lx,h=info.h[k],top=info.surf[k],sub=top===1?2:top===6?6:3;
+   data[k]=11;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-4?sub:3;for(let y=h+1;y<=SEA;y++)data[y*256+k]=10}
+  // One tree candidate per 5x5 cell; canopies reach three blocks into neighbouring chunks.
+  for(let i=Math.floor((x0-3)/5);i<=Math.floor((x0+CHUNK+2)/5);i++)for(let j=Math.floor((z0-3)/5);j<=Math.floor((z0+CHUNK+2)/5);j++){
+   const tx=i*5+Math.floor(rand(i*7+1,j*13+5)*5),tz=j*5+Math.floor(rand(i*11+3,j*3+17)*5);
+   if(tx<3||tz<3||tx>=W-3||tz>=W-3||tx<x0-3||tx>x0+CHUNK+2||tz<z0-3||tz>z0+CHUNK+2)continue;
+   if(vista&&Math.hypot(tx-vista.x,tz-vista.z)<12)continue; // a clear hilltop at the vista
+   const ci=columnInfo(tx>>4,tz>>4),k=(tz&15)*16+(tx&15);if(ci.surf[k]!==1)continue;
+   const kind=treeKind(tx,tz,ci.h[k],ci.slope[k],ci.hum[k],ci.birch[k],rand(tx*3+11,tz*5+7));
+   if(kind)growTree(write,leaf,tx,ci.h[k],tz,kind)}
+  return data}
  for(let x=x0;x<x0+CHUNK;x++)for(let z=z0;z<z0+CHUNK;z++){
   const h=height(x,z);
   for(let y=0;y<=Math.max(h,SEA);y++)write(x,y,z,y===0?11:y>h?10:y===h?(h<=SEA+1?6:1):y>h-3?2:3);
@@ -135,13 +250,8 @@ function ensureVoxelChunk(cx,cz){
   const h=height(x,z);
   if(h<=SEA+1||rand(x*13,z*17)<=.979||Math.hypot(x-(terrainVersion===3?ORIGIN:32),z-(terrainVersion===3?ORIGIN:32))<=(terrainVersion===3?12:terrainVersion===2?8:4))continue;
   for(let y=h+1;y<h+5;y++)write(x,y,z,4);
-  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=3;dy<=5;dy++){
-   const bx=x+dx,bz=z+dz,by=h+dy;
-   if(Math.abs(dx)+Math.abs(dz)+(dy===5?1:0)>=4||bx<x0||bx>=x0+CHUNK||bz<z0||bz>=z0+CHUNK||by>=H)continue;
-   if(!data[localIdx(bx,by,bz)])write(bx,by,bz,5);
-  }
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=3;dy<=5;dy++)if(Math.abs(dx)+Math.abs(dz)+(dy===5?1:0)<4)leaf(x+dx,h+dy,z+dz);
  }
- blocks.set(key,data);
  return data
 }
 // v1/v2 stored linear indices in a 64-wide world. Decode using their original stride.
@@ -149,20 +259,38 @@ if(saved?.version===1&&Array.isArray(saved.changes)){
  const oldW=Number.isInteger(saved.worldWidth)&&saved.worldWidth>0?saved.worldWidth:64;
  const oldH=Number.isInteger(saved.worldHeight)&&saved.worldHeight>0?saved.worldHeight:40;
  for(const [i,t]of saved.changes)if(Number.isInteger(i)&&i>=0&&i<oldW*oldW*oldH&&Number.isInteger(t)&&t>=0&&t<defs.length){
-  const x=i%oldW,z=Math.floor(i/oldW)%oldW,y=Math.floor(i/(oldW*oldW));if(inside(x,y,z)){const j=idx(x,y,z);changes.set(j,t)}
+  const x=i%oldW,z=Math.floor(i/oldW)%oldW,y=Math.floor(i/(oldW*oldW));if(inside(x,y,z))set(x,y,z,t)
  }
 }
-function spawn(){player.x=ORIGIN+.5;player.z=ORIGIN+.5;let y=H-3;while(y>0&&!solid(ORIGIN,y-1,ORIGIN))y--;player.y=y+.02;vy=0}
+function spawn(){const sx=vista?vista.x:ORIGIN,sz=vista?vista.z:ORIGIN;player.x=sx+.5;player.z=sz+.5;let y=H-3;while(y>0&&!solid(sx,y-1,sz))y--;player.y=y+.02;vy=0;if(vista){yaw=vista.yaw;pitch=-.08}}
 spawn();if(saved?.player&&['x','y','z'].every(k=>Number.isFinite(saved.player[k]))){Object.assign(player,saved.player);yaw=Number.isFinite(saved.yaw)?saved.yaw:0;pitch=Number.isFinite(saved.pitch)?Math.max(-1.5,Math.min(1.5,saved.pitch)):0}
-function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
-// Pixel materials are evaluated in face-local UVs: no external texture/CDN requests.
-const vertexSource=`
+const faces=[{n:[1,0,0],v:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]],l:.79},{n:[-1,0,0],v:[[0,0,1],[0,1,1],[0,1,0],[0,0,0]],l:.68},{n:[0,1,0],v:[[0,1,0],[0,1,1],[1,1,1],[1,1,0]],l:1},{n:[0,-1,0],v:[[0,0,1],[0,0,0],[1,0,0],[1,0,1]],l:.48},{n:[0,0,1],v:[[1,0,1],[1,1,1],[0,1,1],[0,0,1]],l:.85},{n:[0,0,-1],v:[[0,0,0],[0,1,0],[1,1,0],[1,0,0]],l:.73}];
+function rgb(hex){return[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255)}
+const defsRGB=defs.map(d=>d&&rgb(d[1]));
+function faceUV(v,f){return f.n[1]?[v[0],v[2]]:f.n[0]?[v[2],v[1]]:[v[0],v[1]]}
+
+// ---- Shaders. No uniform is shared between a vertex and fragment stage, so mixed precision cannot break linking on iOS.
+const SKY_GLSL=`
+uniform vec3 sunDir; uniform vec3 zenithCol; uniform vec3 horizonCol; uniform vec3 sunCol; uniform vec3 lightCol; uniform vec4 fogP;
+vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,sqrt(clamp(y,0.,1.)));float s=max(dot(d,sunDir),0.);
+ c+=sunCol*(.18*pow(s,5.)+.45*pow(s,40.));return mix(c,horizonCol*.9,clamp(-y*4.,0.,1.));}
+vec3 fogMix(vec3 c,vec3 rel,float wy){float d=length(rel);vec3 dir=rel/max(d,.001);
+ if(fogP.w>.5)return mix(c,vec3(.09,.28,.40),1.-exp(-d/13.));
+ float f=1.-exp(-pow(d/fogP.x,1.6));f*=1.-.45*clamp((wy-${SEA+25}.)/140.,0.,1.);f=max(f,smoothstep(fogP.y,fogP.z,d));
+ return mix(c,skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),clamp(f,0.,1.));}`;
+const PRECISION=`#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+`;
+const mainVS=wind=>`
 attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
-uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform mediump float clock;
-varying vec3 col; varying vec2 uv; varying float mat; varying float depth;
+uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock;
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk;
 void main(){
 vec3 pos=aPos;
-// Only grass tufts (15) and flowers (17) bend; solid terrain and animals stay still.
+${wind?`// Only grass tufts (15) and flowers (17) bend; solid terrain and animals stay still.
 if((aMat>14.5&&aMat<15.5)||(aMat>16.5&&aMat<17.5)){
  float xFixed=step(.25,fract(aPos.x));
  // The two crossed quads share a stable plant origin and wind phase.
@@ -172,14 +300,14 @@ if((aMat>14.5&&aMat<15.5)||(aMat>16.5&&aMat<17.5)){
  float flex=mix(1.0,1.25,step(16.5,aMat));
  pos.x+=aUV.y*flex*(.014*sin(clock*1.35+phase)+gust*(.085+.045*sin(clock*2.2+phase*.8)));
  pos.z+=aUV.y*flex*(.012*sin(clock*1.05+phase*.63)+gust*.055*sin(clock*1.8+phase));
-}
+}`:''}
 vec3 p=pos-eye;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
 float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
-gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*1.00125-.200125,dd);col=aColor;uv=aUV;mat=aMat;depth=dd;}`;
-const fragmentSource=`
-precision mediump float;
-varying vec3 col; varying vec2 uv; varying float mat; varying float depth;
-uniform vec3 sky; uniform mediump float clock;
+gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);col=aColor;uv=aUV;mat=aMat;rel=p;vClk=clock;}`;
+// Pixel materials are evaluated in face-local UVs: no external texture/CDN requests.
+const fragmentSource=PRECISION+`
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk;
+uniform vec3 eyeF;`+SKY_GLSL+`
 float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.;
 if(mat<.5){c=col;}
@@ -192,7 +320,9 @@ else if(mat<6.5){c=col*(.90+n*.16);if(n>.94)c*=.80;}
 else if(mat<7.5){float seam=step(3.,mod(q.y,4.));float knot=step(.86,hash(vec2(floor(q.x/3.),floor(q.y/4.))));c=col*(.93+n*.14-seam*.28-knot*.15);}
 else if(mat<8.5){float seam=max(step(3.,mod(q.y,4.)),step(7.,mod(q.x+floor(q.y/4.)*4.,8.)));c=mix(col*(.80+n*.26),vec3(.69,.64,.55)*length(col),seam*.75);}
 else if(mat<9.5){float edge=step(.94,max(abs(uv.x-.5),abs(uv.y-.5))*2.);float shine=step(.91,mod(uv.x+uv.y,.9));c=mix(col*.70,vec3(.86,.96,1.),max(edge,shine*.65));alpha=.22+edge*.48+shine*.12;}
-else if(mat<10.5){float wave=sin((uv.x+uv.y)*28.+clock*1.4);c=col*(.91+wave*.05+n*.07);alpha=.64;}
+else if(mat<10.5){vec3 w=rel+eyeF;vec2 g=vec2(sin(w.x*.9+w.z*.4+vClk*1.6)+sin(w.x*.31-w.z*.73+vClk*1.1),cos(w.z*.83-w.x*.35+vClk*1.3)+cos(w.x*.52+w.z*.27-vClk*.9))*.05;
+ vec3 nrm=normalize(vec3(g.x,1.,g.y));vec3 v=normalize(rel);vec3 r=reflect(v,nrm);r.y=abs(r.y);float fres=.03+.97*pow(1.-abs(dot(v,nrm)),5.);
+ c=mix(vec3(.13,.47,.62)*(.92+n*.06),skyColor(r),clamp(fres,0.,.8))+sunCol*pow(max(dot(r,sunDir),0.),140.)*.9;alpha=mix(.6,.94,fres);}
 else if(mat<11.5){c=col*(.65+n*.5);}
 else if(mat<12.5){float grass=step(12.+floor(hash(vec2(q.x,1.))*3.),q.y);c=mix(vec3(.48,.32,.18),vec3(.35,.57,.17),grass)*(.78+n*.38)*col;}
 else if(mat<13.5){float ring=mod(floor(max(abs(q.x-7.5),abs(q.y-7.5))),3.);c=col*(.70+step(.5,ring)*.3+n*.12);}
@@ -200,71 +330,232 @@ else if(mat<14.5){float bark=step(.76,hash(vec2(floor(q.x/3.),floor(q.y/2.))));c
 else if(mat<15.5){float blade=mod(q.x,4.);float tip=7.+hash(vec2(floor(q.x/4.),0.))*9.;if(q.y>tip-abs(blade-1.)*3.||blade>2.)discard;c=col*(.7+uv.y*.3+n*.16);}
 else if(mat<16.5){float patch=step(.60,hash(floor(q/4.)));c=mix(vec3(.26,.16,.105),vec3(.91,.88,.76),patch)*col*(.91+n*.12);}
 else if(mat<17.5){float stem=step(abs(q.x-8.),1.)*step(q.y,10.);float flower=step(abs(q.x-8.),4.)*step(abs(q.y-12.),3.);if(max(stem,flower)<.5)discard;c=mix(vec3(.24,.44,.1),col,flower);if(abs(q.x-8.)<2.&&abs(q.y-12.)<2.)c=vec3(1.,.82,.2);}
-float fog=smoothstep(38.,64.,depth);gl_FragColor=vec4(mix(c,sky,fog),alpha);}`;
-// Match precision of shared uniforms across stages on iOS Safari and other WebGL1 GPUs.
-const fallbackVertexSource=`
-attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
-uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect;
-varying vec3 col; varying vec2 uv; varying float mat; varying float depth;
-void main(){vec3 p=aPos-eye;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
+else if(mat<18.5){c=col;}
+else{c=col*(.93+n*.08);if(n>.97)c=vec3(1.);}
+gl_FragColor=vec4(fogMix(c*lightCol,rel,rel.y+eyeF.y),alpha);}`;
+const vertexSource=mainVS(true),fallbackVertexSource=mainVS(false);
+// Far LOD terrain: 16-bit positions relative to the tile origin, origin relative to the camera (precise far away).
+const lodVertexSource=`
+attribute vec4 lPos; attribute vec4 lCol;
+uniform vec3 org; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock;
+varying vec3 vCol; varying vec3 vRel; varying float vMat; varying float vClk;
+void main(){vec3 p=lPos.xyz*.125+org;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
 float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
-gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*1.00125-.200125,dd);col=aColor;uv=aUV;mat=aMat;depth=dd;}`;
-function buildProgram(vertexCode){
- const p=gl.createProgram(),vs=shader(gl.VERTEX_SHADER,vertexCode),fs=shader(gl.FRAGMENT_SHADER,fragmentSource);
- gl.attachShader(p,vs);gl.attachShader(p,fs);gl.linkProgram(p);
+gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);vCol=lCol.rgb;vRel=p;vMat=lPos.w;vClk=clock;}`;
+const lodFragmentSource=PRECISION+`
+varying vec3 vCol; varying vec3 vRel; varying float vMat; varying float vClk;
+uniform vec4 hole; uniform vec3 eyeF;`+SKY_GLSL+`
+float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
+void main(){
+ // The near voxel field covers this square; LOD fragments under it are hidden.
+ if(vRel.x>hole.x&&vRel.x<hole.z&&vRel.z>hole.y&&vRel.z<hole.w)discard;
+ vec3 w=vRel+eyeF;float d=length(vRel);vec3 c=vCol;
+ if(vMat>.5&&vMat<1.5){vec2 g=vec2(sin(w.x*.09+w.z*.05+vClk*.9)+sin(w.x*.031-w.z*.07+vClk*.6)*.8,cos(w.z*.083-w.x*.04+vClk*.8)+cos(w.x*.05+w.z*.027-vClk*.7)*.8)*.045;
+  vec3 nrm=normalize(vec3(g.x,1.,g.y));vec3 v=vRel/max(d,.001);vec3 r=reflect(v,nrm);r.y=abs(r.y);float fres=.03+.97*pow(1.-abs(dot(v,nrm)),5.);
+  c=mix(c,skyColor(r),clamp(fres,0.,.85))+sunCol*pow(max(dot(r,sunDir),0.),180.)*1.1;}
+ else{float n=hash(floor(w.xz-.01)+floor(w.y-.01)*17.);c*=1.+(n-.5)*.16*(1.-smoothstep(90.,380.,d));if(vMat>1.5)c*=.9+.14*hash(floor(w.xz*.5-.01)+3.7);}
+ gl_FragColor=vec4(fogMix(c*lightCol,vRel,w.y),1.);}`;
+const skyVertexSource=`attribute vec2 sPos; varying vec2 vNdc; void main(){vNdc=sPos;gl_Position=vec4(sPos,.9999,1.);}`;
+const skyFragmentSource=PRECISION+`varying vec2 vNdc; uniform vec3 cFwd; uniform vec3 cRight; uniform vec3 cUp; uniform vec2 cScale;`+SKY_GLSL+`
+void main(){vec3 d=normalize(cFwd+cRight*vNdc.x*cScale.x+cUp*vNdc.y*cScale.y);vec3 c=skyColor(d);
+ c=mix(c,vec3(1.,.97,.88),smoothstep(.9986,.9994,dot(d,sunDir)));gl_FragColor=vec4(c,1.);}`;
+
+let mainProg,lodProg,skyProg,mainU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
+function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
+function buildProgram(vsrc,fsrc,attribs){
+ const p=gl.createProgram();gl.attachShader(p,shader(gl.VERTEX_SHADER,vsrc));gl.attachShader(p,shader(gl.FRAGMENT_SHADER,fsrc));
+ attribs.forEach((a,i)=>gl.bindAttribLocation(p,i,a));gl.linkProgram(p);
  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
  return p
 }
-let prog;
-try{prog=buildProgram(vertexSource)}
-catch(windError){
- console.warn('Using compatible WebGL shader fallback:',windError);
- prog=buildProgram(fallbackVertexSource);
+const SKY_UNIFORMS=['sunDir','zenithCol','horizonCol','sunCol','lightCol','fogP'];
+function uniformsOf(p,names){const u={};for(const n of names)u[n]=gl.getUniformLocation(p,n);return u}
+const MAXQ=16384;
+function initRenderer(){
+ renderReady=false;
+ try{mainProg=buildProgram(vertexSource,fragmentSource,['aPos','aColor','aUV','aMat'])}
+ catch(windError){console.warn('Using compatible WebGL shader fallback:',windError);mainProg=buildProgram(fallbackVertexSource,fragmentSource,['aPos','aColor','aUV','aMat'])}
+ mainU=uniformsOf(mainProg,['eye','yaw','pitch','aspect','proj','clock','eyeF',...SKY_UNIFORMS]);
+ // The far field is optional: if it cannot compile, the game still runs with the near field only.
+ try{lodProg=buildProgram(lodVertexSource,lodFragmentSource,['lPos','lCol']);skyProg=buildProgram(skyVertexSource,skyFragmentSource,['sPos']);
+  lodU=uniformsOf(lodProg,['org','yaw','pitch','aspect','proj','clock','hole','eyeF',...SKY_UNIFORMS]);skyU=uniformsOf(skyProg,['cFwd','cRight','cUp','cScale',...SKY_UNIFORMS]);lodOK=true}
+ catch(farError){console.warn('Far terrain disabled:',farError);lodOK=false}
+ // Every mesh is made of quads; one shared index buffer serves them all.
+ const ind=new Uint16Array(MAXQ*6);for(let i=0;i<MAXQ;i++)ind.set([i*4,i*4+1,i*4+2,i*4,i*4+2,i*4+3],i*6);
+ quadIndex=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,quadIndex);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,ind,gl.STATIC_DRAW);
+ skyBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,skyBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+ outline=gl.createBuffer();dynamicBuffer=gl.createBuffer();toolBuffer=gl.createBuffer();cloudBuffer=null;
+ gl.enable(gl.DEPTH_TEST);
+ if(lodOK)buildOcean();
+ renderReady=true;
 }
-gl.useProgram(prog);
-const uniforms={};for(const n of ['eye','yaw','pitch','aspect','sky','clock'])uniforms[n]=gl.getUniformLocation(prog,n);
-const ap=gl.getAttribLocation(prog,'aPos'),ac=gl.getAttribLocation(prog,'aColor'),au=gl.getAttribLocation(prog,'aUV'),am=gl.getAttribLocation(prog,'aMat');
-for(const a of [ap,ac,au,am])gl.enableVertexAttribArray(a);gl.enable(gl.DEPTH_TEST);
-function bind(buffer){gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.vertexAttribPointer(ap,3,gl.FLOAT,false,36,0);gl.vertexAttribPointer(ac,3,gl.FLOAT,false,36,12);gl.vertexAttribPointer(au,2,gl.FLOAT,false,36,24);gl.vertexAttribPointer(am,1,gl.FLOAT,false,36,32)}
-const faces=[{n:[1,0,0],v:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]],l:.79},{n:[-1,0,0],v:[[0,0,1],[0,1,1],[0,1,0],[0,0,0]],l:.68},{n:[0,1,0],v:[[0,1,0],[0,1,1],[1,1,1],[1,1,0]],l:1},{n:[0,-1,0],v:[[0,0,1],[0,0,0],[1,0,0],[1,0,1]],l:.48},{n:[0,0,1],v:[[1,0,1],[1,1,1],[0,1,1],[0,0,1]],l:.85},{n:[0,0,-1],v:[[0,0,0],[0,1,0],[1,1,0],[1,0,0]],l:.73}];
-function rgb(hex){return[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255)}
-const tris=[0,1,2,0,2,3];
-function faceUV(v,f){return f.n[1]?[v[0],v[2]]:f.n[0]?[v[2],v[1]]:[v[0],v[1]]}
-function occludes(x,y,z){let t=get(x,y,z);return t!==0&&t!==9&&t!==10}
-function cornerShade(x,y,z,f,v){const axes=[0,1,2].filter(a=>!f.n[a]),p=[x+f.n[0],y+f.n[1],z+f.n[2]],a=axes[0],b=axes[1];let s1=p.slice(),s2=p.slice(),co=p.slice();s1[a]+=v[a]?1:-1;s2[b]+=v[b]?1:-1;co[a]+=v[a]?1:-1;co[b]+=v[b]?1:-1;const a1=+occludes(...s1),a2=+occludes(...s2),a3=+occludes(...co);return 1-(a1&&a2?3:a1+a2+a3)*.13}
-function emitPlant(a,x,y,z,flower){const color=flower?rgb(rand(x,z)>.5?'#e84837':'#f5e4df'):rgb('#609c35'),size=flower?.7:.65+rand(z,x)*.25;for(const d of [0,1]){const v=d?[[x+.5,y,z],[x+.5,y+size,z],[x+.5,y+size,z+1],[x+.5,y,z+1]]:[[x,y,z+.5],[x,y+size,z+.5],[x+1,y+size,z+.5],[x+1,y,z+.5]];const uv=[[0,0],[0,1],[1,1],[1,0]];for(const k of tris)a.push(...v[k],...color,...uv[k],flower?17:15)}}
-function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS)return;const a=[],water=[];
-for(let x=cx*8;x<cx*8+8;x++)for(let z=cz*8;z<cz*8+8;z++){let roof=-1;for(let y=H-1;y>=0;y--)if(occludes(x,y,z)){roof=y;break}
-for(let y=0;y<H;y++){let t=get(x,y,z);if(!t)continue;
-for(const f of faces){const nt=get(x+f.n[0],y+f.n[1],z+f.n[2]);if(nt&&!(nt===10&&t!==10)&&!(nt===9&&t!==9))continue;
-let col=rgb(defs[t][1]),mat=t;const shadow=roof>y+1?.64:1;
-if(t===1&&f.n[1]===0){mat=12;col=[1,1,1]}if(t===1&&f.n[1]<0){mat=2;col=rgb(defs[2][1])}
-if(t===4){if(f.n[1]){mat=13;col=rgb('#b9955d')}else if(rand(x*9,z*7)>.62){mat=14;col=[1,1,1]}}
-const dest=t===10||t===9?water:a;for(const k of tris){const v=f.v[k],shade=f.l*shadow*cornerShade(x,y,z,f,v);dest.push(x+v[0],y+v[1]-(t===10&&v[1]===1&&!get(x,y+1,z)?.12:0),z+v[2],...col.map(c=>c*shade),...faceUV(v,f),mat)}}
-if(t===1&&!get(x,y+1,z)&&rand(x*23,z*11)>.61)emitPlant(a,x,y+1,z,rand(x*3,z*19)>.86);
-}}
-const key=cx+','+cz;let ch=chunks.get(key);if(!ch){ch={buffer:gl.createBuffer(),water:gl.createBuffer(),cx,cz};chunks.set(key,ch)}ch.count=a.length/9;ch.waterCount=water.length/9;gl.bindBuffer(gl.ARRAY_BUFFER,ch.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.STATIC_DRAW);gl.bindBuffer(gl.ARRAY_BUFFER,ch.water);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(water),gl.STATIC_DRAW)}
-// Mesh only the nearby region. The block data stays available for physics and saves.
-let chunkQueue=[],chunkCenter='';
+let attribCount=0;
+function useProgram(p,n){gl.useProgram(p);for(let i=0;i<4;i++)if(i<n)gl.enableVertexAttribArray(i);else gl.disableVertexAttribArray(i);attribCount=n}
+function bind(buffer,o=0){gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.vertexAttribPointer(0,3,gl.FLOAT,false,36,o);gl.vertexAttribPointer(1,3,gl.FLOAT,false,36,o+12);gl.vertexAttribPointer(2,2,gl.FLOAT,false,36,o+24);gl.vertexAttribPointer(3,1,gl.FLOAT,false,36,o+32)}
+function bindLod(buffer,o=0){gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.vertexAttribPointer(0,4,gl.SHORT,false,12,o);gl.vertexAttribPointer(1,4,gl.UNSIGNED_BYTE,true,12,o+8)}
+// Draw in batches of 16384 quads so 16-bit indices work on every WebGL 1 device.
+function drawQuads(buffer,quads,binder,stride){for(let q=0;q<quads;q+=MAXQ){binder(buffer,q*4*stride);gl.drawElements(gl.TRIANGLES,Math.min(MAXQ,quads-q)*6,gl.UNSIGNED_SHORT,0)}}
+// Float vertex writer for the voxel/dynamic format: pos3 color3 uv2 material1.
+function writer(n){return{a:new Float32Array(n),n:0}}
+function grow(w,need){if(w.n+need<=w.a.length)return;const b=new Float32Array(Math.max(w.a.length*2,w.n+need));b.set(w.a.subarray(0,w.n));w.a=b}
+function vert(w,x,y,z,r,g,b,u,v,m){const a=w.a,i=w.n;a[i]=x;a[i+1]=y;a[i+2]=z;a[i+3]=r;a[i+4]=g;a[i+5]=b;a[i+6]=u;a[i+7]=v;a[i+8]=m;w.n=i+9}
+const opaqueW=writer(1<<17),waterW=writer(1<<14),dyn=writer(1<<14);
+function emitPlant(w,x,y,z,flower,color,size){for(const d of [0,1]){grow(w,36);const v=d?[[x+.5,y,z],[x+.5,y+size,z],[x+.5,y+size,z+1],[x+.5,y,z+1]]:[[x,y,z+.5],[x,y+size,z+.5],[x+1,y+size,z+.5],[x+1,y,z+.5]];const uv=[[0,0],[0,1],[1,1],[1,0]];for(let k=0;k<4;k++)vert(w,v[k][0],v[k][1],v[k][2],color[0],color[1],color[2],uv[k][0],uv[k][1],flower?17:15)}}
+const FLOWERS=['#e84837','#f5e4df','#f4d03f','#8a7ee0','#f08bb5'].map(rgb),LEGACY_FLOWERS=[rgb('#e84837'),rgb('#f5e4df')],LEGACY_GRASS=rgb('#609c35');
+
+// ---- Voxel mesher. The 3x3 chunk neighbourhood is copied into a padded byte grid (floor and ceiling layers included).
+const PW=CHUNK+2,PA=PW*PW;let pad=new Uint8Array(PA*(H+2));const roofs=new Int16Array(PA),sh=new Float32Array(4);
+const occ=t=>t!==0&&t!==9&&t!==10;
+const FACE=faces.map(f=>{const st=[1,PA,PW],axes=[0,1,2].filter(a=>!f.n[a]);return{off:f.n[0]+f.n[1]*PA+f.n[2]*PW,dcol:f.n[0]+f.n[2]*PW,dy:f.n[1],n:f.n,l:f.l,v:f.v,uv:f.v.map(v=>faceUV(v,f)),
+ ao:f.v.map(v=>{const oa=(v[axes[0]]?1:-1)*st[axes[0]],ob=(v[axes[1]]?1:-1)*st[axes[1]];return[oa,ob,oa+ob]})}});
+const LOG_TOP=rgb('#b9955d'),BIRCH_TOP=rgb('#d8cfa8'),WHITE=[1,1,1];
+function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)return;
+ const x0=cx*CHUNK,z0=cz*CHUNK,info=GRAND?columnInfo(cx,cz):null,near=[];
+ for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const nx=cx+dx,nz=cz+dz;near.push(nx>=0&&nz>=0&&nx<CHUNKS&&nz<CHUNKS?voxelChunk(nx,nz):null)}
+ let ymin=H,ymax=0;
+ for(let pz=0;pz<PW;pz++)for(let px=0;px<PW;px++){
+  const wx=x0+px-1,wz=z0+pz-1,src=near[((wz>>4)-cz+1)*3+((wx>>4)-cx+1)],lz=wz&15,lx=wx&15,col=pz*PW+px,inner=px>0&&pz>0&&px<PW-1&&pz<PW-1;
+  let roof=-1,open=H,top=0;pad[col]=11;pad[(H+1)*PA+col]=0;
+  if(src){for(let y=0;y<H;y++){const t=src[(y<<8)|(lz<<4)|lx];pad[(y+1)*PA+col]=t;if(t){top=y;if(occ(t))roof=y;else if(open===H)open=y}else if(open===H)open=y}}
+  else{for(let y=0;y<H;y++)pad[(y+1)*PA+col]=0;open=0}
+  roofs[col]=roof;if(open<ymin)ymin=open;if(inner&&top>ymax)ymax=top}
+ opaqueW.n=0;waterW.n=0;
+ const ystart=Math.max(0,ymin-1),grassSide=[0,0,0];let gcol=defsRGB[1],lcol=defsRGB[5];
+ for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){
+  const wx=x0+x,wz=z0+z,k=z*16+x;
+  if(info){const alt=info.h[k]-SEA;gcol=grassColor(alt,info.hum[k]);lcol=leafColor(alt,info.hum[k],info.birch[k]);for(let i=0;i<3;i++)grassSide[i]=gcol[i]/defsRGB[1][i]}else grassSide[0]=grassSide[1]=grassSide[2]=1;
+  for(let y=ystart;y<=ymax;y++){
+   const p=(y+1)*PA+(z+1)*PW+x+1,t=pad[p];if(!t)continue;
+   const water=t===10;
+   for(let fi=0;fi<6;fi++){const F=FACE[fi],nt=pad[p+F.off];
+    if(nt&&!(nt===10&&t!==10)&&!(nt===9&&t!==9))continue;
+    let mat=t,c=defsRGB[t];
+    if(t===1){if(F.n[1]>0)c=gcol;else if(F.n[1]===0){mat=12;c=grassSide}else{mat=2;c=defsRGB[2]}}
+    else if(t===4||t===13){if(F.n[1]){mat=13;c=t===13?BIRCH_TOP:LOG_TOP}else if(t===13||(!GRAND&&rand(wx*9,wz*7)>.62)){mat=14;c=WHITE}}
+    else if(t===5)c=lcol;else if(t===12)mat=19;
+    // Faces whose open neighbour lies under a roof (canopy, overhang) receive less sky light.
+    const shadow=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy?.62:1,ln=F.l*shadow,pa=p+F.off;
+    for(let q=0;q<4;q++){const ao=F.ao[q],a1=occ(pad[pa+ao[0]]),a2=occ(pad[pa+ao[1]]),a3=occ(pad[pa+ao[2]]);sh[q]=1-(a1&&a2?3:a1+a2+a3)*.13}
+    const flip=sh[0]+sh[2]<sh[1]+sh[3],w=water||t===9?waterW:opaqueW,drop=water&&!pad[p+PA]?.12:0;grow(w,36);
+    for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=ln*sh[kk];vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0],F.uv[kk][1],mat)}}
+   if(t===1&&!pad[p+PA]){
+    if(info){const forest=smooth(.5,.64,info.hum[k]),r1=rand(wx*23,wz*11),meadow=1-smooth(.36,.5,info.hum[k]),fp=meadow*smooth(.05,.35,pn(wx/24+12.5,wz/24+44.4))*.5+.02;
+     if(r1<fp)emitPlant(opaqueW,wx,y+1,wz,true,FLOWERS[Math.floor(rand(wx*3,wz*19)*FLOWERS.length)],.7);
+     else if(r1<fp+.16+.26*(1-forest))emitPlant(opaqueW,wx,y+1,wz,false,[gcol[0]*.86,gcol[1]*.9,gcol[2]*.8],.6+rand(wz,wx)*.3)}
+    else if(rand(wx*23,wz*11)>.61){const fl=rand(wx*3,wz*19)>.86;emitPlant(opaqueW,wx,y+1,wz,fl,fl?LEGACY_FLOWERS[rand(wx,wz)>.5?0:1]:LEGACY_GRASS,fl?.7:.65+rand(wz,wx)*.25)}}
+  }}
+ const key=cx+','+cz;let ch=chunks.get(key);if(!ch){ch={buffer:gl.createBuffer(),water:gl.createBuffer(),cx,cz};chunks.set(key,ch)}
+ ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;
+ gl.bindBuffer(gl.ARRAY_BUFFER,ch.buffer);gl.bufferData(gl.ARRAY_BUFFER,opaqueW.a.subarray(0,opaqueW.n),gl.STATIC_DRAW);
+ gl.bindBuffer(gl.ARRAY_BUFFER,ch.water);gl.bufferData(gl.ARRAY_BUFFER,waterW.a.subarray(0,waterW.n),gl.STATIC_DRAW)}
+
+// ---- Near-field streaming. Chunks load in square rings; only complete rings are drawn, LOD covers the rest.
+let chunkQueue=[],centerCX=null,centerCZ=null,readyR=-1,streamDirty=true;
+const chunkInWorld=(x,z)=>x>=0&&z>=0&&x<CHUNKS&&z<CHUNKS;
+function computeReady(){const R=Q.near+1;readyR=-1;for(let r=0;r<=R;r++){for(let i=-r;i<=r;i++)for(const [x,z]of[[centerCX+i,centerCZ-r],[centerCX+i,centerCZ+r],[centerCX-r,centerCZ+i],[centerCX+r,centerCZ+i]])if(chunkInWorld(x,z)&&!chunks.has(x+','+z))return;readyR=r}}
+function isTitleOpen(){return paused&&!$('menu').classList.contains('hidden')}
+function currentFocus(){return isTitleOpen()?titleCamera():player}
 function streamChunks(initial=false){
- const cx=Math.floor(player.x/CHUNK),cz=Math.floor(player.z/CHUNK),center=cx+','+cz;
- if(center!==chunkCenter||initial){chunkCenter=center;chunkQueue=[];
-  for(const [key,ch]of chunks)if(Math.hypot(ch.cx-cx,ch.cz-cz)>VIEW_RADIUS+1){gl.deleteBuffer(ch.buffer);gl.deleteBuffer(ch.water);chunks.delete(key)}
+ const f=currentFocus(),cx=Math.floor(f.x/CHUNK),cz=Math.floor(f.z/CHUNK),R=Q.near+1;
+ if(cx!==centerCX||cz!==centerCZ||initial||streamDirty){centerCX=cx;centerCZ=cz;streamDirty=false;
+  const cheb=(x,z)=>Math.max(Math.abs(x-cx),Math.abs(z-cz));
+  for(const [key,ch]of chunks)if(cheb(ch.cx,ch.cz)>R+1){gl.deleteBuffer(ch.buffer);gl.deleteBuffer(ch.water);chunks.delete(key)}
   // Keep old edits in the sparse changes map, not in ever-growing voxel buffers.
-  for(const key of blocks.keys()){const [bx,bz]=key.split(',').map(Number);if(Math.hypot(bx-cx,bz-cz)>VIEW_RADIUS+3)blocks.delete(key)}
-  for(let x=Math.max(0,cx-VIEW_RADIUS);x<=Math.min(CHUNKS-1,cx+VIEW_RADIUS);x++)for(let z=Math.max(0,cz-VIEW_RADIUS);z<=Math.min(CHUNKS-1,cz+VIEW_RADIUS);z++)if(Math.hypot(x-cx,z-cz)<=VIEW_RADIUS&&!chunks.has(x+','+z))chunkQueue.push([x,z]);
-  chunkQueue.sort((a,b)=>(a[0]-cx)**2+(a[1]-cz)**2-(b[0]-cx)**2-(b[1]-cz)**2);
+  for(const key of blocks.keys()){const [bx,bz]=key.split(',').map(Number);if(cheb(bx,bz)>R+3)blocks.delete(key)}
+  for(const key of columns.keys()){const [bx,bz]=key.split(',').map(Number);if(cheb(bx,bz)>R+5)columns.delete(key)}
+  lastData=null;chunkQueue=[];
+  for(let x=cx-R;x<=cx+R;x++)for(let z=cz-R;z<=cz+R;z++)if(chunkInWorld(x,z)&&!chunks.has(x+','+z))chunkQueue.push([x,z]);
+  chunkQueue.sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])||(a[0]-cx)**2+(a[1]-cz)**2-(b[0]-cx)**2-(b[1]-cz)**2);
+  computeReady();
  }
- if(initial){while(chunkQueue.length&&Math.hypot(chunkQueue[0][0]-cx,chunkQueue[0][1]-cz)<=2.5)rebuild(...chunkQueue.shift())}
- else if(chunkQueue.length)rebuild(...chunkQueue.shift());
+ let built=0;const start=performance.now();
+ if(initial){while(chunkQueue.length&&Math.max(Math.abs(chunkQueue[0][0]-cx),Math.abs(chunkQueue[0][1]-cz))<=1){rebuild(...chunkQueue.shift());built++}}
+ else while(chunkQueue.length&&built<4&&(built===0||performance.now()-start<Q.budget)){rebuild(...chunkQueue.shift());built++}
+ if(built)computeReady();
+ return built
 }
+
+// ---- Far LOD terrain: a quadtree of 32x32-cell tiles (cell = 2..16 blocks), built a few rows per frame.
+const LOD_N=32,VOID=-1000,lodTiles=new Map(),lodRequests=[],lodDraw=[];let lodFrame=0,lodJob=null;
+const lw={buf:new ArrayBuffer(1<<20),n:0};lw.i16=new Int16Array(lw.buf);lw.u8=new Uint8Array(lw.buf);
+function lgrow(n){if((lw.n+n)*12<=lw.buf.byteLength)return;const b=new ArrayBuffer(Math.max(lw.buf.byteLength*2,(lw.n+n)*12));new Uint8Array(b).set(lw.u8.subarray(0,lw.n*12));lw.buf=b;lw.i16=new Int16Array(b);lw.u8=new Uint8Array(b)}
+function lvert(x,y,z,c,l,m){const i=lw.n,j=i*6,b=i*12;lw.i16[j]=Math.round(x*8);lw.i16[j+1]=Math.round(y*8);lw.i16[j+2]=Math.round(z*8);lw.i16[j+3]=m;lw.u8[b+8]=Math.min(255,c[0]*l*255);lw.u8[b+9]=Math.min(255,c[1]*l*255);lw.u8[b+10]=Math.min(255,c[2]*l*255);lw.u8[b+11]=255;lw.n=i+1}
+function lodKey(size,x0,z0){return size+':'+x0+':'+z0}
+function lodTile(size,x0,z0){const k=lodKey(size,x0,z0);let t=lodTiles.get(k);if(!t){t={size,x0,z0,step:size/LOD_N,ready:false,building:false,quads:0,buffer:null,ymin:Math.max(0,SEA-32),ymax:H,used:0};lodTiles.set(k,t)}return t}
+const WATER_DEEP=[.09,.24,.5];
+function waterColor(d){return d<=1?[.36,.72,.74]:d<5?mix3([.36,.72,.74],[.19,.55,.72],(d-1)/4):d<14?mix3([.19,.55,.72],[.13,.38,.64],(d-5)/9):mix3([.13,.38,.64],WATER_DEEP,Math.min(1,(d-14)/14))}
+const STONE=defsRGB[3],DIRT=[.49,.36,.24],SAND=defsRGB[6],SNOW=defsRGB[12],CANOPY=[0,5,7,6,8,2];
+function* buildTile(t){
+ const s=t.step,N=LOD_N,n=N+2,x0=t.x0,z0=t.z0,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n);
+ for(let j=0;j<n;j++){for(let i=0;i<n;i++){const x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1),k=j*n+i;
+   if(x<0||z<0||x>=W||z>=W){hs[k]=VOID;continue}
+   if(GRAND){hs[k]=height4(x,z);hum[k]=humidity(x,z);bir[k]=birchiness(x,z)}else hs[k]=height(x,z)}
+  if((j&3)===3)yield}
+ const top=new Float32Array(n*n),gnd=new Float32Array(n*n),surf=new Uint8Array(n*n),can=new Uint8Array(n*n),tc=[],lc=[];
+ for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i,h=hs[k],x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1);
+  if(h===VOID||h<SEA){top[k]=gnd[k]=SEA+.875;surf[k]=10;tc[k]=h===VOID?WATER_DEEP:waterColor(SEA-h);continue}
+  let sl=0;for(const nk of[k-1,k+1,k-n,k+n])if(nk>=0&&nk<n*n&&hs[nk]!==VOID)sl=Math.max(sl,Math.abs(h-hs[nk]));const slope=sl/s;
+  const su=GRAND?surface4(x,z,h,Math.round(slope*1.5)):h<=SEA+1?6:1;surf[k]=su;
+  tc[k]=su===1?(GRAND?grassColor(h-SEA,hum[k]):defsRGB[1]):su===6?SAND:su===12?SNOW:STONE;
+  let c=0;if(su===1){if(GRAND){const kind=treeKind(x,z,h,Math.round(slope),hum[k],bir[k],rand(x*13+5,z*7+3));if(kind){c=CANOPY[kind]+(rand(x,z*3)>.5?1:0);const lf=leafColor(h-SEA,hum[k],bir[k]),v=.84+rand(z,x*3)*.22;lc[k]=[lf[0]*v,lf[1]*v,lf[2]*v]}}
+   else if(rand(x*13+5,z*7+3)<.3){c=5;lc[k]=defsRGB[5]}}
+  can[k]=c;gnd[k]=h+1;top[k]=h+1+c}
+ yield;
+ lw.n=0;let ymin=1e9,ymax=-1e9;const always=s<=2;
+ const wall=(dir,xa,xb,za,zb,y0,y1,c0,c1,l,m)=>{if(y1<=y0)return;lgrow(4);
+  if(dir<2){const x=dir===0?xb:xa;lvert(x,y0,za,c0,l,m);lvert(x,y1,za,c1,l,m);lvert(x,y1,zb,c1,l,m);lvert(x,y0,zb,c0,l,m)}
+  else{const z=dir===2?zb:za;lvert(xa,y0,z,c0,l,m);lvert(xa,y1,z,c1,l,m);lvert(xb,y1,z,c1,l,m);lvert(xb,y0,z,c0,l,m)}
+  if(y0<ymin)ymin=y0};
+ for(let j=1;j<=N;j++){for(let i=1;i<=N;i++){
+  const k=j*n+i,xa=(i-1)*s,xb=i*s,za=(j-1)*s,zb=j*s,mt=top[k],su=surf[k];
+  lgrow(4);const m=su===10?1:can[k]?2:0,c=can[k]?lc[k]:tc[k];lvert(xa,mt,za,c,1,m);lvert(xb,mt,za,c,1,m);lvert(xb,mt,zb,c,1,m);lvert(xa,mt,zb,c,1,m);
+  if(mt>ymax)ymax=mt;if(mt<ymin)ymin=mt;
+  if(su===10)continue;
+  const g=gnd[k],lightOf=[.79,.68,.85,.73],nks=[k+1,k-1,k+n,k-n],borders=[i===N,i===1,j===N,j===1];
+  for(let d=0;d<4;d++){const nt=top[nks[d]],border=borders[d];let bottom;
+   if(border)bottom=Math.min(mt,nt)-s*1.5;else if(always)bottom=Math.min(mt,nt)-2;else if(mt>nt)bottom=nt;else continue;
+   if(bottom>=mt)continue;
+   if(can[k]&&mt>g){const lo=Math.max(bottom,g),f=Math.min(1,(mt-lo)/(mt-g)),c=lc[k];wall(d,xa,xb,za,zb,lo,mt,mix3(c,[c[0]*.3,c[1]*.34,c[2]*.3],f),c,lightOf[d]*.85,2)}
+   if(bottom<g){const yt=Math.min(g,mt),tall=g-bottom>3.5,ct=su===1?mix3(tc[k],DIRT,.45):tc[k],cb=su===6?SAND:tall||su!==1?STONE:DIRT;wall(d,xa,xb,za,zb,bottom,yt,cb,ct,lightOf[d],0)}}}
+  if((j&7)===7)yield}
+ if(!renderReady)return;
+ if(!t.buffer)t.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,t.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(lw.buf,0,lw.n*12),gl.STATIC_DRAW);
+ t.quads=lw.n/4;t.ymin=Math.max(0,Math.floor(ymin));t.ymax=Math.ceil(ymax)+1;t.ready=true}
+function buildOcean(){oceanTiles=[];for(let ox=-1;ox<=1;ox++)for(let oz=-1;oz<=1;oz++){if(!ox&&!oz)continue;lw.n=0;lgrow(4);const y=SEA+.875;
+ lvert(0,y,0,WATER_DEEP,1,1);lvert(W,y,0,WATER_DEEP,1,1);lvert(W,y,W,WATER_DEEP,1,1);lvert(0,y,W,WATER_DEEP,1,1);
+ const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(lw.buf,0,lw.n*12),gl.STATIC_DRAW);
+ oceanTiles.push({x0:ox*W,z0:oz*W,size:W,buffer:b,quads:1,ymin:SEA,ymax:SEA+1})}}
+function makeFrustum(cam,aspect){const kx=aspect/1.35,ky=1/1.35;return{x:cam.x,y:cam.y,z:cam.z,cy:Math.cos(cam.yaw),sy:Math.sin(cam.yaw),cp:Math.cos(cam.pitch),sp:Math.sin(cam.pitch),kx,ky,nx:1/Math.hypot(1,kx),ny:1/Math.hypot(1,ky)}}
+function sphereVisible(F,x,y,z,r){const px=x-F.x,py=y-F.y,pz=z-F.z,xx=F.cy*px-F.sy*pz,zz=F.sy*px+F.cy*pz,yy=F.cp*py-F.sp*zz,dd=F.sp*py+F.cp*zz;
+ return dd>-r&&(Math.abs(xx)-F.kx*dd)*F.nx<=r&&(Math.abs(yy)-F.ky*dd)*F.ny<=r}
+function lodVisit(size,x0,z0,F){
+ const t=lodTile(size,x0,z0);t.used=lodFrame;
+ const dx=Math.max(x0-F.x,0,F.x-(x0+size)),dz=Math.max(z0-F.z,0,F.z-(z0+size)),d=Math.hypot(dx,dz,Math.max(0,F.y-t.ymax));
+ if(d>Q.far)return;
+ if(!sphereVisible(F,x0+size/2,(t.ymin+t.ymax)/2,z0+size/2,Math.hypot(size*.7072,(t.ymax-t.ymin)/2)))return;
+ if(size>64&&d<size*Q.split){const h=size/2,kids=[[x0,z0],[x0+h,z0],[x0,z0+h],[x0+h,z0+h]];let all=true;
+  for(const [a,b]of kids){const k=lodTile(h,a,b);k.used=lodFrame;if(!k.ready){all=false;if(!k.building)lodRequests.push({t:k,p:d/Math.sqrt(h)})}}
+  if(all){for(const [a,b]of kids)lodVisit(h,a,b,F);return}}
+ if(t.ready)lodDraw.push(t);else if(!t.building)lodRequests.push({t,p:d/Math.sqrt(size)})}
+function lodWork(budget,maxSteps){if(!lodOK)return;
+ const start=performance.now();let steps=0;
+ while(steps<maxSteps){
+  if(!lodJob){let best=null;for(const r of lodRequests)if(!r.t.ready&&!r.t.building&&(!best||r.p<best.p))best=r;if(!best)break;best.t.building=true;lodJob={t:best.t,it:buildTile(best.t)}}
+  const res=lodJob.it.next();steps++;if(res.done){lodJob.t.building=false;lodJob=null}
+  if(performance.now()-start>budget)break}
+ if(lodTiles.size>260){const old=[...lodTiles.values()].filter(t=>t.used<lodFrame-30&&!t.building).sort((a,b)=>a.used-b.used);
+  for(const t of old){if(lodTiles.size<=200)break;if(t.buffer)gl.deleteBuffer(t.buffer);lodTiles.delete(lodKey(t.size,t.x0,t.z0))}}}
+
+try{initRenderer()}catch(e){console.error(e);$('saveInfo').textContent='描画の初期化に失敗しました。ブラウザを更新してください。'}
+canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();contextLost=true;renderReady=false});
+canvas.addEventListener('webglcontextrestored',()=>{contextLost=false;chunks.clear();lodTiles.clear();lodJob=null;try{initRenderer()}catch(e){console.error(e)}streamDirty=true;streamChunks(true)});
 streamChunks(true);
-function edit(x,y,z,t){set(x,y,z,t);changes.set(idx(x,y,z),t);dirty=true;const near=new Set([[x,z],[x-1,z],[x+1,z],[x,z-1],[x,z+1],[x-1,z-1],[x-1,z+1],[x+1,z-1],[x+1,z+1]].map(([a,b])=>Math.floor(a/8)+','+Math.floor(b/8)));for(const c of near)if(chunks.has(c))rebuild(...c.split(',').map(Number))}
+function edit(x,y,z,t){set(x,y,z,t);dirty=true;const near=new Set();for(const dx of[-1,0,1])for(const dz of[-1,0,1])near.add(chunkKey(x+dx,z+dz));for(const c of near)if(chunks.has(c))rebuild(...c.split(',').map(Number))}
 function collides(p){if(p.x<.3||p.z<.3||p.x>W-.3||p.z>W-.3||p.y<1||p.y+1.8>=H)return true;for(let x=Math.floor(p.x-.29);x<=Math.floor(p.x+.29);x++)for(let y=Math.floor(p.y+.001);y<=Math.floor(p.y+1.79);y++)for(let z=Math.floor(p.z-.29);z<=Math.floor(p.z+.29);z++)if(solid(x,y,z))return true;return false}
 if(collides(player))spawn();
 function ray(){const d=[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<6){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
-function refresh(){const bar=$('bar');bar.innerHTML='';slots.forEach((t,i)=>{const b=document.createElement('button');b.className=i===selected?'selected':'';b.innerHTML=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;b.onclick=()=>{selected=i;refresh()};bar.appendChild(b)});$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
+function refresh(){const bar=$('bar');bar.innerHTML='';slots.forEach((t,i)=>{const b=document.createElement('button');b.className=i===selected?'selected':'';b.innerHTML=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;b.onclick=()=>{selected=i;refresh()};bar.appendChild(b)});$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
 function mine(){if(paused)return;swing=1;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
 function place(){if(paused)return;swing=1;hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
@@ -274,8 +565,9 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidt
 function clearInput(){for(const k in keys)delete keys[k];joy.x=joy.y=0;$('knob').style.transform='';mineHeld=placeHeld=riseHeld=descendHeld=false;lookId=stickId=null}
 function pause(){paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
-function play(){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
-$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(confirm('今の世界を消して新しく作りますか？')){try{localStorage.removeItem(KEY)}catch(e){}location.href=location.pathname+'?seed='+Math.floor(Math.random()*1000000)}};
+function play(){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
+function setQuality(name){if(!QUALITY[name])return;qualityName=name;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
+$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(confirm('今の世界を消して新しく作りますか？')){try{localStorage.removeItem(KEY)}catch(e){}location.href=location.pathname+'?seed='+Math.floor(Math.random()*1000000)}};
 $('craftBtn').onclick=()=>{paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('craft').classList.remove('hidden')};$('closeCraft').onclick=play;const recipes={plank:[4,1,7,4],brick:[3,3,8,4],glass:[6,2,9,2]};document.querySelectorAll('[data-recipe]').forEach(b=>b.onclick=()=>{const[a,n,c,m]=recipes[b.dataset.recipe];if(!creative&&(inventory[a]||0)<n){toast('材料が足りないよ');b.textContent='材料不足 — '+defs[a][0]+' '+n+' 必要';return}if(!creative)inventory[a]-=n;inventory[c]=(inventory[c]||0)+m;dirty=true;refresh();toast(defs[c][0]+'を'+m+'個つくった');b.textContent=defs[a][0]+' '+n+' → '+defs[c][0]+' '+m+' ✓'});
 let mineHeld=false,placeHeld=false,actionClock=0,lookId=null,stickId=null,lx=0,ly=0;
 function hold(id,fn,flag){$(id).addEventListener('pointerdown',e=>{e.preventDefault();$(id).setPointerCapture(e.pointerId);fn();if(flag==='mine')mineHeld=true;if(flag==='place')placeHeld=true;if(flag==='rise')riseHeld=true;if(flag==='down')descendHeld=true;actionClock=.3});for(const ev of ['pointerup','pointercancel','lostpointercapture'])$(id).addEventListener(ev,()=>{if(flag==='mine')mineHeld=false;if(flag==='place')placeHeld=false;if(flag==='rise')riseHeld=false;if(flag==='down')descendHeld=false})}hold('mine',mine,'mine');hold('place',place,'place');hold('jump',jump,'rise');hold('down',()=>{},'down');$('fly').onclick=toggleFlight;
@@ -288,19 +580,19 @@ document.addEventListener('visibilitychange',()=>{suspended=!!document.hidden;cl
 window.addEventListener('pagehide',()=>{clearInput();save()});
 window.addEventListener('pageshow',()=>{suspended=false;clearInput();last=performance.now()});
 // Dynamic geometry uses the same pixel materials as the terrain.
-const outline=gl.createBuffer(),dynamicBuffer=gl.createBuffer(),toolBuffer=gl.createBuffer();
 let swing=0,walkPhase=0;const particles=[],cows=[];
-function surface(x,z){for(let y=H-3;y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
+function surface(x,z,from=H-3){for(let y=Math.min(H-3,Math.floor(from));y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
-for(let i=0;i<180&&cows.length<7;i++){let x=ORIGIN-7+rand(i,321)*22,z=ORIGIN-3+rand(i,632)*21,y=surface(x,z);if(Math.hypot(x-player.x,z-player.z)>3&&cows.every(c=>Math.hypot(c.x-x,c.z-z)>2)&&y>SEA+1&&y<H-5&&get(Math.floor(x),y-1,Math.floor(z))===1&&cowFits(x,y,z))cows.push({x,y,z,angle:rand(i,13)*6.28,phase:i,wait:0})}
-function cuboid(a,x,y,z,sx,sy,sz,color,mat=0,transform=null){const c=typeof color==='string'?rgb(color):color;for(const f of faces)for(const k of tris){const v=f.v[k],p=[x+v[0]*sx,y+v[1]*sy,z+v[2]*sz];a.push(...(transform?transform(p):p),...c.map(n=>n*(mat===18?Math.max(.84,f.l):f.l)),...faceUV(v,f),mat)}}
+{const cx0=vista?vista.x-10:ORIGIN-7,cz0=vista?vista.z-10:ORIGIN-3;for(let i=0;i<300&&cows.length<7;i++){let x=cx0+rand(i,321)*22,z=cz0+rand(i,632)*21,y=surface(x,z);if(Math.hypot(x-player.x,z-player.z)>3&&cows.every(c=>Math.hypot(c.x-x,c.z-z)>2)&&y>SEA+1&&y<H-5&&get(Math.floor(x),y-1,Math.floor(z))===1&&cowFits(x,y,z))cows.push({x,y,z,angle:rand(i,13)*6.28,phase:i,wait:0})}}
+function cuboid(w,x,y,z,sx,sy,sz,color,mat=0,transform=null){const c=typeof color==='string'?rgb(color):color;for(const f of faces){grow(w,36);const l=mat===18?Math.max(.84,f.l):f.l;for(const v of f.v){const p=[x+v[0]*sx,y+v[1]*sy,z+v[2]*sz],q=transform?transform(p):p,uv=faceUV(v,f);vert(w,q[0],q[1],q[2],c[0]*l,c[1]*l,c[2]*l,uv[0],uv[1],mat)}}}
 function burst(x,y,z,color){for(let i=0;i<12;i++)particles.push({x,y,z,vx:(Math.random()-.5)*3,vy:1+Math.random()*2,vz:(Math.random()-.5)*3,life:.7,color})}
-function drawData(buffer,a){if(!a.length)return;bind(buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,a.length/9)}
+function drawData(buffer,w){if(!w.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,w.a.subarray(0,w.n),gl.DYNAMIC_DRAW);drawQuads(buffer,w.n/36,bind,36)}
 function animateWorld(dt){swing=Math.max(0,swing-dt*3.5);const moving=Math.hypot(joy.x,joy.y)> .1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD;if(moving&&ground)walkPhase+=dt*9;
 for(const p of particles){p.life-=dt;p.vy-=dt*8;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt}for(let i=particles.length-1;i>=0;i--)if(particles[i].life<=0)particles.splice(i,1);
-for(const c of cows){c.wait-=dt;if(c.wait<0){c.angle+=(rand(Math.floor(time)+c.phase,43)-.5)*1.8;c.wait=2+rand(c.phase,Math.floor(time))*4}const nx=c.x+Math.sin(c.angle)*dt*.45,nz=c.z+Math.cos(c.angle)*dt*.45,ny=surface(nx,nz);if((Math.hypot(nx-player.x,nz-player.z)>1.1||Math.abs(ny-player.y)>2)&&cows.every(other=>other===c||Math.hypot(nx-other.x,nz-other.z)>.9)&&nx>2&&nz>2&&nx<W-2&&nz<W-2&&ny>SEA+1&&Math.abs(ny-c.y)<1.1&&cowFits(nx,ny,nz)){c.x=nx;c.z=nz;c.y+=(ny-c.y)*Math.min(1,dt*10);c.phase+=dt*4}else c.angle+=dt*2;const below=surface(c.x,c.z);if(below<c.y-.1)c.y=Math.max(below,c.y-dt*5)}
+// Cows far from the player rest, so their chunks need not stay generated.
+for(const c of cows){if(Math.hypot(c.x-player.x,c.z-player.z)>80)continue;c.wait-=dt;if(c.wait<0){c.angle+=(rand(Math.floor(time)+c.phase,43)-.5)*1.8;c.wait=2+rand(c.phase,Math.floor(time))*4}const nx=c.x+Math.sin(c.angle)*dt*.45,nz=c.z+Math.cos(c.angle)*dt*.45,ny=surface(nx,nz,c.y+2);if((Math.hypot(nx-player.x,nz-player.z)>1.1||Math.abs(ny-player.y)>2)&&cows.every(other=>other===c||Math.hypot(nx-other.x,nz-other.z)>.9)&&nx>2&&nz>2&&nx<W-2&&nz<W-2&&ny>SEA+1&&Math.abs(ny-c.y)<1.1&&cowFits(nx,ny,nz)){c.x=nx;c.z=nz;c.y+=(ny-c.y)*Math.min(1,dt*10);c.phase+=dt*4}else c.angle+=dt*2;const below=surface(c.x,c.z,c.y+2);if(below<c.y-.1)c.y=Math.max(below,c.y-dt*5)}
 }
-function drawWorldDetails(){const a=[];
+function drawWorldDetails(){const a=dyn;a.n=0;
 for(const c of cows){const rot=p=>[c.x+Math.cos(c.angle)*p[0]+Math.sin(c.angle)*p[2],c.y+p[1],c.z-Math.sin(c.angle)*p[0]+Math.cos(c.angle)*p[2]];
 cuboid(a,-.40,.65,-.64,.80,.73,1.22,[1,1,1],16,rot);
 for(const x of [-.32,.14])for(const z of [-.47,.33]){const ang=Math.sin(c.phase+(x*z>0?0:Math.PI))*.35,leg=p=>{let yy=p[1]-.7,zz=p[2]-z;return rot([p[0],.7+Math.cos(ang)*yy-Math.sin(ang)*zz,z+Math.sin(ang)*yy+Math.cos(ang)*zz])};cuboid(a,x,.08,z,.20,.64,.22,'#573c29',0,leg);cuboid(a,x,.04,z,.20,.16,.22,'#e1d8c6',0,leg)}
@@ -309,10 +601,16 @@ for(const x of [-.24,.14]){cuboid(a,x,1.35,.976,.12,.12,.018,'#f1ece0',0,rot);cu
 cuboid(a,-.48,1.40,.52,.17,.12,.21,'#73543c',0,rot);cuboid(a,.31,1.40,.52,.17,.12,.21,'#73543c',0,rot);cuboid(a,-.06,.74,-.75,.10,.46,.10,'#4b382a',0,rot);
 }
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
-// Broad, flat clouds are intentionally cuboid, like the rest of this world.
-for(let i=0;i<12;i++){let x=player.x+((i*17+time*.16)%100)-50,z=player.z+(i*29%100)-50;cuboid(a,x,32+(i%3)*1.2,z,7+(i%3)*2,.65,3.5,'#f4f6ec',18);cuboid(a,x+2,32.65+(i%3)*1.2,z+.8,4,.2,2,'#fffdf3',18)}
 drawData(dynamicBuffer,a)}
-function drawTool(){if(paused)return;const a=[],bob=Math.sin(walkPhase)*.025,kick=Math.sin(swing*Math.PI),aspect=canvas.width/canvas.height;
+// Broad, flat clouds are intentionally cuboid, like the rest of this world. The mesh is static and drifts by offset.
+const CLOUD_Y=GRAND?SEA+112:56;let cloudQuads=0,cloudAX=1e9,cloudAZ=1e9;
+function buildClouds(ax,az){const w=dyn,R=Math.min(1000,Q.far*.8),S=44;w.n=0;
+ for(let gx=Math.floor((ax-R)/S);gx<=Math.floor((ax+R)/S);gx++)for(let gz=Math.floor((az-R)/S);gz<=Math.floor((az+R)/S);gz++){
+  if(pn(gx/7+.5,gz/7+.5)+rand(gx*31+7,gz*17+3)*.7<.5)continue;
+  const x=gx*S+rand(gx,gz*3)*12,z=gz*S+rand(gx*5,gz)*12,sx=14+rand(gx*2,gz*7)*26,sz=9+rand(gx*7,gz*2)*16,y=CLOUD_Y+Math.floor(rand(gx*3,gz*9)*3)*2;
+  cuboid(w,x,y,z,sx,3.2,sz,'#f4f6ec',18);if(sx>22)cuboid(w,x+sx*.25,y+3.2,z+sz*.2,sx*.5,1.6,sz*.55,'#fffdf3',18)}
+ if(!cloudBuffer)cloudBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,cloudBuffer);gl.bufferData(gl.ARRAY_BUFFER,w.a.subarray(0,w.n),gl.STATIC_DRAW);cloudQuads=w.n/36;cloudAX=ax;cloudAZ=az}
+function drawTool(){if(paused)return;const a=dyn,bob=Math.sin(walkPhase)*.025,kick=Math.sin(swing*Math.PI),aspect=canvas.width/canvas.height;a.n=0;
 const transform=p=>{let x=p[0],y=p[1],z=p[2];const angle=-.40-kick*.65,xx=x*Math.cos(angle)-y*Math.sin(angle),yy=x*Math.sin(angle)+y*Math.cos(angle);x=xx+Math.min(.70,aspect*.42)-kick*.15;y=yy-.51+bob+kick*.06;z+=1.12;const py=Math.cos(pitch)*y+Math.sin(pitch)*z,pz=-Math.sin(pitch)*y+Math.cos(pitch)*z;return[player.x+Math.cos(yaw)*x+Math.sin(yaw)*pz,player.y+1.62+py,player.z-Math.sin(yaw)*x+Math.cos(yaw)*pz]};
 cuboid(a,-.08,-.48,-.02,.16,.35,.20,'#b6835d',0,transform);cuboid(a,-.095,-.60,-.025,.19,.20,.22,'#467e83',0,transform);
 cuboid(a,-.045,-.30,.02,.09,.66,.09,'#93612e',4,transform);
@@ -335,45 +633,74 @@ function update(dt){
  else {vy-=(water?5:20)*dt;if(water)vy=Math.max(vy,-2);ground=false;if(!moveAxis('y',vy*dt)){ground=vy<=0;vy=0}}
  actionClock-=dt;if(actionClock<=0&&(mineHeld||placeHeld)){if(mineHeld)mine();else place();actionClock=.23}
 }
-let last=performance.now(),frames=0,fps=60,fpsTime=0;
-function frame(now){
- const dt=Math.min(.035,(now-last)/1000);last=now;
- if(suspended){requestAnimationFrame(frame);return}
- const titleOpen=paused&&!$('menu').classList.contains('hidden');
- streamChunks();
- if(!paused){time+=dt;update(dt);animateWorld(dt)}
- else if(titleOpen)time+=dt*.65; // Keep the background grass, water, and clouds alive.
- const ratio=Math.min(devicePixelRatio,1.5),w=Math.floor(innerWidth*ratio),h=Math.floor(innerHeight*ratio);
- if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
- // Title uses the actual saved/generated game world from an elevated scenic camera.
- // This never moves the player or modifies saved coordinates.
- const panoramaYaw=2.35+Math.sin(time*.12)*.08;
- const camX=titleOpen?player.x-Math.sin(panoramaYaw)*5:player.x;
- const camZ=titleOpen?player.z-Math.cos(panoramaYaw)*5:player.z;
- const camY=titleOpen?Math.min(H-3,Math.max(SEA+8,height(Math.floor(camX),Math.floor(camZ))+8)):player.y+1.62;
- const sceneYaw=titleOpen?panoramaYaw:yaw,scenePitch=titleOpen?.24:pitch;
- const underwater=!titleOpen&&get(Math.floor(player.x),Math.floor(player.y+1.62),Math.floor(player.z))===10;
- const sky=titleOpen?[.78,.48,.37]:underwater?[.12,.35,.49]:[.49,.71,.91];
- gl.clearColor(...sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
- gl.uniform3f(uniforms.eye,camX,camY,camZ);
- gl.uniform1f(uniforms.yaw,sceneYaw);gl.uniform1f(uniforms.pitch,scenePitch);
- gl.uniform1f(uniforms.aspect,w/h);gl.uniform3fv(uniforms.sky,sky);gl.uniform1f(uniforms.clock,time);
- for(const ch of chunks.values()){bind(ch.buffer);gl.drawArrays(gl.TRIANGLES,0,ch.count)}
+// Title uses the actual world from the scenic evaluation point (or above the saved player in older worlds).
+// This never moves the player or modifies saved coordinates.
+function titleCamera(){
+ if(vista)return{x:vista.x+.5,y:vista.eye,z:vista.z+.5,yaw:vista.yaw+Math.sin(time*.045)*.3,pitch:-.13};
+ const panoramaYaw=2.35+Math.sin(time*.12)*.08,x=player.x-Math.sin(panoramaYaw)*5,z=player.z-Math.cos(panoramaYaw)*5;
+ return{x,y:Math.min(H-3,Math.max(SEA+8,height(Math.floor(x),Math.floor(z))+12)),z,yaw:panoramaYaw,pitch:-.05};
+}
+const norm=v=>{const l=Math.hypot(...v);return v.map(c=>c/l)};
+const ENV_DAY={sun:norm([.42,.6,.68]),zenith:[.22,.46,.86],horizon:[.71,.83,.95],sunCol:[1,.9,.72],light:[1,1,1]};
+function environment(titleOpen,cam){if(!titleOpen)return ENV_DAY;const a=cam.yaw+.62;return{sun:norm([Math.sin(a)*.96,.2,Math.cos(a)*.96]),zenith:[.25,.42,.76],horizon:[.98,.80,.63],sunCol:[1,.7,.4],light:[1.06,.97,.87]}}
+function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform3fv(u.lightCol,env.light);gl.uniform4fv(u.fogP,fog)}
+function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600)}
+function render(cam,titleOpen,w,h){
+ const aspect=w/h,F=makeFrustum(cam,aspect),underwater=!titleOpen&&get(Math.floor(cam.x),Math.floor(cam.y),Math.floor(cam.z))===10,env=environment(titleOpen,cam);
+ const far=lodOK?Q.far:(Q.near+1)*CHUNK,fog=[far*.6,far*.8,far*.97,underwater?1:0];
+ gl.clearColor(...(underwater?[.09,.28,.40]:env.horizon),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ if(lodOK){
+  // Far pass: sky, LOD terrain, ocean beyond the world and clouds, with its own depth range.
+  useProgram(skyProg,1);setEnv(skyU,env,fog);const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  gl.uniform3f(skyU.cFwd,sy*cp,sp,cy*cp);gl.uniform3f(skyU.cRight,cy,0,-sy);gl.uniform3f(skyU.cUp,-sp*sy,cp,-sp*cy);gl.uniform2f(skyU.cScale,aspect/1.35,1/1.35);
+  gl.disable(gl.DEPTH_TEST);gl.depthMask(false);gl.bindBuffer(gl.ARRAY_BUFFER,skyBuffer);gl.vertexAttribPointer(0,2,gl.FLOAT,false,8,0);gl.drawArrays(gl.TRIANGLES,0,3);gl.enable(gl.DEPTH_TEST);gl.depthMask(true);
+  lodFrame++;lodDraw.length=0;lodRequests.length=0;for(let x=0;x<W;x+=512)for(let z=0;z<W;z+=512)lodVisit(512,x,z,F);
+  const farNear=readyR>=1?2:.25,farFar=Q.far*1.15;
+  useProgram(lodProg,2);setEnv(lodU,env,fog);setView(lodU,cam,aspect,farNear,farFar);gl.uniform3f(lodU.eyeF,cam.x,cam.y,cam.z);
+  if(readyR>=0)gl.uniform4f(lodU.hole,(centerCX-readyR)*CHUNK-cam.x+.01,(centerCZ-readyR)*CHUNK-cam.z+.01,(centerCX+readyR+1)*CHUNK-cam.x-.01,(centerCZ+readyR+1)*CHUNK-cam.z-.01);else gl.uniform4f(lodU.hole,1,1,-1,-1);
+  for(const t of lodDraw){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,t.quads,bindLod,12)}
+  for(const t of oceanTiles)if(sphereVisible(F,t.x0+W/2,SEA,t.z0+W/2,W*.71)){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,1,bindLod,12)}
+  const drift=time*1.2,R=Math.min(1000,Q.far*.8);if(Math.hypot(cam.x-drift-cloudAX,cam.z-cloudAZ)>R*.35)buildClouds(cam.x-drift,cam.z);
+  useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,farNear,farFar);gl.uniform3f(mainU.eye,cam.x-drift,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x,cam.y,cam.z);
+  if(cloudQuads)drawQuads(cloudBuffer,cloudQuads,bind,36);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+ }
+ // Near pass: real voxels inside the completed square, animals, translucent water, then the held tool.
+ useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,.1,(Q.near+3)*CHUNK*1.5+H);gl.uniform3f(mainU.eye,cam.x,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x,cam.y,cam.z);
+ const visible=[];
+ for(const ch of chunks.values()){if(Math.max(Math.abs(ch.cx-centerCX),Math.abs(ch.cz-centerCZ))>readyR)continue;const yr=(ch.ymax-ch.ymin)/2;if(!sphereVisible(F,ch.cx*CHUNK+8,ch.ymin+yr,ch.cz*CHUNK+8,Math.sqrt(128+yr*yr)))continue;visible.push(ch);if(ch.quads)drawQuads(ch.buffer,ch.quads,bind,36)}
  drawWorldDetails();
  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
- const ordered=[...chunks.values()].sort((a,b)=>((b.cx*8-camX)**2+(b.cz*8-camZ)**2)-((a.cx*8-camX)**2+(a.cz*8-camZ)**2));
- for(const ch of ordered){bind(ch.water);gl.drawArrays(gl.TRIANGLES,0,ch.waterCount)}
+ visible.sort((a,b)=>((b.cx*CHUNK+8-cam.x)**2+(b.cz*CHUNK+8-cam.z)**2)-((a.cx*CHUNK+8-cam.x)**2+(a.cz*CHUNK+8-cam.z)**2));
+ for(const ch of visible)if(ch.waterQuads)drawQuads(ch.water,ch.waterQuads,bind,36);
  gl.depthMask(true);gl.disable(gl.BLEND);
- if(!titleOpen){hit=ray();drawOutline();drawTool();$('target').textContent=hit?defs[hit.t][0]:''}
- else hit=null;
- frames++;fpsTime+=dt;
- if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('stats').textContent=`${flying?'飛行':creative?'自由建築':'素材集め'} · ${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS`}
+ if(!titleOpen){hit=ray();drawOutline();drawTool()}else hit=null;
+}
+let last=performance.now(),frames=0,fps=60,fpsTime=0,renderScale=1,perfTime=0,perfFrames=0;
+function frame(now){
+ const raw=Math.max(0,(now-last)/1000),dt=Math.min(.035,raw);last=now;
+ if(suspended||contextLost){requestAnimationFrame(frame);return}
+ const titleOpen=isTitleOpen();
+ if(!paused){time+=dt;update(dt);animateWorld(dt)}
+ else if(titleOpen)time+=dt*.65; // Keep the background grass, water, and clouds alive.
+ streamChunks();
+ // Dynamic resolution: drop render scale when the frame rate sags, recover when there is headroom.
+ perfFrames++;perfTime+=raw;if(perfTime>2){const f=perfFrames/perfTime;if(f<44&&renderScale>.6)renderScale=Math.max(.6,renderScale-.1);else if(f>57&&renderScale<1)renderScale=Math.min(1,renderScale+.05);perfFrames=0;perfTime=0}
+ const ratio=Math.min(devicePixelRatio||1,Q.dpr)*renderScale,w=Math.max(1,Math.floor(innerWidth*ratio)),h=Math.max(1,Math.floor(innerHeight*ratio));
+ if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}
+ gl.viewport(0,0,w,h);
+ const cam=titleOpen?titleCamera():{x:player.x,y:player.y+1.62,z:player.z,yaw,pitch};
+ if(renderReady)render(cam,titleOpen,w,h);
+ lodWork(Q.budget*.6,64);
+ if(!titleOpen)$('target').textContent=hit?defs[hit.t][0]:'';
+ frames++;fpsTime+=raw;
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('stats').textContent=`${flying?'飛行':creative?'自由建築':'素材集め'} · ${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''}`}
  $('hint').style.opacity=now>toastUntil?'0':'1';
  if(now-lastSave>15000&&!paused){save();lastSave=now}
  requestAnimationFrame(frame)
 }
 refresh();
-try{if(saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');toast('前のプレイを再開した')}}catch(e){}
+try{if(saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');streamChunks(true);toast('前のプレイを再開した')}}catch(e){}
 requestAnimationFrame(frame);
-window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,cows,animateWorld,vertexSource,fragmentSource,toggleFlight,streamChunks};
+window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,cows,animateWorld,vertexSource,fragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
 </script></html>
