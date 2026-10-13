@@ -10,9 +10,9 @@ function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)
 // ---- New GRAND VISTA world: basics, saves, physics.
 const t0=Date.now();const a=boot();console.log(`boot new world: ${Date.now()-t0} ms`);
 assert(a.triangles>0);assert(!a.api.collides(a.api.player),'spawn must be clear');assert.equal(a.api.get(32,0,32),11);assert(a.api.collides({x:32.5,y:.5,z:32.5}));assert(a.api.collides({x:-1,y:25,z:30}));
-assert.equal(run(a,'terrainVersion'),4);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
+assert.equal(run(a,'terrainVersion'),5);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
 a.api.edit(30,30,30,8);assert(a.api.save());const b=boot(a.storage['nisekura-v1']);assert.equal(b.api.get(30,30,30),8,'world edit survives reload');assert(!b.api.collides(b.api.player));
-assert.equal(run(b,'terrainVersion'),4,'v4 save reloads as v4');
+assert.equal(run(b,'terrainVersion'),5,'v5 save reloads as v5');
 run(b,'paused=false;for(let i=0;i<120;i++)update(1/60)');assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(run(b,'ground'));
 console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
@@ -42,7 +42,7 @@ assert(Math.abs(a.api.player.x-(V.x+.5))<1e-9&&Math.abs(a.api.player.z-(V.z+.5))
 assert(a.api.player.y>run(a,'SEA')+8,'vista is a hill above the sea');
 let peak=0,ocean=0,inland=0,cells=0;for(let x=64;x<2048;x+=32)for(let z=64;z<2048;z+=32){const h=a.api.height(x,z);cells++;peak=Math.max(peak,h);if(h<62){if(run(a,'gLand')>0)inland++;else ocean++}}
 assert(peak>62+90,`high mountains exist (peak ${peak})`);assert(ocean/cells>.2,'large ocean');assert(inland>3,'rivers or lakes inland');
-let logs=0,leaves=0,sand=0,snow=0;for(let x=V.x-60;x<V.x+60;x+=2)for(let z=V.z-60;z<V.z+60;z+=2)for(let y=55;y<150;y++){const t=a.api.get(x,y,z);if(t===4||t===13)logs++;if(t===5)leaves++;if(t===6)sand++}
+let logs=0,leaves=0,sand=0,snow=0;for(let x=V.x-60;x<V.x+60;x+=2)for(let z=V.z-60;z<V.z+60;z+=2)for(let y=55;y<150;y++){const t=a.api.get(x,y,z);if(t===4||t===13)logs++;if(t===5||t===14||t===15||t===16)leaves++;if(t===6)sand++}
 for(let x=0;x<2048&&!snow;x+=16)for(let z=0;z<2048;z+=16)if(a.api.height(x,z)>62+100){snow++;break}
 assert(logs>20&&leaves>200,'trees near the vista');assert(sand>0,'beach or riverbank sand near the vista');assert(snow>0,'snow-capped peaks exist');
 let clear=true;for(let x=V.x-5;x<=V.x+5;x++)for(let z=V.z-5;z<=V.z+5;z++)for(let y=Math.floor(a.api.player.y);y<Math.floor(a.api.player.y)+8;y++)if(a.api.get(x,y,z)===4)clear=false;assert(clear,'vista hilltop is clear of trunks');
@@ -104,7 +104,7 @@ resetTest.windowEvents.pagehide();
 assert.equal(resetTest.storage['nisekura-v1'],undefined,'unload callbacks must not restore deleted saves');
 assert.equal(run(resetTest,'save()'),false,'autosave must remain disabled until navigation completes');
 const afterReset=boot(resetTest.storage['nisekura-v1']);
-assert.equal(run(afterReset,'terrainVersion'),4,'reset must activate new terrain generator');
+assert.equal(run(afterReset,'terrainVersion'),5,'reset must activate new terrain generator');
 assert.equal(run(afterReset,'SEA'),62,'new world sea level is 62');
 assert.equal(run(afterReset,'H'),192,'new world height is 192');
 console.log('PASS: new world reset survives blur, visibility and pagehide without resurrecting legacy terrain');
@@ -137,7 +137,7 @@ console.log('PASS: legacy 64/256/2048 saves, byte-identical legacy terrain, lega
  run(d,`rebuild(${wx>>4},${V.z>>4})`);const water=JSON.parse(run(d,'JSON.stringify(Array.from(waterW.a.subarray(0,waterW.n)))'));assert(water.length>0,'water mesh exists');
  for(let i=0;i<water.length;i+=9){assert(water[i+3]>0&&water[i+3]<=1,'water depth encoded');assert(water[i+4]===0||water[i+4]===1,'shoreline flag');assert.equal(water[i+8]%32,10)}
  run(d,`rebuild(${V.x>>4},${V.z>>4})`);const op=JSON.parse(run(d,'JSON.stringify(Array.from(opaqueW.a.subarray(0,opaqueW.n)))'));let shaded=0,plants=0;
- for(let i=0;i<op.length;i+=9){const code=op[i+8],m=code%32,face=Math.floor(code%256/32);assert(m<=19&&face<=6&&code<512,'packed material code '+code);if(code>=256)shaded++;if(face===6)plants++}
+ for(let i=0;i<op.length;i+=9){const code=op[i+8],m=code%32,face=Math.floor(code%256/32);assert(m<=25.5&&face<=6&&code<512&&(m<=19||face===6),'packed material code '+code);if(code>=256)shaded++;if(face===6)plants++}
  assert(plants>0,'plants use the soft plant face');assert(shaded>0,'canopy shade is flagged for dappled light');
  console.log('PASS: day cycle, sky palettes, moonlight, saved time of day, packed face/shade codes, water depth & shoreline data')}
 // ---- Phase 4: LOD worker matches the main-thread mesher; benchmark never writes the save; presets cap memory.
@@ -155,6 +155,62 @@ console.log('PASS: legacy 64/256/2048 saves, byte-identical legacy terrain, lega
  const rep=d.c.__bench;assert(rep,'benchmark report produced');assert(rep.frames>100&&[rep.avgFps,rep.low1Fps,rep.worstMs,rep.gpuMB].every(Number.isFinite));
  assert.equal(run(d,'save()'),false,'benchmark never saves');run(d,'pause()');assert.equal(d.storage['nisekura-v1'],before,'save untouched by benchmark');
  console.log(`PASS: LOD worker output identical to main thread, quality caps, benchmark (${rep.frames} frames, GPU est ${rep.gpuMB} MB) without saving`)}
+// ---- Phase 6: natural vegetation (terrainVersion 5) and untouched v4 vegetation.
+{// v4 worlds keep their exact trees, grass and flowers (fingerprints recorded from v5.2 before the vegetation update).
+ const v4=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:4,seed:73219,changes:[],inventory:{}}));
+ assert.equal(run(v4,'VEG'),false);const V=v4.api.vista;
+ const fpv=(x0,x1,z0,z1)=>{let h=2166136261;for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++)for(let y=40;y<170;y++){h^=v4.api.get(x,y,z);h=Math.imul(h,16777619)}return h>>>0};
+ assert.equal(fpv(V.x-60,V.x+60,V.z-60,V.z+60),3884826321,'v4 vista vegetation unchanged');assert.equal(fpv(512,576,352,416),1103971050,'v4 forest unchanged');
+ assert.equal(fpv(896,960,928,992),1089862464,'v4 mountain forest unchanged');assert.equal(fpv(640,704,1184,1248),936981568,'v4 conifer forest unchanged');
+ for(const [key,h,n] of [['62,48',855370142,37332],['56,62',1131273904,27144],['36,26',1787268620,54468]]){run(v4,`rebuild(${key})`);
+  const m=JSON.parse(run(v4,`(()=>{let h=2166136261;const a=opaqueW.a;for(let i=0;i<opaqueW.n;i++){h^=Math.round(a[i]*1000);h=Math.imul(h,16777619)}return JSON.stringify({h:h>>>0,n:opaqueW.n})})()`));
+  assert.equal(m.n,n,'v4 mesh size '+key);assert.equal(m.h,h,'v4 grass/flower mesh unchanged '+key)}
+ console.log('PASS: v4 worlds keep identical trees, terrain and ground-cover meshes')}
+{const w1=boot(),w2=boot(),list=[];for(let cx=56;cx<61;cx++)for(let cz=53;cz<58;cz++)list.push([cx,cz]);
+ // Same seed → same world, whatever order the chunks are generated in (trees crossing chunk borders included).
+ for(const [cx,cz] of list)run(w1,`voxelChunk(${cx},${cz})`);for(const [cx,cz] of list.slice().reverse())run(w2,`voxelChunk(${cz-53+56},${cx-56+53})`);
+ for(const [cx,cz] of list){const a=run(w1,`Array.from(voxelChunk(${cx},${cz})).join(',')`),b=run(w2,`Array.from(voxelChunk(${cx},${cz})).join(',')`);assert.equal(a,b,`chunk ${cx},${cz} independent of generation order`)}
+ // Trees: count trunk bases and species; the forest must have dense, sparse and empty windows.
+ const win=new Map();let species={4:0,13:0},leafIds=new Set();
+ for(const [cx,cz] of list)for(let x=cx*16;x<cx*16+16;x++)for(let z=cz*16;z<cz*16+16;z++){let y=180;while(y>1&&!w1.api.get(x,y,z))y--;
+  for(let yy=y;yy>y-40&&yy>1;yy--){const t=w1.api.get(x,yy,z),b=w1.api.get(x,yy-1,z);if(t===14||t===15||t===16||t===5)leafIds.add(t);if((t===4||t===13)&&(b===1||b===2)){species[t]++;const k=Math.floor(x/32)+','+Math.floor(z/32);win.set(k,(win.get(k)||0)+1);break}}}
+ const counts=[...win.values()],mean=counts.reduce((a,b)=>a+b,0)/Math.max(1,counts.length),cv=Math.sqrt(counts.reduce((a,b)=>a+(b-mean)**2,0)/Math.max(1,counts.length))/Math.max(mean,1e-9);
+ assert(species[4]+species[13]>30,'forest region has trees');assert(leafIds.size>=3,'several leaf types (oak/birch/conifer/shrub)');
+ console.log(`PASS: deterministic, order-independent chunks; ${species[4]+species[13]} trunks, ${[...leafIds].length} leaf types, window CV ${cv.toFixed(2)}`)}
+{const d=boot();
+ // Individual trees: no two of the same species are alike; heights, widths and leaf counts vary widely.
+ for(const sp of['oak','birch','spruce','shrub']){
+  const r=JSON.parse(run(d,`(()=>{const out=[];for(let i=0;i<40;i++){const m=new Map();gX0=-64;gX1=64;gZ0=-64;gZ1=64;
+   const w=(x,y,z,t)=>m.set(x+','+y+','+z,t),l=(x,y,z,t)=>{const k=x+','+y+','+z;if(!m.has(k))m.set(k,t)},R=treeRng(i*37+5,i*91+3,1),A=treeAge(R);
+   ${sp==='oak'?'growOak(w,l,0,0,0,R,A,false,i)':sp==='birch'?'growBirch(w,l,0,0,0,R,A,i)':sp==='spruce'?'growSpruce(w,l,0,0,0,R,A,false,1,i)':'growShrub(w,l,0,0,0,R,i)'};
+   let top=0,minx=99,maxx=-99,leaves=0,cx=0;for(const [k,t] of m){const [x,y,z]=k.split(',').map(Number);top=Math.max(top,y);if(t!==4&&t!==13){leaves++;minx=Math.min(minx,x);maxx=Math.max(maxx,x);cx+=x}}
+   out.push({sig:[...m.keys()].sort().join(';'),top,w:maxx-minx+1,leaves,off:cx/Math.max(1,leaves)})}return JSON.stringify(out)})()`));
+  const uniq=new Set(r.map(t=>t.sig)).size,tops=r.map(t=>t.top),ws=r.map(t=>t.w),ls=r.map(t=>t.leaves),lm=ls.reduce((a,b)=>a+b,0)/ls.length,lcv=Math.sqrt(ls.reduce((a,b)=>a+(b-lm)**2,0)/ls.length)/lm;
+  assert(uniq>=39,sp+' shapes are unique ('+uniq+'/40)');assert(Math.max(...tops)-Math.min(...tops)>=(sp==='shrub'?1:5),sp+' heights vary');assert(Math.max(...ws)-Math.min(...ws)>=2,sp+' crown widths vary');assert(lcv>.18,sp+' leaf amount varies');
+  if(sp!=='shrub')assert(r.some(t=>Math.abs(t.off)>(sp==='spruce'?.12:.4)),sp+' has asymmetric crowns');
+  console.log(`PASS: ${sp}: ${uniq}/40 unique, height ${Math.min(...tops)}-${Math.max(...tops)}, width ${Math.min(...ws)}-${Math.max(...ws)}, leaves CV ${lcv.toFixed(2)}`)}
+ // Environment: density spread, conifers with altitude, open land kept, flower patches clustered and colourful.
+ const st=JSON.parse(run(d,`(()=>{let n=0,dense=0,sparse=0,open=0,fc=0,big=0,same=0,pairs=0,sameCol=0;const cols=new Set(),shapes=new Set(),pals=new Set();
+  for(let cx=30;cx<100;cx+=2)for(let cz=30;cz<100;cz+=2){const c=columnInfo(cx,cz);for(let k=0;k<256;k++){if(c.h[k]<=SEA+1)continue;n++;const dd=c.dens[k];if(dd>.6)dense++;else if(dd>.05&&dd<.35)sparse++;else if(dd<=.05)open++;
+   if(c.fc[k]>.05){fc++;pals.add(c.fp[k]);const wx=cx*16+(k&15),wz=cz*16+(k>>4);flowerPick(wx,wz,c.fp[k]);cols.add(FPK.ci);shapes.add(FPK.sh);if(c.fc[k]>.6)big++;
+    if((k&15)<15&&c.fc[k+1]>.3&&c.fc[k]>.3){pairs++;if(c.fp[k+1]===c.fp[k])same++;const a=FPK.ci;flowerPick(wx+1,wz,c.fp[k+1]);if(FPK.ci===a)sameCol++}}}}
+  let con=0,tot=0;for(let i=0;i<4000;i++){const alt=55+(i%30);if(pickSpecies(alt,0,rand(i,3),rand(i,7))===4)con++;tot++}
+  let low=0;for(let i=0;i<4000;i++)if(pickSpecies(8,0,rand(i,3),rand(i,7))===4)low++;
+  return JSON.stringify({n,dense:dense/n,sparse:sparse/n,open:open/n,fc:fc/n,big:big/n,same:same/pairs,sameCol:sameCol/pairs,cols:cols.size,shapes:shapes.size,pals:pals.size,con:con/tot,low:low/4000})})()`));
+ assert(st.dense>.04&&st.sparse>.08&&st.open>.25,'dense, sparse and open land all exist '+JSON.stringify(st));
+ assert(st.con>.85&&st.low<.05,'conifers dominate high ground, lowlands are broadleaf');
+ assert(st.fc>.03&&st.fc<.3&&st.big<.12,'flower patches are present but not everywhere');
+ assert(st.cols===6&&st.shapes===4&&st.pals>=8,'white/yellow/red/pink/purple/blue in four flower shapes');
+ assert(st.same>.9&&st.sameCol>.5,'flowers cluster: neighbours share a patch palette and often a colour');
+ console.log(`PASS: forest dense ${(st.dense*100).toFixed(0)}% / sparse ${(st.sparse*100).toFixed(0)}% / open ${(st.open*100).toFixed(0)}%, flowers ${(st.fc*100).toFixed(1)}% (big ${(st.big*100).toFixed(1)}%), 6 colours, clustering ${(st.same*100).toFixed(0)}%/${(st.sameCol*100).toFixed(0)}%`)
+ // Ground cover detail follows quality as a subset: lower quality never adds plants.
+ const q=k=>{run(d,`Q=Object.assign({},Q,{plant:${k}});rebuild(vista.x>>4,vista.z>>4)`);return run(d,'(()=>{let p=0;for(let i=8;i<opaqueW.n;i+=36)if(Math.floor((opaqueW.a[i]%256)/32)===6)p++;return p})()')};
+ const hi=q(1),lo=q(.4);run(d,'Q=QUALITY[qualityName]');assert(hi>lo&&lo>0,`plants scale with quality (${lo} < ${hi})`);
+ // Mined trees stay mined after their chunk is evicted and regenerated; placed blocks persist inside forests.
+ const tr=JSON.parse(run(d,`(()=>{for(let x=944;x<1000;x++)for(let z=880;z<940;z++)for(let y=150;y>60;y--){const t=get(x,y,z);if(t===4)return JSON.stringify([x,y,z])}return 'null'})()`));
+ assert(tr,'found a trunk');run(d,`edit(${tr},0);edit(${tr[0]},${tr[1]+1},${tr[2]},8)`);run(d,`blocks.delete(chunkKey(${tr[0]},${tr[2]}));lastData=null`);
+ assert.equal(d.api.get(...tr),0,'mined log not regrown');assert.equal(d.api.get(tr[0],tr[1]+1,tr[2]),8,'placed block persists');
+ console.log(`PASS: quality subset (${lo}/${hi} plant quads), edits survive regeneration`)}
 // Performance is profiled in a real browser (Node's vm sandbox makes global lookups ~10x slower); see README.
 
 // Scenic HUD preferences and photo mode must not leak held inputs or edit the world.
