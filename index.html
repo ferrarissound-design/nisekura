@@ -98,9 +98,22 @@ function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);g
 // Pixel materials are evaluated in face-local UVs: no external texture/CDN requests.
 const vertexSource=`
 attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
-uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect;
+uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform float clock;
 varying vec3 col; varying vec2 uv; varying float mat; varying float depth;
-void main(){vec3 p=aPos-eye;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
+void main(){
+vec3 pos=aPos;
+// Only grass tufts (15) and flowers (17) bend; solid terrain and animals stay still.
+if((aMat>14.5&&aMat<15.5)||(aMat>16.5&&aMat<17.5)){
+ float xFixed=step(.25,fract(aPos.x));
+ // The two crossed quads share a stable plant origin and wind phase.
+ vec2 root=vec2(aPos.x-mix(aUV.x,.5,xFixed),aPos.z-mix(.5,aUV.x,xFixed));
+ float phase=dot(root,vec2(1.73,2.41));
+ float gust=pow(.5+.5*sin(clock*.52+dot(root,vec2(.025,.018))),4.0);
+ float flex=mix(1.0,1.25,step(16.5,aMat));
+ pos.x+=aUV.y*flex*(.014*sin(clock*1.35+phase)+gust*(.085+.045*sin(clock*2.2+phase*.8)));
+ pos.z+=aUV.y*flex*(.012*sin(clock*1.05+phase*.63)+gust*.055*sin(clock*1.8+phase));
+}
+vec3 p=pos-eye;float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;
 float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
 gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*1.00125-.200125,dd);col=aColor;uv=aUV;mat=aMat;depth=dd;}`;
 const fragmentSource=`
