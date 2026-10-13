@@ -88,7 +88,7 @@ body:has(#menu:not(.hidden)) #bar{display:none}
 body:has(#menu:not(.hidden)) #compass,body:has(#craft:not(.hidden)) #compass{display:none!important}
 @media(max-height:480px){#compass{top:calc(max(6px,env(safe-area-inset-top)) + 56px);width:min(255px,calc(100vw - 220px));min-width:172px}#compassInfo{font-size:10px}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>GRAND VISTA · v5.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>GRAND VISTA · v5.2</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"><div id="compassHeading"></div></div>
  <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -99,10 +99,10 @@ body:has(#menu:not(.hidden)) #compass,body:has(#craft:not(.hidden)) #compass{dis
   <div class="title-pair"><button id="mode" class="title-button">モード：素材集め</button><button id="quality" class="title-button">画質：標準</button></div>
   <button id="home" class="title-button">出発地点へ戻る</button>
   <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v5.0</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v5.2</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -116,6 +116,7 @@ const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木'
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
 const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
+const BENCH=(()=>{try{return new URLSearchParams(location.search).has('bench')}catch(e){return false}})();
 let timeOverride=null;try{const q=new URLSearchParams(location.search).get('time');if(q!==null&&Number.isFinite(+q))timeOverride=((+q%1)+1)%1}catch(e){}
 const player={x:32.5,y:25,z:32.5},keys={},joy={x:0,y:0};let saved=null;
 try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number.isFinite(saved.dayTime))dayTime=((saved.dayTime%1)+1)%1;if(Number.isFinite(saved.seed))seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
@@ -123,8 +124,11 @@ try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number
 const terrainVersion=saved?.version===1?(saved.terrainVersion||1):4,GRAND=terrainVersion>=4;
 const H=GRAND?192:96,SEA=GRAND?62:10,CHUNK_SIZE=CHUNK*CHUNK*H;
 // Quality presets: near = voxel radius in chunks, far = LOD view distance in blocks, split = LOD detail factor.
-const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8}};
-let qualityName='standard';try{const q=localStorage.getItem(QUALITY_KEY);if(QUALITY[q])qualityName=q}catch(e){}
+const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320}};
+// First run picks a preset from the device; afterwards the player's choice is remembered. ?quality= overrides one session.
+function autoQuality(){try{const mem=navigator.deviceMemory||0,cores=navigator.hardwareConcurrency||4,coarse=matchMedia('(pointer:coarse)').matches;if((mem&&mem<=2)||cores<=2)return'low';if(!coarse&&cores>=8&&(!mem||mem>=8))return'high';return'standard'}catch(e){return'standard'}}
+let qualityName=autoQuality(),qualityAuto=true;try{const q=localStorage.getItem(QUALITY_KEY);if(QUALITY[q]){qualityName=q;qualityAuto=false}}catch(e){}
+try{const q=new URLSearchParams(location.search).get('quality');if(QUALITY[q]){qualityName=q;qualityAuto=false}}catch(e){}
 let Q=QUALITY[qualityName];
 const idx=(x,y,z)=>x+W*(z+W*y),inside=(x,y,z)=>x>=0&&z>=0&&y>=0&&x<W&&z<W&&y<H;
 const chunkKey=(x,z)=>Math.floor(x/CHUNK)+','+Math.floor(z/CHUNK);
@@ -527,7 +531,7 @@ function streamChunks(initial=false){
  }
  let built=0;const start=performance.now();
  if(initial){while(chunkQueue.length&&Math.max(Math.abs(chunkQueue[0][0]-cx),Math.abs(chunkQueue[0][1]-cz))<=1){rebuild(...chunkQueue.shift());built++}}
- else while(chunkQueue.length&&built<4&&(built===0||performance.now()-start<Q.budget)){rebuild(...chunkQueue.shift());built++}
+ else while(chunkQueue.length&&built<4&&(built===0||performance.now()-start<Q.budget*loadScale)){rebuild(...chunkQueue.shift());built++}
  if(built)computeReady();
  return built
 }
@@ -542,8 +546,9 @@ function lodTile(size,x0,z0){const k=lodKey(size,x0,z0);let t=lodTiles.get(k);if
 const WATER_DEEP=[.09,.24,.5];
 function waterColor(d){return d<=1?[.36,.72,.74]:d<5?mix3([.36,.72,.74],[.19,.55,.72],(d-1)/4):d<14?mix3([.19,.55,.72],[.13,.38,.64],(d-5)/9):mix3([.13,.38,.64],WATER_DEEP,Math.min(1,(d-14)/14))}
 const STONE=defsRGB[3],DIRT=[.49,.36,.24],SAND=defsRGB[6],SNOW=defsRGB[12],CANOPY=[0,5,7,6,8,2];
-function* buildTile(t){
- const s=t.step,N=LOD_N,n=N+2,x0=t.x0,z0=t.z0,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n);
+// Pure tile mesher: writes vertices into lw and returns bounds. Runs on the main thread or inside the LOD worker.
+function* tileMesh(s,x0,z0){
+ const N=LOD_N,n=N+2,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n);
  for(let j=0;j<n;j++){for(let i=0;i<n;i++){const x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1),k=j*n+i;
    if(x<0||z<0||x>=W||z>=W){hs[k]=VOID;continue}
    if(GRAND){hs[k]=height4(x,z);hum[k]=humidity(x,z);bir[k]=birchiness(x,z)}else hs[k]=height(x,z)}
@@ -575,9 +580,9 @@ function* buildTile(t){
    if(can[k]&&mt>g){const lo=Math.max(bottom,g),f=Math.min(1,(mt-lo)/(mt-g)),c=lc[k];wall(d,xa,xb,za,zb,lo,mt,mix3(c,[c[0]*.3,c[1]*.34,c[2]*.3],f),c,lightOf[d]*.85,2)}
    if(bottom<g){const yt=Math.min(g,mt),tall=g-bottom>3.5,ct=su===1?mix3(tc[k],DIRT,.45):tc[k],cb=su===6?SAND:tall||su!==1?STONE:DIRT;wall(d,xa,xb,za,zb,bottom,yt,cb,ct,lightOf[d],0)}}}
   if((j&7)===7)yield}
- if(!renderReady)return;
- if(!t.buffer)t.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,t.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(lw.buf,0,lw.n*12),gl.STATIC_DRAW);
- t.quads=lw.n/4;t.ymin=Math.max(0,Math.floor(ymin));t.ymax=Math.ceil(ymax)+1;t.ready=true}
+ return{quads:lw.n/4,ymin:Math.max(0,Math.floor(ymin)),ymax:Math.ceil(ymax)+1}}
+function uploadTile(t,bytes,r){if(!renderReady)return;if(!t.buffer)t.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,t.buffer);gl.bufferData(gl.ARRAY_BUFFER,bytes,gl.STATIC_DRAW);t.quads=r.quads;t.ymin=r.ymin;t.ymax=r.ymax;t.bytes=bytes.byteLength;t.ready=true}
+function* buildTile(t){const r=yield* tileMesh(t.step,t.x0,t.z0);uploadTile(t,new Uint8Array(lw.buf,0,lw.n*12),r)}
 function buildOcean(){oceanTiles=[];for(let ox=-1;ox<=1;ox++)for(let oz=-1;oz<=1;oz++){if(!ox&&!oz)continue;lw.n=0;lgrow(4);const y=SEA+.875;
  lvert(0,y,0,WATER_DEEP,1,17);lvert(W,y,0,WATER_DEEP,1,17);lvert(W,y,W,WATER_DEEP,1,17);lvert(0,y,W,WATER_DEEP,1,17);
  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(lw.buf,0,lw.n*12),gl.STATIC_DRAW);
@@ -594,18 +599,41 @@ function lodVisit(size,x0,z0,F){
   for(const [a,b]of kids){const k=lodTile(h,a,b);k.used=lodFrame;if(!k.ready){all=false;if(!k.building)lodRequests.push({t:k,p:d/Math.sqrt(h)})}}
   if(all){for(const [a,b]of kids)lodVisit(h,a,b,F);return}}
  if(t.ready)lodDraw.push(t);else if(!t.building)lodRequests.push({t,p:d/Math.sqrt(size)})}
+// ---- LOD worker: tile meshes are built off the main thread when Workers are available (falls back to frame-sliced generators).
+function lodWorkerSource(){
+ const k=v=>JSON.stringify(v);
+ return `'use strict';const W=${W},H=${H},SEA=${SEA},ORIGIN=${ORIGIN},GRAND=${GRAND},terrainVersion=${terrainVersion},seed=${k(seed)},LOD_N=${LOD_N},VOID=${VOID};
+const perm=new Uint8Array(${k(Array.from(perm))}),defsRGB=${k(defsRGB)},CANOPY=${k(CANOPY)},STONE=${k(STONE)},DIRT=${k(DIRT)},SAND=${k(SAND)},SNOW=${k(SNOW)},WATER_DEEP=${k(WATER_DEEP)};
+const smooth=${smooth},mix3=${mix3};let gLand=0,gMount=0;
+const lw={buf:new ArrayBuffer(1<<20),n:0};lw.i16=new Int16Array(lw.buf);lw.u8=new Uint8Array(lw.buf);
+${[rand,noise,height,grad,pn,fbm,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,waterColor,lgrow,lvert,tileMesh].join('\n')}
+onmessage=e=>{const{id,step,x0,z0}=e.data,it=tileMesh(step,x0,z0);let r;while(!(r=it.next()).done);const bytes=lw.u8.slice(0,lw.n*12);postMessage({id,bytes,r:r.value},[bytes.buffer])};`}
+let lodWorker=null,lodPending=new Map(),lodNextId=1;
+function startLodWorker(){
+ try{if(typeof Worker==='undefined'||typeof Blob==='undefined'||!URL.createObjectURL)return;
+  const url=URL.createObjectURL(new Blob([lodWorkerSource()],{type:'text/javascript'}));lodWorker=new Worker(url);
+  lodWorker.onmessage=e=>{const{id,bytes,r}=e.data,t=lodPending.get(id);lodPending.delete(id);if(!t)return;t.building=false;
+   // The tile may have been evicted (or the context lost) while the worker was busy.
+   if(lodTiles.get(lodKey(t.size,t.x0,t.z0))===t)uploadTile(t,bytes,r)};
+  lodWorker.onerror=e=>{console.warn('LOD worker disabled:',e.message||e);stopLodWorker()}}
+ catch(e){console.warn('LOD worker unavailable:',e);lodWorker=null}}
+function stopLodWorker(){if(lodWorker)lodWorker.terminate();lodWorker=null;for(const t of lodPending.values())t.building=false;lodPending.clear()}
 function lodWork(budget,maxSteps){if(!lodOK)return;
  const start=performance.now();let steps=0;
- while(steps<maxSteps){
-  if(!lodJob){let best=null;for(const r of lodRequests)if(!r.t.ready&&!r.t.building&&(!best||r.p<best.p))best=r;if(!best)break;best.t.building=true;lodJob={t:best.t,it:buildTile(best.t)}}
+ const next=()=>{let best=null;for(const r of lodRequests)if(!r.t.ready&&!r.t.building&&(!best||r.p<best.p))best=r;return best};
+ if(lodWorker){while(lodPending.size<2){const best=next();if(!best)break;best.t.building=true;const id=lodNextId++;lodPending.set(id,best.t);lodWorker.postMessage({id,step:best.t.step,x0:best.t.x0,z0:best.t.z0})}}
+ else while(steps<maxSteps){
+  if(!lodJob){const best=next();if(!best)break;best.t.building=true;lodJob={t:best.t,it:buildTile(best.t)}}
   const res=lodJob.it.next();steps++;if(res.done){lodJob.t.building=false;lodJob=null}
   if(performance.now()-start>budget)break}
- if(lodTiles.size>260){const old=[...lodTiles.values()].filter(t=>t.used<lodFrame-30&&!t.building).sort((a,b)=>a.used-b.used);
-  for(const t of old){if(lodTiles.size<=200)break;if(t.buffer)gl.deleteBuffer(t.buffer);lodTiles.delete(lodKey(t.size,t.x0,t.z0))}}}
+ // Keep far-field GPU memory bounded per quality preset.
+ if(lodTiles.size>Q.lodCap){const old=[...lodTiles.values()].filter(t=>t.used<lodFrame-30&&!t.building).sort((a,b)=>a.used-b.used);
+  for(const t of old){if(lodTiles.size<=Q.lodCap*.78)break;if(t.buffer)gl.deleteBuffer(t.buffer);lodTiles.delete(lodKey(t.size,t.x0,t.z0))}}}
 
 try{initRenderer()}catch(e){console.error(e);$('saveInfo').textContent='描画の初期化に失敗しました。ブラウザを更新してください。'}
+if(lodOK)startLodWorker();
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();contextLost=true;renderReady=false});
-canvas.addEventListener('webglcontextrestored',()=>{contextLost=false;chunks.clear();lodTiles.clear();lodJob=null;try{initRenderer()}catch(e){console.error(e)}streamDirty=true;streamChunks(true)});
+canvas.addEventListener('webglcontextrestored',()=>{contextLost=false;chunks.clear();lodTiles.clear();lodJob=null;for(const t of lodPending.values())t.building=false;lodPending.clear();try{initRenderer()}catch(e){console.error(e)}streamDirty=true;streamChunks(true)});
 streamChunks(true);
 function edit(x,y,z,t){set(x,y,z,t);dirty=true;const near=new Set();for(const dx of[-1,0,1])for(const dz of[-1,0,1])near.add(chunkKey(x+dx,z+dz));for(const c of near)if(chunks.has(c))rebuild(...c.split(',').map(Number))}
 function collides(p){if(p.x<.3||p.z<.3||p.x>W-.3||p.z>W-.3||p.y<1||p.y+1.8>=H)return true;for(let x=Math.floor(p.x-.29);x<=Math.floor(p.x+.29);x++)for(let y=Math.floor(p.y+.001);y<=Math.floor(p.y+1.79);y++)for(let z=Math.floor(p.z-.29);z<=Math.floor(p.z+.29);z++)if(solid(x,y,z))return true;return false}
@@ -618,12 +646,12 @@ function mine(){if(paused)return;swing=1;hit=ray();if(!hit)return;if(hit.t===11)
 function place(){if(paused)return;swing=1;hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
 function jump(){if(flying)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
 function toggleFlight(){if(paused||suspended)return;flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
-function save(){if(resettingWorld)return false;try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player,yaw,pitch,dayTime}));dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true}catch(e){$('saveInfo').textContent='保存できません。ブラウザの保存容量・設定を確認してください';return false}}
+function save(){if(resettingWorld||benchLock)return false;try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player,yaw,pitch,dayTime}));dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true}catch(e){$('saveInfo').textContent='保存できません。ブラウザの保存容量・設定を確認してください';return false}}
 function clearInput(){for(const k in keys)delete keys[k];joy.x=joy.y=0;$('knob').style.transform='';mineHeld=placeHeld=riseHeld=descendHeld=false;lookId=stickId=null}
 function pause(){paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
 function play(){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
-function setQuality(name){if(!QUALITY[name])return;qualityName=name;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
+function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
 $('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(!confirm('今の世界を消して新しく作りますか？'))return;
  // Prevent blur/visibilitychange/pagehide from restoring the deleted world while navigating.
  resettingWorld=true;
@@ -786,25 +814,31 @@ function updateCompass(){
 const DAY_SECONDS=1200;
 function advanceDay(dt){if(timeOverride!==null){dayTime=timeOverride;return}const e=sunFromTime(dayTime)[1];dayTime=(dayTime+dt/DAY_SECONDS*(e<-.12?2.5:1))%1}
 function clockText(){const m=Math.floor(dayTime*1440);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
-let last=performance.now(),frames=0,fps=60,fpsTime=0,renderScale=1,perfTime=0,perfFrames=0,lastCompassUpdate=-Infinity;
+let loadScale=1,slowWindows=0,slowWarned=false,last=performance.now(),frames=0,fps=60,fpsTime=0,renderScale=1,perfTime=0,perfFrames=0,lastCompassUpdate=-Infinity;
 function frame(now){
  const raw=Math.max(0,(now-last)/1000),dt=Math.min(.035,raw);last=now;
  if(suspended||contextLost){requestAnimationFrame(frame);return}
  const titleOpen=isTitleOpen();
  if(now-lastCompassUpdate>=100||paused){updateCompass();lastCompassUpdate=now}
+ if(bench)benchStep(raw,dt);
  if(!paused){time+=dt;update(dt);animateWorld(dt);advanceDay(dt)}
  else if(titleOpen)time+=dt*.65; // Keep the background grass, water, and clouds alive.
  // Wind alternates between calm spells and gusty periods; grass, leaves and clouds share it.
  windStr=Math.min(1,Math.max(0,.45+.55*Math.sin(time*.07)*Math.sin(time*.031+1.7)+.25*Math.sin(time*.19)));cloudDrift+=dt*(.5+windStr*1.6);
  streamChunks();
  // Dynamic resolution: drop render scale when the frame rate sags, recover when there is headroom.
- perfFrames++;perfTime+=raw;if(perfTime>2){const f=perfFrames/perfTime;if(f<44&&renderScale>.6)renderScale=Math.max(.6,renderScale-.1);else if(f>57&&renderScale<1)renderScale=Math.min(1,renderScale+.05);perfFrames=0;perfTime=0}
+ perfFrames++;perfTime+=raw;if(perfTime>2){const f=perfFrames/perfTime;if(f<44&&renderScale>.6)renderScale=Math.max(.6,renderScale-.1);else if(f>57&&renderScale<1)renderScale=Math.min(1,renderScale+.05);
+  // Under load, terrain building yields more of each frame to rendering.
+  loadScale=f<40?.5:f>52?1:loadScale;
+  slowWindows=!paused&&f<28&&renderScale<=.6?slowWindows+1:0;
+  if(slowWindows>=3&&!slowWarned&&qualityName!=='low'&&!bench){slowWarned=true;toast('動作が重いようです。メニューの「画質」を下げると快適になります')}
+  perfFrames=0;perfTime=0}
  const ratio=Math.min(devicePixelRatio||1,Q.dpr)*renderScale,w=Math.max(1,Math.floor(innerWidth*ratio)),h=Math.max(1,Math.floor(innerHeight*ratio));
  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}
  gl.viewport(0,0,w,h);
  const cam=titleOpen?titleCamera():{x:player.x,y:player.y+1.62,z:player.z,yaw,pitch};
  if(renderReady)render(cam,titleOpen,w,h);
- lodWork(Q.budget*.6,64);
+ lodWork(Q.budget*.6*loadScale,64);
  if(!titleOpen)$('target').textContent=hit?defs[hit.t][0]:'';
  frames++;fpsTime+=raw;
  if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('stats').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'} · ${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''}`}
@@ -813,7 +847,33 @@ function frame(now){
  requestAnimationFrame(frame)
 }
 refresh();
-try{if(saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');streamChunks(true);toast('前のプレイを再開した')}}catch(e){}
+try{if(!BENCH&&saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');streamChunks(true);toast('前のプレイを再開した')}}catch(e){}
+// ---- Benchmark (?bench): a fixed 33 s flight (orbit over the vista, then a low pass toward the coast).
+// It never writes the save, so it is safe to run on a real device with an existing world.
+let bench=null,benchLock=false,benchReport=null;
+function startBench(){benchLock=true;paused=false;suspended=false;$('menu').classList.add('hidden');$('craft').classList.add('hidden');flying=true;clearInput();refresh();
+ if(timeOverride===null)timeOverride=.45;const bx=vista?vista.x:Math.floor(player.x),bz=vista?vista.z:Math.floor(player.z);
+ bench={t:0,frames:[],bx,bz,by:(vista?vista.eye:player.y)+40,builds:0};toast('性能を計測しています…（約35秒・操作不要）')}
+function benchStep(raw,dt){const b=bench,th=GRAND?height4:height;b.t+=Math.min(raw,.1);
+ if(b.t<15){const a=b.t/15*Math.PI*2;player.x=b.bx+Math.sin(a)*120;player.z=b.bz+Math.cos(a)*120;player.y=Math.max(b.by,th(Math.floor(player.x),Math.floor(player.z))+15);yaw=Math.atan2(Math.cos(a),-Math.sin(a))-.5;pitch=-.18}
+ else{const u=b.t-15;player.x=Math.min(W-8,b.bx+u*18);player.z=Math.min(W-8,b.bz+u*6);const g=Math.max(th(Math.floor(player.x),Math.floor(player.z)),SEA)+10;player.y+=(g-player.y)*Math.min(1,dt*3);yaw=Math.atan2(18,6);pitch=-.12}
+ player.x=Math.max(8,player.x);player.z=Math.max(8,player.z);player.y=Math.min(H-3,player.y);
+ if(b.t>3)b.frames.push(raw*1000);
+ if(b.t>=33)finishBench()}
+function finishBench(){const f=bench.frames.slice().sort((a,b)=>a-b),n=f.length||1,mean=f.reduce((a,b)=>a+b,0)/n,p99=f[Math.min(f.length-1,Math.floor(n*.99))]||0;
+ let near=0,far=0;for(const ch of chunks.values())near+=(ch.quads+ch.waterQuads)*144;for(const t of lodTiles.values())far+=t.bytes||0;
+ const heap=performance.memory?.usedJSHeapSize;
+ benchReport={quality:Q.label+(qualityAuto?'（自動）':''),frames:f.length,avgFps:+(1000/mean).toFixed(1),low1Fps:+(1000/p99).toFixed(1),worstMs:+(f[f.length-1]||0).toFixed(1),over33:+(f.filter(x=>x>33.4).length/n*100).toFixed(1),
+  resolution:canvas.width+'×'+canvas.height,renderScale:Math.round(renderScale*100),nearChunks:chunks.size,lodTiles:[...lodTiles.values()].filter(t=>t.ready).length,gpuMB:+((near+far)/1048576).toFixed(1),heapMB:heap?+(heap/1048576).toFixed(1):null,worker:!!lodWorker,
+  device:(typeof navigator!=='undefined'?navigator.userAgent:'').slice(0,120)};
+ bench=null;paused=true;console.log('JOCRAFT2 BENCH',JSON.stringify(benchReport));window.__bench=benchReport;
+ const r=benchReport,text=`JOCRAFT2 性能計測（v5.2）\n画質：${r.quality} / 描画 ${r.resolution}（${r.renderScale}%）\n平均 ${r.avgFps} FPS / 1%低下 ${r.low1Fps} FPS\n最悪フレーム ${r.worstMs} ms / 33ms超え ${r.over33}%\n近景 ${r.nearChunks}チャンク / 遠景 ${r.lodTiles}タイル\nGPU推定 ${r.gpuMB} MB${r.heapMB?` / JS ${r.heapMB} MB`:''} / ワーカー ${r.worker?'有効':'無効'}\n${r.device}`;
+ const wrap=document.createElement('div'),panel=document.createElement('div'),pre=document.createElement('pre'),copy=document.createElement('button'),close=document.createElement('button');
+ wrap.className='overlay';panel.className='panel';pre.textContent=text;pre.style.cssText='white-space:pre-wrap;font:12px/1.7 monospace;user-select:text;-webkit-user-select:text';
+ copy.className=close.className='primary';copy.textContent='結果をコピー';close.textContent='閉じる（通常プレイへ）';
+ copy.onclick=()=>{try{navigator.clipboard.writeText(text);copy.textContent='コピーした ✓'}catch(e){}};close.onclick=()=>{location.href=location.pathname};
+ panel.appendChild(pre);panel.appendChild(copy);panel.appendChild(close);wrap.appendChild(panel);(document.body||{appendChild(){}}).appendChild(wrap)}
+if(BENCH)startBench();
 requestAnimationFrame(frame);
 window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,cows,animateWorld,vertexSource,fragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
 </script></html>
