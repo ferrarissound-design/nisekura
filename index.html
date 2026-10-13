@@ -88,10 +88,57 @@ body:has(#menu:not(.hidden)) #bar{display:none}
 body:has(#menu:not(.hidden)) #compass,body:has(#craft:not(.hidden)) #compass{display:none!important}
 @media(max-height:480px){#compass{top:calc(max(6px,env(safe-area-inset-top)) + 56px);width:min(255px,calc(100vw - 220px));min-width:172px}#compassInfo{font-size:10px}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>GRAND VISTA · v5.2</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="compass" class="hidden" aria-label="探索コンパス">
+
+/* Scenic HUD: visual weight is reduced independently of touch target size. */
+.top{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));align-items:flex-start}
+.top .brand{display:none}.top>div:first-child{pointer-events:none}
+#stats{font-size:11px;margin-top:5px;line-height:1.5;max-width:calc(100vw - 132px)}
+#statsDetails{display:none;font-size:10px;color:#edf4ef}
+body.hud-details #statsDetails{display:block}
+.hud-tools{display:flex;gap:4px}
+.hud-tools button,#photoExit{min-width:44px;height:44px;padding:6px;border-color:#ffffff30;background:#10272140;border-radius:8px;text-shadow:0 1px 3px #000}
+#compass{top:calc(max(12px,env(safe-area-inset-top)) + 47px);width:min(240px,calc(100vw - 32px));font-size:10px}
+body.hud-details #compass{top:calc(max(12px,env(safe-area-inset-top)) + 66px)}
+#compassTrack{height:23px;background:#112b3059;border-color:#ffffff38;border-radius:5px;box-shadow:none;backdrop-filter:none}
+#compassTrack::after{height:23px;width:1px}.compass-tick{top:4px}.compass-tick.cardinal{top:3px;font-size:11px}
+#compassHeading{top:4px;right:4px;background:#10272180}
+#compassInfo{gap:4px;margin-top:2px;flex-wrap:wrap}
+#compassHome,#compassWarning{padding:2px 5px;border-color:#ffffff26;background:#10292b66}
+#compassWarning{background:#64371dbb}#compassHomeArrow{font-size:11px}
+#stick{left:max(16px,env(safe-area-inset-left));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 72px);width:104px;height:104px;border:1px solid #ffffff40;background:#1830260d}
+#knob{width:36px;height:36px;left:33px;top:33px;border:1px solid #ffffff70;background:#ffffff40}
+.actions{right:max(12px,env(safe-area-inset-right));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 72px);grid-template-columns:60px 60px;gap:5px}
+.actions button{height:44px;min-width:44px;padding:4px;font-size:11px;background:#10272140;border:1px solid #ffffff38;border-radius:7px;text-shadow:0 1px 3px #000}
+.actions #jump{background:#315b434d}.actions #fly.active{background:#225d897d;border-color:#b6e7ff;box-shadow:inset 0 -2px #b6e7ff}
+.actions button:active,.hud-tools button:active{background:#467857aa}
+#bar{max-width:calc(100vw - 16px);padding:2px;gap:1px;border:1px solid #ffffff30;border-radius:7px;background:#10232240}
+#bar button{flex:0 0 auto;width:44px;height:46px;border:1px solid #ffffff26;border-radius:4px;background:#25362d45;font-size:9px}
+#bar button.selected{border:1px solid #efffc5;background:#61764985;box-shadow:none}
+#bar .block-icon{width:20px;height:20px;margin-bottom:2px}
+#cross{font-size:22px;color:#ffffffcf}#target{font-size:11px}
+#hint{max-width:calc(100vw - 32px);white-space:normal;text-align:center;padding:5px 10px;background:#132b268c;font-size:11px}
+body.hud-minimal #stats,body.hud-minimal #photoBtn{display:none}
+body.hud-minimal #compass{width:190px;top:max(12px,env(safe-area-inset-top))}
+body.hud-minimal #compassHomeText{font-size:9px}
+body.hud-minimal #stick{border-color:#ffffff29;background:transparent}
+body.hud-minimal #knob{width:30px;height:30px;left:36px;top:36px;background:#ffffff30}
+body.hud-minimal .actions button{background:#10272126;border-color:#ffffff24}
+body.hud-minimal .actions #fly.active{background:#225d8970;border-color:#b6e7ff}
+body.hud-minimal #bar{background:transparent;border-color:transparent}
+body.hud-minimal #bar button{background:#10272126}
+body.hud-minimal #bar button.selected{background:#61764970;border-color:#efffc5}
+body.hud-minimal #cross{font-size:18px}
+#photoExit{display:none;position:fixed;z-index:20;top:max(10px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));font-size:11px}
+body.photo-mode .top,body.photo-mode #compass,body.photo-mode #bar,body.photo-mode #stick,body.photo-mode .actions,body.photo-mode #hint,body.photo-mode #cross,body.photo-mode #target{display:none!important}
+body.photo-mode #photoExit{display:block}
+body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has(#craft:not(.hidden)) .actions,body:has(#craft:not(.hidden)) #bar{visibility:hidden}
+@media(max-width:374px){#bar{width:calc(100vw - 16px);overflow-x:auto;justify-content:flex-start;touch-action:pan-x}}
+@media(max-height:480px){#compass{top:max(6px,env(safe-area-inset-top));width:min(220px,calc(100vw - 310px));min-width:170px}body.hud-details #compass{top:max(6px,env(safe-area-inset-top))}#stats{max-width:230px}#statsDetails{max-width:200px}.actions,#stick{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 58px)}}
+
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>GRAND VISTA · v5.2</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"><div id="compassHeading"></div></div>
  <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
-</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
+</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
 <div class="title-stage">
  <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">あの山の向こうへ！</span></div>
  <div class="title-menu">
@@ -99,7 +146,9 @@ body:has(#menu:not(.hidden)) #compass,body:has(#craft:not(.hidden)) #compass{dis
   <div class="title-pair"><button id="mode" class="title-button">モード：素材集め</button><button id="quality" class="title-button">画質：標準</button></div>
   <button id="home" class="title-button">出発地点へ戻る</button>
   <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
+  <div class="title-pair"><button id="hudMode" class="title-button" aria-pressed="false">HUD：通常</button><button id="hudDetails" class="title-button" aria-pressed="false">詳細情報：OFF</button></div>
+  <button id="photoMenu" class="title-button">スクショモード</button>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
 <div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v5.2</span></div>
@@ -118,6 +167,9 @@ const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
 const BENCH=(()=>{try{return new URLSearchParams(location.search).has('bench')}catch(e){return false}})();
 let timeOverride=null;try{const q=new URLSearchParams(location.search).get('time');if(q!==null&&Number.isFinite(+q))timeOverride=((+q%1)+1)%1}catch(e){}
+const HUD_KEY='jocraft2-hud';
+let hudMinimal=false,hudDetails=false,photoMode=false;
+try{const pref=JSON.parse(localStorage.getItem(HUD_KEY));hudMinimal=pref?.minimal===true;hudDetails=pref?.details===true}catch(e){}
 const player={x:32.5,y:25,z:32.5},keys={},joy={x:0,y:0};let saved=null;
 try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number.isFinite(saved.dayTime))dayTime=((saved.dayTime%1)+1)%1;if(Number.isFinite(saved.seed))seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
 // Saved worlds keep the generator and height they were created with. New worlds use GRAND VISTA terrain (v4).
@@ -642,13 +694,30 @@ function ray(){const d=[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(y
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
 function refresh(){const bar=$('bar');bar.innerHTML='';slots.forEach((t,i)=>{const b=document.createElement('button');b.className=i===selected?'selected':'';b.innerHTML=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;b.onclick=()=>{selected=i;refresh()};bar.appendChild(b)});$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
-function mine(){if(paused)return;swing=1;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
-function place(){if(paused)return;swing=1;hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
-function jump(){if(flying)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
-function toggleFlight(){if(paused||suspended)return;flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
+function mine(){if(paused||photoMode)return;swing=1;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
+function place(){if(paused||photoMode)return;swing=1;hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
+function jump(){if(flying||photoMode)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
+function toggleFlight(){if(paused||suspended||photoMode)return;flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
 function save(){if(resettingWorld||benchLock)return false;try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player,yaw,pitch,dayTime}));dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true}catch(e){$('saveInfo').textContent='保存できません。ブラウザの保存容量・設定を確認してください';return false}}
 function clearInput(){for(const k in keys)delete keys[k];joy.x=joy.y=0;$('knob').style.transform='';mineHeld=placeHeld=riseHeld=descendHeld=false;lookId=stickId=null}
-function pause(){paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('menu').classList.remove('hidden');save()}
+function applyHUD(){
+ document.body.classList.toggle('hud-minimal',hudMinimal);document.body.classList.toggle('hud-details',hudDetails);
+ $('hudMode').textContent='HUD：'+(hudMinimal?'最小':'通常');$('hudMode').setAttribute('aria-pressed',String(hudMinimal));
+ $('hudDetails').textContent='詳細情報：'+(hudDetails?'ON':'OFF');$('hudDetails').setAttribute('aria-pressed',String(hudDetails));
+}
+function toggleHUD(){hudMinimal=!hudMinimal;applyHUD();saveHUD()}
+function toggleDetails(){hudDetails=!hudDetails;applyHUD();saveHUD()}
+function saveHUD(){try{localStorage.setItem(HUD_KEY,JSON.stringify({minimal:hudMinimal,details:hudDetails}))}catch(e){}}
+function setPhotoMode(on){
+ if(on===photoMode)return;
+ clearInput();photoMode=on;document.body.classList.toggle('photo-mode',on);
+ if(on){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');document.exitPointerLock?.();$('photoExit').focus({preventScroll:true})}
+ else if(!paused&&matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}
+}
+$('hudMode').onclick=toggleHUD;$('hudDetails').onclick=toggleDetails;
+$('photoBtn').onclick=$('photoMenu').onclick=()=>setPhotoMode(true);$('photoExit').onclick=()=>setPhotoMode(false);
+applyHUD();
+function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInput();document.exitPointerLock?.();$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
 function play(){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
 function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
@@ -659,11 +728,11 @@ $('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creativ
  try{sessionStorage.removeItem('nisekura-playing')}catch(e){}
  location.href=location.pathname+'?seed='+Math.floor(Math.random()*1000000)
 };
-$('craftBtn').onclick=()=>{paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('craft').classList.remove('hidden')};$('closeCraft').onclick=play;const recipes={plank:[4,1,7,4],brick:[3,3,8,4],glass:[6,2,9,2]};document.querySelectorAll('[data-recipe]').forEach(b=>b.onclick=()=>{const[a,n,c,m]=recipes[b.dataset.recipe];if(!creative&&(inventory[a]||0)<n){toast('材料が足りないよ');b.textContent='材料不足 — '+defs[a][0]+' '+n+' 必要';return}if(!creative)inventory[a]-=n;inventory[c]=(inventory[c]||0)+m;dirty=true;refresh();toast(defs[c][0]+'を'+m+'個つくった');b.textContent=defs[a][0]+' '+n+' → '+defs[c][0]+' '+m+' ✓'});
+$('craftBtn').onclick=()=>{if(photoMode)return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('craft').classList.remove('hidden')};$('closeCraft').onclick=play;const recipes={plank:[4,1,7,4],brick:[3,3,8,4],glass:[6,2,9,2]};document.querySelectorAll('[data-recipe]').forEach(b=>b.onclick=()=>{const[a,n,c,m]=recipes[b.dataset.recipe];if(!creative&&(inventory[a]||0)<n){toast('材料が足りないよ');b.textContent='材料不足 — '+defs[a][0]+' '+n+' 必要';return}if(!creative)inventory[a]-=n;inventory[c]=(inventory[c]||0)+m;dirty=true;refresh();toast(defs[c][0]+'を'+m+'個つくった');b.textContent=defs[a][0]+' '+n+' → '+defs[c][0]+' '+m+' ✓'});
 let mineHeld=false,placeHeld=false,actionClock=0,lookId=null,stickId=null,lx=0,ly=0;
-function hold(id,fn,flag){$(id).addEventListener('pointerdown',e=>{e.preventDefault();$(id).setPointerCapture(e.pointerId);fn();if(flag==='mine')mineHeld=true;if(flag==='place')placeHeld=true;if(flag==='rise')riseHeld=true;if(flag==='down')descendHeld=true;actionClock=.3});for(const ev of ['pointerup','pointercancel','lostpointercapture'])$(id).addEventListener(ev,()=>{if(flag==='mine')mineHeld=false;if(flag==='place')placeHeld=false;if(flag==='rise')riseHeld=false;if(flag==='down')descendHeld=false})}hold('mine',mine,'mine');hold('place',place,'place');hold('jump',jump,'rise');hold('down',()=>{},'down');$('fly').onclick=toggleFlight;
-$('stick').onpointerdown=e=>{if(paused)return;stickId=e.pointerId;$('stick').setPointerCapture(e.pointerId);moveStick(e)};function moveStick(e){if(e.pointerId!==stickId)return;const r=$('stick').getBoundingClientRect();let x=(e.clientX-r.left-r.width/2)/40,y=(e.clientY-r.top-r.height/2)/40,n=Math.max(1,Math.hypot(x,y));joy.x=x/n;joy.y=y/n;$('knob').style.transform=`translate(${joy.x*30}px,${joy.y*30}px)`}$('stick').onpointermove=moveStick;for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('stick').addEventListener(ev,()=>{stickId=null;joy.x=joy.y=0;$('knob').style.transform='' });
-canvas.onpointerdown=e=>{if(paused)return;if(e.pointerType==='mouse'&&document.pointerLockElement===canvas){if(e.button===0)mine();if(e.button===2)place();return}lookId=e.pointerId;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId)};canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;refresh()}};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
+function hold(id,fn,flag){$(id).addEventListener('pointerdown',e=>{e.preventDefault();if(paused||photoMode)return;$(id).setPointerCapture(e.pointerId);fn();if(flag==='mine')mineHeld=true;if(flag==='place')placeHeld=true;if(flag==='rise')riseHeld=true;if(flag==='down')descendHeld=true;actionClock=.3});for(const ev of ['pointerup','pointercancel','lostpointercapture'])$(id).addEventListener(ev,()=>{if(flag==='mine')mineHeld=false;if(flag==='place')placeHeld=false;if(flag==='rise')riseHeld=false;if(flag==='down')descendHeld=false})}hold('mine',mine,'mine');hold('place',place,'place');hold('jump',jump,'rise');hold('down',()=>{},'down');$('fly').onclick=toggleFlight;
+$('stick').onpointerdown=e=>{if(paused||photoMode)return;stickId=e.pointerId;$('stick').setPointerCapture(e.pointerId);moveStick(e)};function moveStick(e){if(e.pointerId!==stickId)return;const r=$('stick').getBoundingClientRect();let x=(e.clientX-r.left-r.width/2)/40,y=(e.clientY-r.top-r.height/2)/40,n=Math.max(1,Math.hypot(x,y));joy.x=x/n;joy.y=y/n;$('knob').style.transform=`translate(${joy.x*30}px,${joy.y*30}px)`}$('stick').onpointermove=moveStick;for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('stick').addEventListener(ev,()=>{stickId=null;joy.x=joy.y=0;$('knob').style.transform='' });
+canvas.onpointerdown=e=>{if(paused)return;if(!photoMode&&e.pointerType==='mouse'&&document.pointerLockElement===canvas){if(e.button===0)mine();if(e.button===2)place();return}lookId=e.pointerId;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId)};canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(e.code==='KeyP'&&!e.repeat&&!paused){e.preventDefault();setPhotoMode(!photoMode);return}if(photoMode){if(e.code==='Escape'){e.preventDefault();setPhotoMode(false)}return}if(e.code==='KeyH'&&!e.repeat){toggleHUD();return}if(e.code==='F3'){e.preventDefault();if(!e.repeat)toggleDetails();return}if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;refresh()}};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
 // Suspend simulation on actual backgrounding, then resume the same play state.
 window.onblur=()=>{clearInput();save()};
 window.onfocus=()=>{clearInput();last=performance.now()};
@@ -714,6 +783,7 @@ function moveAxis(axis,d){
  return true;
 }
 function update(dt){
+ if(photoMode)return;
  let right=(keys.KeyD?1:0)-(keys.KeyA?1:0)+joy.x,forward=(keys.KeyW?1:0)-(keys.KeyS?1:0)-joy.y;
  const n=Math.max(1,Math.hypot(right,forward));right/=n;forward/=n;
  const water=get(Math.floor(player.x),Math.floor(player.y+1),Math.floor(player.z))===10;
@@ -776,7 +846,7 @@ function render(cam,titleOpen,w,h){
  visible.sort((a,b)=>((b.cx*CHUNK+8-cam.x)**2+(b.cz*CHUNK+8-cam.z)**2)-((a.cx*CHUNK+8-cam.x)**2+(a.cz*CHUNK+8-cam.z)**2));
  for(const ch of visible)if(ch.waterQuads)drawQuads(ch.water,ch.waterQuads,bind,36);
  gl.depthMask(true);gl.disable(gl.BLEND);
- if(!titleOpen){hit=ray();drawOutline();drawTool()}else hit=null;
+ if(!titleOpen&&!photoMode){hit=ray();drawOutline();drawTool()}else hit=null;
 }
 // Navigation HUD uses only the existing player coordinates and yaw; it never queries terrain.
 const compassHUD=$('compass'),compassTrack=$('compassTrack'),compassHeading=$('compassHeading');
@@ -788,7 +858,7 @@ const compassNormalize=d=>(d%360+360)%360;
 const compassDelta=(target,heading)=>compassNormalize(target-heading+180)-180;
 const compassBearing=(dx,dz)=>compassNormalize(Math.atan2(dx,-dz)*180/Math.PI);
 function updateCompass(){
- if(paused||suspended){compassHUD.classList.add('hidden');return}
+ if(paused||suspended||photoMode){compassHUD.classList.add('hidden');return}
  compassHUD.classList.remove('hidden');
  // Engine yaw=0 looks toward +Z (south), yaw=PI/2 toward +X (east).
  const heading=compassNormalize(180-yaw*180/Math.PI);
@@ -802,7 +872,7 @@ function updateCompass(){
  const hx=homeX-player.x,hz=homeZ-player.z,homeDistance=Math.hypot(hx,hz);
  const bearing=compassBearing(hx,hz),turn=homeDistance<1?0:compassDelta(bearing,heading);
  compassHomeArrow.style.transform='rotate('+turn+'deg)';
- compassHomeText.textContent='⌂ 出発地点 '+Math.round(homeDistance)+'m';
+ compassHomeText.textContent=(hudMinimal?'⌂ ':'⌂ 出発地点 ')+Math.round(homeDistance)+'m';
  const edgeDistances=[player.z,W-1-player.x,W-1-player.z,player.x];
  const edgeNames=['北','東','南','西'];
  const nearest=Math.min(...edgeDistances),edge=edgeDistances.indexOf(nearest);
@@ -841,7 +911,7 @@ function frame(now){
  lodWork(Q.budget*.6*loadScale,64);
  if(!titleOpen)$('target').textContent=hit?defs[hit.t][0]:'';
  frames++;fpsTime+=raw;
- if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('stats').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'} · ${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''}`}
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''}`}
  $('hint').style.opacity=now>toastUntil?'0':'1';
  if(now-lastSave>15000&&!paused){save();lastSave=now}
  requestAnimationFrame(frame)
