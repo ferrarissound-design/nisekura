@@ -1,9 +1,9 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const script=fs.readFileSync(__dirname+'/index.html','utf8').match(/<script>([\s\S]*)<\/script>/)[1];
-function boot(saved,session={},prefs={}){const nodes={},storage={...prefs},events={};if(saved)storage['nisekura-v1']=saved;let triangles=0;
+function boot(saved,session={},prefs={}){const nodes={},storage={...prefs},events={},windowEvents={};if(saved)storage['nisekura-v1']=saved;let triangles=0;
 const gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true,createBuffer:()=>({}),getAttribLocation:()=>1,bufferData:(_,data)=>{assert(data.every(Number.isFinite));triangles+=data.length}}, {get:(o,k)=>k in o?o[k]:(()=>({}))});
 const node=()=>({style:{},classList:{values:new Set(),add(n){this.values.add(n)},remove(n){this.values.delete(n)},toggle(n,on){if(on)this.values.add(n);else this.values.delete(n)},contains(n){return this.values.has(n)}},addEventListener(){},appendChild(){},getContext:()=>gl,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:112,height:112})});
-const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v},document:{getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=()=>{};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,get triangles(){return triangles},events,nodes,session}}
+const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v},document:{getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=(n,f)=>windowEvents[n]=f;c.confirm=()=>true;c.location={pathname:'/jocraft/',href:'/jocraft/'};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,get triangles(){return triangles},events,windowEvents,nodes,session}}
 const run=(b,code)=>vm.runInContext(code,b.c);
 function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++)for(let y=0;y<y1;y++){h^=api.get(x,y,z);h=Math.imul(h,16777619)}return h>>>0}
 
@@ -91,6 +91,23 @@ console.log('PASS: focus/background resume, flight ascent/hover/descent/collisio
 const q=boot(null,{},{'jocraft2-quality':'low'});assert.equal(run(q,'Q.near'),3);run(q,'setQuality("high")');assert.equal(run(q,'Q.near'),7);assert.equal(q.storage['jocraft2-quality'],'high');
 run(q,'player.x=900.5;player.z=900.5;paused=false;for(let i=0;i<900;i++)streamChunks()');assert.equal(run(q,'readyR'),8);
 console.log('PASS: quality presets');
+
+// ---- Reset must not resurrect old terrain via blur/visibility/pagehide autosave.
+const resetTest=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:96,terrainVersion:3,seed:73219,changes:[],inventory:{}}));
+assert.equal(run(resetTest,'terrainVersion'),3);
+resetTest.nodes.reset.onclick();
+assert.equal(resetTest.storage['nisekura-v1'],undefined,'reset must remove the saved world');
+assert.match(resetTest.c.location.href,/\\?seed=\\d+/,'reset must navigate to a newly seeded world');
+resetTest.c.onblur();
+resetTest.c.document.hidden=true;resetTest.events.visibilitychange();
+resetTest.windowEvents.pagehide();
+assert.equal(resetTest.storage['nisekura-v1'],undefined,'unload callbacks must not restore deleted saves');
+assert.equal(run(resetTest,'save()'),false,'autosave must remain disabled until navigation completes');
+const afterReset=boot(resetTest.storage['nisekura-v1']);
+assert.equal(run(afterReset,'terrainVersion'),4,'reset must activate new terrain generator');
+assert.equal(run(afterReset,'SEA'),62,'new world sea level is 62');
+assert.equal(run(afterReset,'H'),192,'new world height is 192');
+console.log('PASS: new world reset survives blur, visibility and pagehide without resurrecting legacy terrain');
 
 // ---- Legacy saves keep their original generator, height and edits (fingerprints recorded from v4.1).
 const legacy=JSON.stringify({version:1,seed:73219,changes:[[30+64*(30+64*30),8]],inventory:{4:7}});
