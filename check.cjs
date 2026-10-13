@@ -13,9 +13,9 @@ vm.runInContext('paused=false;canvas.width=1200;canvas.height=700;drawWorldDetai
 const legacy=JSON.stringify({version:1,seed:73219,changes:[[30+64*(30+64*30),8]],inventory:{4:7}});
 const old=boot(legacy);assert.equal(vm.runInContext('terrainVersion',old.c),1);assert.equal(old.api.get(30,30,30),8);assert.equal(old.api.inventory[4],7);
 // Raycast, mining, and placement should use the upgraded mesh without changing mechanics.
-vm.runInContext('paused=false;player.x=32.5;player.y=28;player.z=32.5;yaw=0;pitch=0;edit(32,29,35,3)',a.c);
-assert.equal(a.api.ray().z,35);const count=a.api.inventory[3]||0;vm.runInContext('mine()',a.c);assert.equal(a.api.get(32,29,35),0);assert.equal(a.api.inventory[3],count+1);
-vm.runInContext('edit(32,29,35,3);selected=1;place()',a.c);assert.equal(a.api.get(32,29,34),2);
+vm.runInContext('paused=false;player.x=1024.5;player.y=50;player.z=1024.5;yaw=0;pitch=0;edit(1024,51,1027,3)',a.c);
+assert.equal(a.api.ray().z,1027);const count=a.api.inventory[3]||0;vm.runInContext('mine()',a.c);assert.equal(a.api.get(1024,51,1027),0);assert.equal(a.api.inventory[3],count+1);
+vm.runInContext('edit(1024,51,1027,3);selected=1;place()',a.c);assert.equal(a.api.get(1024,51,1026),2);
 for(let i=0;i<120;i++)a.api.animateWorld(1/60);for(const cow of a.api.cows)assert([cow.x,cow.y,cow.z].every(Number.isFinite));
 console.log('PASS: wildlife placement, render paths, legacy terrain/save compatibility, raycast mining/placement, animal movement');
 
@@ -30,7 +30,15 @@ vm.runInContext('keys.KeyQ=true;for(let i=0;i<60;i++)update(1/60);delete keys.Ke
 vm.runInContext('edit(100,52,100,3);keys.Space=true;for(let i=0;i<60;i++)update(1/60);delete keys.Space',a.c);assert(a.api.player.y<50.22);assert(!a.api.collides(a.api.player));
 vm.runInContext('player.x=110.5;player.y=93;keys.Space=true;for(let i=0;i<60;i++)update(1/60);delete keys.Space',a.c);assert(a.api.player.y<94.21);assert(!a.api.collides(a.api.player));
 // Newly accessible world areas save/load using the larger coordinate stride.
-a.api.edit(200,45,200,8);assert.equal(a.api.get(200,45,200),8);a.api.save();const wide=boot(a.storage['nisekura-v1'],{'nisekura-playing':'1'});assert.equal(wide.api.get(200,45,200),8);assert.equal(vm.runInContext('flying',wide.c),true);assert.equal(vm.runInContext('paused',wide.c),false);assert(wide.nodes.menu.classList.contains('hidden'));assert.equal(JSON.parse(a.storage['nisekura-v1']).worldWidth,256);
-vm.runInContext('player.x=200.5;player.z=200.5;streamChunks(true);for(let i=0;i<160;i++)streamChunks()',wide.c);assert(vm.runInContext('chunks.has("25,25")',wide.c));assert(vm.runInContext('chunks.size<=149',wide.c));
+a.api.edit(1400,45,1400,8);assert.equal(a.api.get(1400,45,1400),8);a.api.save();const wide=boot(a.storage['nisekura-v1'],{'nisekura-playing':'1'});assert.equal(wide.api.get(1400,45,1400),8);assert.equal(vm.runInContext('flying',wide.c),true);assert.equal(vm.runInContext('paused',wide.c),false);assert(wide.nodes.menu.classList.contains('hidden'));assert.equal(JSON.parse(a.storage['nisekura-v1']).worldWidth,2048);
+vm.runInContext('player.x=1400.5;player.z=1400.5;streamChunks(true);for(let i=0;i<260;i++)streamChunks()',wide.c);assert(vm.runInContext('chunks.has("175,175")',wide.c));assert(vm.runInContext('chunks.size<=220',wide.c));assert(vm.runInContext('blocks.size<=450',wide.c));
 vm.runInContext('pause()',wide.c);assert.equal(vm.runInContext('paused',wide.c),true);assert(!wide.nodes.menu.classList.contains('hidden'));assert.equal(wide.session['nisekura-playing'],'0');
-console.log('PASS: focus/background resume, flight ascent/hover/descent/collision/ceiling, 256-wide save roundtrip, bounded chunk streaming, explicit menu');
+console.log('PASS: focus/background resume, flight ascent/hover/descent/collision/ceiling, 2048-wide save roundtrip, bounded chunk streaming, explicit menu');
+
+// Preserve edits originally made in the intermediate 256-wide version.
+const old256=JSON.stringify({version:1,worldWidth:256,worldHeight:96,terrainVersion:2,seed:73219,changes:[[140+256*(140+256*24),8]],inventory:{7:5}});
+const migrated=boot(old256);assert.equal(migrated.api.get(140,24,140),8);assert.equal(migrated.api.inventory[7],5);
+assert.equal(vm.runInContext('W',a.c),2048);assert.equal(vm.runInContext('terrainVersion',a.c),3);
+assert.equal(a.api.get(1024+500,10,1024),10,'distant ocean');
+assert(!a.api.collides(a.api.player),'center spawn is safe');
+console.log('PASS: old 256-wide saves, streamed 2048-square world, distant ocean, center spawn');
