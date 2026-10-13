@@ -578,7 +578,7 @@ uniform vec3 sunDir; uniform vec3 zenithCol; uniform vec3 horizonCol; uniform ve
 uniform vec3 dirLight; uniform vec3 dirCol; uniform vec3 ambCol; uniform vec4 misc; uniform vec4 skyP; // skyP: x cloud drift (blocks), y cloud cover 0..1, z sky quality 0..2
 float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
-vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,pow(clamp(y,0.,1.),.56));float s=max(dot(d,sunDir),0.);
+vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,sqrt(clamp(y,0.,1.)));float s=max(dot(d,sunDir),0.);
  c+=sunCol*(.18*pow(s,5.)+.45*pow(s,40.));return mix(c,horizonCol*.9,clamp(-y*4.,0.,1.));}
 // Light lost per block of water: red first, then green, so depth turns sand turquoise and then blue.
 const vec3 WABS=vec3(.22,.055,.038);
