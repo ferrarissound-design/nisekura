@@ -15,6 +15,15 @@
 
 .actions button{height:46px}.actions #fly.active{background:#5283aacc;border-color:#beeeff}.actions #down:disabled{opacity:.3;pointer-events:none}
 @media(max-height:480px){.actions{bottom:78px;gap:5px}.actions button{height:40px}.top{top:max(6px,env(safe-area-inset-top))}}
+/* iOS/iPadOS Safari: disable native text selection, blue hold highlight and callout
+   on game controls, without changing pointer/hold handlers or menu scrolling. */
+html,body,body *,body *::before,body *::after{
+ -webkit-user-select:none;
+ user-select:none;
+ -webkit-touch-callout:none;
+ -webkit-tap-highlight-color:transparent;
+}
+body *::selection{background:transparent;color:inherit}
 </style><canvas id="world"></canvas><div class="top"><div><div class="brand">にせくら<small>OCEAN HORIZON · v4.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay"><div class="panel"><div class="eyebrow">EXPLORE / MINE / BUILD</div><h1>にせくら</h1><p>目の前の森も、足元の石も、ぜんぶ材料。<br>掘って、集めて、あなただけの世界をつくろう。</p><button id="play" class="primary">世界に入る →</button><div class="row"><button id="mode">モード：素材集め</button><button id="home">出発地点へ</button></div><p>スマホ：左スティックで移動・画面をスワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>2048×2048の世界。ブラウザに自動保存。横画面がおすすめ。</p><div class="row"><button id="save">保存する</button><button id="reset">新しい世界</button></div><p id="saveInfo">オリジナルのブロック建築ゲーム / v4.0 — OCEAN HORIZON</p></div></div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
