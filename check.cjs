@@ -1,9 +1,9 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const script=fs.readFileSync(__dirname+'/index.html','utf8').match(/<script>([\s\S]*)<\/script>/)[1];
-function boot(saved){const nodes={},storage={};if(saved)storage['nisekura-v1']=saved;let triangles=0;
+function boot(saved,session={}){const nodes={},storage={},events={};if(saved)storage['nisekura-v1']=saved;let triangles=0;
 const gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true,createBuffer:()=>({}),getAttribLocation:()=>1,bufferData:(_,data)=>{assert(data.every(Number.isFinite));triangles+=data.length}}, {get:(o,k)=>k in o?o[k]:(()=>({}))});
-const node=()=>({style:{},classList:{add(){},remove(){}},addEventListener(){},appendChild(){},getContext:()=>gl,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:112,height:112})});
-const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v},document:{getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],addEventListener(){}},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=()=>{};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,triangles}}
+const node=()=>({style:{},classList:{values:new Set(),add(n){this.values.add(n)},remove(n){this.values.delete(n)},toggle(n,on){if(on)this.values.add(n);else this.values.delete(n)},contains(n){return this.values.has(n)}},addEventListener(){},appendChild(){},getContext:()=>gl,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:112,height:112})});
+const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v},document:{getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=()=>{};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,triangles,events,nodes,session}}
 const a=boot();assert(a.triangles>0);assert(!a.api.collides(a.api.player),'spawn must be clear');assert.equal(a.api.get(32,0,32),11);assert(a.api.collides({x:32.5,y:.5,z:32.5}));assert(a.api.collides({x:-1,y:25,z:30}));a.api.edit(30,30,30,8);assert(a.api.save());const b=boot(a.storage['nisekura-v1']);assert.equal(b.api.get(30,30,30),8,'world edit survives reload');assert(!b.api.collides(b.api.player));vm.runInContext('paused=false;for(let i=0;i<120;i++)update(1/60)',b.c);assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(vm.runInContext('ground',b.c));console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
 assert(a.api.cows.length>=3,'new world has wildlife');
@@ -18,3 +18,19 @@ assert.equal(a.api.ray().z,35);const count=a.api.inventory[3]||0;vm.runInContext
 vm.runInContext('edit(32,29,35,3);selected=1;place()',a.c);assert.equal(a.api.get(32,29,34),2);
 for(let i=0;i<120;i++)a.api.animateWorld(1/60);for(const cow of a.api.cows)assert([cow.x,cow.y,cow.z].every(Number.isFinite));
 console.log('PASS: wildlife placement, render paths, legacy terrain/save compatibility, raycast mining/placement, animal movement');
+
+// Browser focus/visibility changes must not switch to title or retain movement inputs.
+vm.runInContext('play();keys.KeyW=true',a.c);a.c.onblur();assert.equal(vm.runInContext('paused',a.c),false);assert(a.nodes.menu.classList.contains('hidden'));assert.equal(vm.runInContext('!!keys.KeyW',a.c),false);
+a.c.document.hidden=true;a.events.visibilitychange();assert.equal(vm.runInContext('suspended',a.c),true);assert.equal(vm.runInContext('paused',a.c),false);const beforeHidden=a.api.player.z;vm.runInContext('frame(32)',a.c);assert.equal(a.api.player.z,beforeHidden);
+a.c.document.hidden=false;a.events.visibilitychange();assert.equal(vm.runInContext('suspended',a.c),false);assert(a.nodes.menu.classList.contains('hidden'));
+// Flight ascends, hovers, descends, and respects solid blocks and altitude ceiling.
+vm.runInContext('player.x=100.5;player.z=100.5;player.y=50;toggleFlight();keys.Space=true;for(let i=0;i<60;i++)update(1/60);delete keys.Space',a.c);
+assert(Math.abs(a.api.player.y-57)<.001);vm.runInContext('for(let i=0;i<60;i++)update(1/60)',a.c);assert(Math.abs(a.api.player.y-57)<.001);
+vm.runInContext('keys.KeyQ=true;for(let i=0;i<60;i++)update(1/60);delete keys.KeyQ',a.c);assert(Math.abs(a.api.player.y-50)<.001);
+vm.runInContext('edit(100,52,100,3);keys.Space=true;for(let i=0;i<60;i++)update(1/60);delete keys.Space',a.c);assert(a.api.player.y<50.22);assert(!a.api.collides(a.api.player));
+vm.runInContext('player.x=110.5;player.y=93;keys.Space=true;for(let i=0;i<60;i++)update(1/60);delete keys.Space',a.c);assert(a.api.player.y<94.21);assert(!a.api.collides(a.api.player));
+// Newly accessible world areas save/load using the larger coordinate stride.
+a.api.edit(200,45,200,8);assert.equal(a.api.get(200,45,200),8);a.api.save();const wide=boot(a.storage['nisekura-v1'],{'nisekura-playing':'1'});assert.equal(wide.api.get(200,45,200),8);assert.equal(vm.runInContext('flying',wide.c),true);assert.equal(vm.runInContext('paused',wide.c),false);assert(wide.nodes.menu.classList.contains('hidden'));assert.equal(JSON.parse(a.storage['nisekura-v1']).worldWidth,256);
+vm.runInContext('player.x=200.5;player.z=200.5;streamChunks(true);for(let i=0;i<160;i++)streamChunks()',wide.c);assert(vm.runInContext('chunks.has("25,25")',wide.c));assert(vm.runInContext('chunks.size<=149',wide.c));
+vm.runInContext('pause()',wide.c);assert.equal(vm.runInContext('paused',wide.c),true);assert(!wide.nodes.menu.classList.contains('hidden'));assert.equal(wide.session['nisekura-playing'],'0');
+console.log('PASS: focus/background resume, flight ascent/hover/descent/collision/ceiling, 256-wide save roundtrip, bounded chunk streaming, explicit menu');
