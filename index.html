@@ -651,7 +651,11 @@ vec4 waterShade(vec3 v,vec2 g,float D,float sand,float fp){
  vec3 r=reflect(v,nrm);r.y=abs(r.y);float rough=smoothstep(.5,8.,fp),T=exp(-D/max(-v.y,.1)*.2);
  vec3 sc=mix(mix(vec3(.10,.45,.50),vec3(.18,.62,.63),sand),vec3(.025,.12,.30),smoothstep(1.,20.,D))*(ambCol+dirCol*max(dirLight.y,0.)*.8);
  vec3 glint=dirCol*pow(max(dot(r,dirLight),0.),mix(900.,60.,rough))*mix(1.7,.6,rough);
- return vec4(skyColor(r)*F+(1.-F)*(1.-T)*sc+glint,F+(1.-F)*(1.-T));}`;
+ vec3 refl=skyColor(r);
+ #ifndef WATER_LITE
+ if(wq>.5){vec4 dk=skyDeck(r,0.);refl=mix(refl,dk.rgb,dk.a*.8);}  // clouds are mirrored in the sea
+ #endif
+ return vec4(refl*F+(1.-F)*(1.-T)*sc+glint,F+(1.-F)*(1.-T));}`;
 const PRECISION=`#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -1223,7 +1227,7 @@ function cloudAt(gx,gz){
  const f=pn(gx/5.5+.5,gz/5.5+.5)+rand(gx*31+7,gz*17+3)*.8-.1;if(f<.3)return null;
  const t=rand(gx*13+1,gz*7+5),big=smooth(.3,.9,f),r1=rand(gx*3+9,gz*5+2),r2=rand(gx*5+4,gz*3+8),r3=rand(gx*7+1,gz*11+6);
  const kind=t<.5?0:t<.78?1:2;let nx,ny,nz,vx,vy;
- if(kind===0){nx=3+Math.floor(r1*3+big*2);nz=3+Math.floor(r2*3+big);ny=2+Math.floor(r3*2+big*2);vx=9+r1*3;vy=5.5}
+ if(kind===0){nx=3+Math.floor(r1*3+big*2);nz=3+Math.floor(r2*3+big);ny=Math.min(4,2+Math.floor(r3*2+big*2));vx=9+r1*3;vy=5.5}
  else if(kind===1){nx=5+Math.floor(r1*5);nz=3+Math.floor(r2*4);ny=1;vx=13;vy=3.4}
  else{nx=2+Math.floor(r1*2);nz=2+Math.floor(r2*2);ny=1+Math.floor(r3*2);vx=7;vy=4.2}
  const occ=new Uint8Array(nx*ny*nz);let any=0;
@@ -1235,15 +1239,24 @@ function cloudAt(gx,gz){
  const cx=gx*CLOUD_CELL+CLOUD_CELL/2+(rand(gx*5,gz*3)-.5)*CLOUD_CELL*.45,cz=gz*CLOUD_CELL+CLOUD_CELL/2+(rand(gx*3,gz*5)-.5)*CLOUD_CELL*.45;
  const base=CLOUD_Y+(kind===0?-8+Math.floor(r3*3)*4:kind===1?8+Math.floor(r1*2)*4:-16+Math.floor(r2*3)*3)*(GRAND?1:.4);
  return{kind,nx,ny,nz,vx,vy,occ,x:cx-nx*vx/2,z:cz-nz*vx/2,y:base,tint:.85+.15*rand(gx*11,gz*13)}}
-function buildClouds(ax,az){const w=dyn,R=cloudRadius(),S=CLOUD_CELL;w.n=0;
- for(let gx=Math.floor((ax-R)/S);gx<=Math.floor((ax+R)/S);gx++)for(let gz=Math.floor((az-R)/S);gz<=Math.floor((az+R)/S);gz++){
+const cw=writer(1<<16);let cloudGen=null;
+// Builds the cloud mesh one grid row at a time (a generator), so a rebuild after flying far never stalls a frame.
+function* cloudBuild(ax,az){const w=cw,R=cloudRadius(),S=CLOUD_CELL;w.n=0;
+ for(let gx=Math.floor((ax-R)/S);gx<=Math.floor((ax+R)/S);gx++){for(let gz=Math.floor((az-R)/S);gz<=Math.floor((az+R)/S);gz++){
   const c=cloudAt(gx,gz);if(!c)continue;const{nx,ny,nz,vx,vy,occ}=c,at=(i,j,k)=>i<0||j<0||k<0||i>=nx||j>=ny||k>=nz?0:occ[(j*nz+k)*nx+i];
   for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){if(!occ[(j*nz+k)*nx+i])continue;
    for(let fi=0;fi<6;fi++){const F=FACE[fi],nn=F.n;if(at(i+nn[0],j+nn[1],k+nn[2]))continue;
     let dep=0;for(let q=1;q<=3&&at(i-nn[0]*q,j-nn[1]*q,k-nn[2]*q);q++)dep++;
     grow(w,36);const code=18+32*fi;
     for(let q=0;q<4;q++){const v=F.v[q],r=(j+v[1])/ny;vert(w,c.x+(i+v[0])*vx,c.y+(j+v[1])*vy,c.z+(k+v[2])*vx,r,c.tint,dep/3,F.uv[q][0],F.uv[q][1],code)}}}}
+  yield}
  if(!cloudBuffer)cloudBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,cloudBuffer);gl.bufferData(gl.ARRAY_BUFFER,w.a.subarray(0,w.n),gl.STATIC_DRAW);cloudQuads=w.n/36;cloudAX=ax;cloudAZ=az}
+function buildClouds(ax,az){for(const _ of cloudBuild(ax,az));}
+// Per frame: start a rebuild when the camera has moved far enough, and give it a few milliseconds.
+function updateClouds(cx,cz){
+ if(!cloudGen&&Math.hypot(cx-cloudAX,cz-cloudAZ)>cloudRadius()*.35)cloudGen=cloudBuild(cx,cz);
+ if(cloudGen){if(cloudAX>1e8){buildClouds(cx,cz);cloudGen=null;return}
+  const t0=performance.now();while(performance.now()-t0<3)if(cloudGen.next().done){cloudGen=null;break}}}
 function drawTool(){if(paused)return;const a=dyn,bob=Math.sin(walkPhase)*.025,kick=Math.sin(swing*Math.PI),aspect=canvas.width/canvas.height;a.n=0;
 const transform=p=>{let x=p[0],y=p[1],z=p[2];const angle=-.40-kick*.65,xx=x*Math.cos(angle)-y*Math.sin(angle),yy=x*Math.sin(angle)+y*Math.cos(angle);x=xx+Math.min(.70,aspect*.42)-kick*.15;y=yy-.51+bob+kick*.06;z+=1.12;const py=Math.cos(pitch)*y+Math.sin(pitch)*z,pz=-Math.sin(pitch)*y+Math.cos(pitch)*z;return[player.x+Math.cos(yaw)*x+Math.sin(yaw)*pz,player.y+1.62+py,player.z-Math.sin(yaw)*x+Math.cos(yaw)*pz]};
 cuboid(a,-.08,-.48,-.02,.16,.35,.20,'#b6835d',0,transform);cuboid(a,-.095,-.60,-.025,.19,.20,.22,'#467e83',0,transform);
@@ -1289,7 +1302,7 @@ function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayT
  // The title keeps a low golden sun beside the scenic view.
  const a=cam.yaw+.95,e=.16;return skyEnv([Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)])}
 function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,0);if(u.skyP)gl.uniform4f(u.skyP,cloudDrift%40000,.5+.22*Math.sin(time*.0031+1.3)+.12*Math.sin(time*.0113),Q.sky,0)}
-function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>1?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
+function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>0?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
 // Same as underCol() in the shaders: the colour water fades to at the camera's depth.
 function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.11,.42,.44],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
 function render(cam,titleOpen,w,h){
@@ -1308,7 +1321,7 @@ function render(cam,titleOpen,w,h){
   if(readyR>=0)gl.uniform4f(lodU.hole,(centerCX-readyR)*CHUNK-cam.x+.01,(centerCZ-readyR)*CHUNK-cam.z+.01,(centerCX+readyR+1)*CHUNK-cam.x-.01,(centerCZ+readyR+1)*CHUNK-cam.z-.01);else gl.uniform4f(lodU.hole,1,1,-1,-1);
   for(const t of lodDraw){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,t.quads,bindLod,12)}
   for(const t of oceanTiles)if(sphereVisible(F,t.x0+W/2,SEA,t.z0+W/2,W*.71)){gl.uniform3f(lodU.org,t.x0-cam.x,-cam.y,t.z0-cam.z);drawQuads(t.buffer,1,bindLod,12)}
-  const drift=cloudDrift,R=cloudRadius();if(Math.hypot(cam.x-drift-cloudAX,cam.z-cloudAZ)>R*.35)buildClouds(cam.x-drift,cam.z);
+  const drift=cloudDrift;updateClouds(cam.x-drift,cam.z);
   useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,farNear,farFar);gl.uniform3f(mainU.eye,cam.x-drift,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x-drift,cam.y,cam.z); // fragments see the cloud's own coordinates
   if(cloudQuads)drawQuads(cloudBuffer,cloudQuads,bind,36);
   gl.clear(gl.DEPTH_BUFFER_BIT);
