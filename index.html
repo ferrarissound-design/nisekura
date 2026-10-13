@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#172b26"><title>ジョークラ2 — 小さな世界、大きな冒険</title><style>
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#172b26"><title>JOCRAFT2 — 小さな世界、大きな冒険</title><style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;overflow:hidden;background:#172b26;color:#fff;font-family:system-ui,sans-serif;touch-action:none;user-select:none}canvas{display:block;width:100vw;height:100dvh}button{font:inherit;color:inherit;border:1px solid #ffffff44;background:#142c2bdd;border-radius:10px;padding:12px;cursor:pointer;touch-action:none}button:active{background:#5e9264}.top{position:fixed;top:max(12px,env(safe-area-inset-top));left:16px;right:16px;display:flex;justify-content:space-between;pointer-events:none}.top>*{pointer-events:auto}.brand{font-weight:900;letter-spacing:3px;text-shadow:0 2px 4px #000}.brand small{display:block;font-size:10px;letter-spacing:1px;color:#def0dc}#stats{font-size:11px;margin-top:6px;text-shadow:0 1px 3px #000}#cross{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font-size:26px;text-shadow:0 1px 2px #000;pointer-events:none}#bar{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:4px;background:#102322ad;padding:5px;border-radius:12px}#bar button{padding:4px;width:48px;height:56px;border-radius:6px;font-size:10px;position:relative}#bar button.selected{border:2px solid #efffc5;background:#668155}#bar i{display:block;width:22px;height:22px;margin:0 auto 3px;box-shadow:inset -5px -5px #0003,inset 3px 3px #fff3}#bar b{position:absolute;right:3px;top:1px;font-size:10px}#hint{position:fixed;left:50%;top:65%;transform:translateX(-50%);background:#132b26bb;border-radius:20px;padding:7px 15px;font-size:12px;pointer-events:none;white-space:nowrap}#stick{position:fixed;bottom:105px;left:24px;width:112px;height:112px;border:2px solid #fff5;background:#fff1;border-radius:50%}#knob{position:absolute;left:32px;top:32px;width:44px;height:44px;border-radius:50%;background:#ffffff66;border:2px solid #fff8;pointer-events:none}.actions{position:fixed;right:18px;bottom:104px;display:grid;grid-template-columns:64px 64px;gap:8px}.actions button{height:54px;font-size:12px;background:#17352a99}.actions #jump{grid-column:2;background:#47735ac9}.overlay{position:fixed;inset:0;background:linear-gradient(120deg,#102823d9,#122b2a66);display:flex;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(5px)}.panel{width:min(440px,100%);background:#142c28ed;border:1px solid #a9c69766;border-radius:22px;padding:28px;box-shadow:0 24px 80px #0005}.eyebrow{color:#b7d987;font-size:11px;letter-spacing:4px}h1{font-size:52px;margin:12px 0 4px;letter-spacing:6px}p{font-size:13px;line-height:1.9;color:#c6d8cc}.primary{background:#b9d68b;color:#203927;font-weight:800;width:100%;margin:12px 0}.row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;font-size:12px}.hidden{display:none!important}#craft button{display:block;width:100%;margin:8px 0}#target{position:fixed;top:56%;width:100%;text-align:center;font-size:11px;text-shadow:0 1px 3px #000;pointer-events:none}@media(pointer:fine){#stick,.actions{opacity:.65}}@media(max-height:480px){.panel{padding:16px}h1{font-size:34px}p{margin:8px 0}.actions{bottom:85px}#stick{bottom:85px;width:100px;height:100px}#knob{left:26px;top:26px}}
 
 /* Compact pixel HUD leaves the center and landscape unobstructed. */
@@ -24,7 +24,67 @@ html,body,body *,body *::before,body *::after{
  -webkit-tap-highlight-color:transparent;
 }
 body *::selection{background:transparent;color:inherit}
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">ジョークラ2<small>OCEAN HORIZON · v4.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay"><div class="panel"><div class="eyebrow">EXPLORE / MINE / BUILD</div><h1>ジョークラ2</h1><p>目の前の森も、足元の石も、ぜんぶ材料。<br>掘って、集めて、あなただけの世界をつくろう。</p><button id="play" class="primary">世界に入る →</button><div class="row"><button id="mode">モード：素材集め</button><button id="home">出発地点へ</button></div><p>スマホ：左スティックで移動・画面をスワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>2048×2048の世界。ブラウザに自動保存。横画面がおすすめ。</p><div class="row"><button id="save">保存する</button><button id="reset">新しい世界</button></div><p id="saveInfo">オリジナルのブロック建築ゲーム / v4.0 — OCEAN HORIZON</p></div></div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
+
+/* JOCRAFT2: scenic voxel-world title screen inspired by classic block-game menus. */
+#menu.title-screen{
+ backdrop-filter:none;
+ background:linear-gradient(180deg,rgba(4,8,12,.12) 0%,rgba(0,0,0,.02) 38%,rgba(4,8,10,.31) 100%);
+ flex-direction:column;justify-content:space-between;align-items:center;
+ padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+}
+body:has(#menu:not(.hidden)) .top,body:has(#menu:not(.hidden)) #cross,
+body:has(#menu:not(.hidden)) #target,body:has(#menu:not(.hidden)) #hint,
+body:has(#menu:not(.hidden)) #stick,body:has(#menu:not(.hidden)) .actions,
+body:has(#menu:not(.hidden)) #bar{display:none}
+.title-stage{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,5vh,44px);overflow-y:auto;touch-action:pan-y;padding:12px 0}
+.title-logo{position:relative;width:max-content;max-width:100%;text-align:center;transform:rotate(-1.5deg);padding:0 12px 15px}
+.title-logo h1{position:relative;display:block;margin:0;font-family:Impact,'Arial Black',system-ui,sans-serif;font-size:clamp(46px,10.2vw,94px);line-height:1.03;letter-spacing:-.045em;font-weight:1000;color:#e8eaeb;background:linear-gradient(#fff 0%,#eceeee 26%,#b8c0c3 53%,#edf0ee 56%,#8b9696 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:clamp(1.5px,.36vw,3.5px) #242729;paint-order:stroke fill;filter:drop-shadow(0 6px 0 #181b1c) drop-shadow(0 9px 0 #0b0e0d) drop-shadow(4px 11px 1px #0008)}
+.title-logo .edition{display:block;margin-top:7px;font:bold clamp(10px,2.4vw,18px)/1 Impact,'Arial Black',system-ui,sans-serif;letter-spacing:.22em;text-shadow:2px 3px 0 #101010,0 0 7px #000}
+.title-logo .splash{position:absolute;right:-9%;bottom:4px;transform:rotate(-16deg);color:#ffea48;font-weight:900;font-size:clamp(10px,2.3vw,17px);white-space:nowrap;text-shadow:2px 2px #49370c,0 0 4px #000}
+.title-menu{display:flex;flex-direction:column;gap:7px;width:min(356px,83vw);max-width:100%}
+#menu .title-button{display:block;width:100%;margin:0;padding:0 8px;height:43px;min-height:0;border-radius:1px;border:2px solid #17191a;background:linear-gradient(180deg,#a7a7a7,#828282 46%,#737373 52%,#969696);box-shadow:inset 2px 2px 0 #d4d4d4,inset -2px -2px 0 #4e4e4e,0 3px 0 #0008;color:#f5f5f5;text-shadow:1px 2px 1px #333;font-size:15px;font-weight:650;text-align:center;touch-action:manipulation}
+#menu .title-button:hover{background:linear-gradient(#bac4ab,#859d7c)}
+#menu .title-button:active{background:linear-gradient(#607858,#a0b497);box-shadow:inset 2px 2px 0 #32472e,inset -2px -2px 0 #d4e5c6}
+.title-pair{display:flex;gap:8px;margin-top:8px}
+.title-pair .title-button{flex:1;min-width:0}
+.title-help{margin:9px auto 0;color:#fff;text-align:center;font-size:11px;text-shadow:1px 2px 3px #000;max-width:100%}
+.title-help summary{cursor:pointer;touch-action:manipulation;list-style:none;text-decoration:underline;text-underline-offset:3px}
+.title-help summary::-webkit-details-marker{display:none}
+.title-help[open]{background:#101b18df;padding:7px 11px;border:1px solid #ffffff5c;max-height:35vh;overflow-y:auto;touch-action:pan-y}
+.title-help p{color:#f0f4ef;font-size:11px;line-height:1.65;margin:6px 0}
+.title-footer{flex-shrink:0;display:flex;gap:12px;align-items:center;justify-content:space-between;width:100%;font:11px/1.4 monospace;color:#f7f9f8;text-shadow:1px 2px 2px #000;padding:5px 4px}
+.title-footer #saveInfo{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%}
+@media(max-height:520px){
+ .title-stage{gap:clamp(7px,2vh,14px);padding:3px 0}
+ .title-logo{padding-bottom:8px}
+ .title-logo h1{font-size:clamp(40px,9vw,67px)}
+ .title-logo .edition{margin-top:3px;font-size:11px}
+ .title-logo .splash{bottom:0;font-size:11px}
+ .title-menu{gap:5px;width:min(330px,64vw)}
+ #menu .title-button{height:34px;font-size:12px}
+ .title-pair{gap:6px;margin-top:4px}
+ .title-help{margin:3px 0 0;font-size:10px}
+ .title-footer{font-size:9px;padding:0 3px}
+}
+@media(max-width:400px) and (min-height:521px){
+ .title-logo h1{font-size:clamp(41px,11vw,55px)}
+ .title-logo .splash{right:-3%;font-size:10px}
+ #menu .title-button{height:45px}
+}
+
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>OCEAN HORIZON · v4.0</small></div><div id="stats"></div></div><button id="menuBtn">☰</button></div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
+<div class="title-stage">
+ <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">さあ、冒険しよう！</span></div>
+ <div class="title-menu">
+  <button id="play" class="title-button">シングルプレイ</button>
+  <button id="mode" class="title-button">モード：素材集め</button>
+  <button id="home" class="title-button">出発地点へ戻る</button>
+  <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>2048×2048の世界。自動保存・横画面推奨。</p></details>
+ </div>
+</div>
+<div class="title-footer"><span>JOCRAFT2 · OCEAN HORIZON</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v4.1</span></div>
+</div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world'),gl=canvas.getContext('webgl',{antialias:false,alpha:false});
@@ -255,6 +315,45 @@ function update(dt){
  else {vy-=(water?5:20)*dt;if(water)vy=Math.max(vy,-2);ground=false;if(!moveAxis('y',vy*dt)){ground=vy<=0;vy=0}}
  actionClock-=dt;if(actionClock<=0&&(mineHeld||placeHeld)){if(mineHeld)mine();else place();actionClock=.23}
 }
-let last=performance.now(),frames=0,fps=60,fpsTime=0;function frame(now){const dt=Math.min(.035,(now-last)/1000);last=now;if(suspended){requestAnimationFrame(frame);return}streamChunks();if(!paused){time+=dt;update(dt);animateWorld(dt)}const ratio=Math.min(devicePixelRatio,1.5),w=Math.floor(innerWidth*ratio),h=Math.floor(innerHeight*ratio);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}const underwater=get(Math.floor(player.x),Math.floor(player.y+1.62),Math.floor(player.z))===10;const sky=underwater?[.12,.35,.49]:[.49,.71,.91];gl.clearColor(...sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform3f(uniforms.eye,player.x,player.y+1.62,player.z);gl.uniform1f(uniforms.yaw,yaw);gl.uniform1f(uniforms.pitch,pitch);gl.uniform1f(uniforms.aspect,w/h);gl.uniform3fv(uniforms.sky,sky);gl.uniform1f(uniforms.clock,time);for(const ch of chunks.values()){bind(ch.buffer);gl.drawArrays(gl.TRIANGLES,0,ch.count)}drawWorldDetails();gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);const ordered=[...chunks.values()].sort((a,b)=>((b.cx*8-player.x)**2+(b.cz*8-player.z)**2)-((a.cx*8-player.x)**2+(a.cz*8-player.z)**2));for(const ch of ordered){bind(ch.water);gl.drawArrays(gl.TRIANGLES,0,ch.waterCount)}gl.depthMask(true);gl.disable(gl.BLEND);hit=ray();drawOutline();drawTool();$('target').textContent=hit?defs[hit.t][0]:'';frames++;fpsTime+=dt;if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('stats').textContent=`${flying?'飛行':creative?'自由建築':'素材集め'} · ${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS`}$('hint').style.opacity=now>toastUntil?'0':'1';if(now-lastSave>15000&&!paused){save();lastSave=now}requestAnimationFrame(frame)}refresh();try{if(saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');toast('前のプレイを再開した')}}catch(e){}requestAnimationFrame(frame);
+let last=performance.now(),frames=0,fps=60,fpsTime=0;
+function frame(now){
+ const dt=Math.min(.035,(now-last)/1000);last=now;
+ if(suspended){requestAnimationFrame(frame);return}
+ const titleOpen=paused&&!$('menu').classList.contains('hidden');
+ streamChunks();
+ if(!paused){time+=dt;update(dt);animateWorld(dt)}
+ else if(titleOpen)time+=dt*.65; // Keep the background grass, water, and clouds alive.
+ const ratio=Math.min(devicePixelRatio,1.5),w=Math.floor(innerWidth*ratio),h=Math.floor(innerHeight*ratio);
+ if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
+ // Title uses the actual saved/generated game world from an elevated scenic camera.
+ // This never moves the player or modifies saved coordinates.
+ const panoramaYaw=2.35+Math.sin(time*.12)*.08;
+ const camX=titleOpen?player.x-Math.sin(panoramaYaw)*5:player.x;
+ const camZ=titleOpen?player.z-Math.cos(panoramaYaw)*5:player.z;
+ const camY=titleOpen?Math.min(H-3,Math.max(SEA+8,height(Math.floor(camX),Math.floor(camZ))+8)):player.y+1.62;
+ const sceneYaw=titleOpen?panoramaYaw:yaw,scenePitch=titleOpen?-.30:pitch;
+ const underwater=!titleOpen&&get(Math.floor(player.x),Math.floor(player.y+1.62),Math.floor(player.z))===10;
+ const sky=titleOpen?[.78,.48,.37]:underwater?[.12,.35,.49]:[.49,.71,.91];
+ gl.clearColor(...sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ gl.uniform3f(uniforms.eye,camX,camY,camZ);
+ gl.uniform1f(uniforms.yaw,sceneYaw);gl.uniform1f(uniforms.pitch,scenePitch);
+ gl.uniform1f(uniforms.aspect,w/h);gl.uniform3fv(uniforms.sky,sky);gl.uniform1f(uniforms.clock,time);
+ for(const ch of chunks.values()){bind(ch.buffer);gl.drawArrays(gl.TRIANGLES,0,ch.count)}
+ drawWorldDetails();
+ gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
+ const ordered=[...chunks.values()].sort((a,b)=>((b.cx*8-camX)**2+(b.cz*8-camZ)**2)-((a.cx*8-camX)**2+(a.cz*8-camZ)**2));
+ for(const ch of ordered){bind(ch.water);gl.drawArrays(gl.TRIANGLES,0,ch.waterCount)}
+ gl.depthMask(true);gl.disable(gl.BLEND);
+ if(!titleOpen){hit=ray();drawOutline();drawTool();$('target').textContent=hit?defs[hit.t][0]:''}
+ else hit=null;
+ frames++;fpsTime+=dt;
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('stats').textContent=`${flying?'飛行':creative?'自由建築':'素材集め'} · ${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS`}
+ $('hint').style.opacity=now>toastUntil?'0':'1';
+ if(now-lastSave>15000&&!paused){save();lastSave=now}
+ requestAnimationFrame(frame)
+}
+refresh();
+try{if(saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');toast('前のプレイを再開した')}}catch(e){}
+requestAnimationFrame(frame);
 window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,cows,animateWorld,vertexSource,fragmentSource,toggleFlight,streamChunks};
 </script></html>
