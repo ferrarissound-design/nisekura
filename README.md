@@ -196,12 +196,15 @@ Minecraft公式作品ではありません。コードとブロックの外観�
 
 ## v8.0 — SCENIC WORLD（Phase 8：絶景スポット）
 
-| 変更前（v7.0）→ 変更後（v8.0）：同じワールド・同じ地点・同じ向き |
+| 変更前（v7.0）→ 変更後（v8.0）：同じワールド・同じ地点・同じ向き（左が前、右が後） |
 |---|
-| ![cliff](docs/screenshots/phase8-compare-cliff.png) |
-| ![summit](docs/screenshots/phase8-compare-summit.png) |
-| ![valley](docs/screenshots/phase8-compare-valley.png) |
-| ![river](docs/screenshots/phase8-compare-river.png) |
+| 海辺の崖 ![cliff](docs/screenshots/phase8-compare-cliff.png) |
+| 山頂 ![summit](docs/screenshots/phase8-compare-summit.png) |
+| 谷（上：川の峡谷、下：入り江に面した斜面） ![valley](docs/screenshots/phase8-compare-valley.png) |
+
+| ランドマークの山と海 | 川沿い平原 | 新しいタイトル背景 |
+|---|---|---|
+| ![peak](docs/screenshots/phase8-summit-landmark.png) | ![river](docs/screenshots/phase8-river-plain.png) | ![title](docs/screenshots/phase8-title.png) |
 
 **新規ワールド（生成バージョン6）のみ**。既存ワールド（v5以前）は地形・ブロック・近景メッシュ・遠景タイルまでビット単位で従来のまま（テストで確認）。「新しい世界」を押すと v6 の世界になる。「絶景スポットへ」ボタンは既存ワールドでも使える。
 
