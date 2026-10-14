@@ -804,6 +804,17 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
    n+=o.length;for(const q of o)for(const y of q){top=Math.max(top,y);bot=Math.min(bot,y)}}return{n,top,bot}};
  const sc=shafts(...tier.spots.core),sp=shafts(...tier.spots.plain);R("Q=QUALITY.low");const sl=shafts(...tier.spots.core);R("Q=QUALITY[qualityName]");
  assert(sc.n>=4&&sp.n===0&&sl.n===0,`sun shafts over reefs only (core ${sc.n}, plain ${sp.n}, low ${sl.n})`);assert(sc.top<=63.8&&sc.bot>=40,'shafts run from the floor to the surface '+JSON.stringify(sc));
+ // Regression: switching quality while a reef chunk is already cached must update its shaft mesh.
+ // Discard far missing chunks in this focused scheduler test so existing cached chunks are checked first.
+ const [shaftCX,shaftCZ]=tier.spots.core.map(v=>v>>4),shaftKey=shaftCX+','+shaftCZ;
+ R(`Q=QUALITY.standard;qualityName='standard';paused=false;player.x=${tier.spots.core[0]}+.5;player.z=${tier.spots.core[1]}+.5;streamChunks(true);rebuild(${shaftCX},${shaftCZ})`);
+ assert.equal(R(`chunks.get('${shaftKey}').reefShafts`),true,'standard mesh starts with reef shafts enabled');
+ R("setQuality('low');streamChunks();chunkQueue.length=0");
+ for(let i=0;i<5;i++)R('streamChunks()');
+ assert.equal(R(`chunks.get('${shaftKey}').reefShafts`),false,'low quality removes cached reef shaft geometry');
+ R("setQuality('standard');streamChunks();chunkQueue.length=0");
+ for(let i=0;i<5;i++)R('streamChunks()');
+ assert.equal(R(`chunks.get('${shaftKey}').reefShafts`),true,'standard quality restores cached reef shafts');
  // Fish: a core holds more fish than plain sea, reef species live there, and reef cells host a second school.
  const sim=(x,z,secs)=>{R(`paused=false;fishSchools.length&&fishSchools.splice(0);fishCells.clear();fishCount=0;lifeMode='all';player.x=${x}+.5;player.z=${z}+.5;player.y=75;flying=true;streamChunks(true);for(let i=0;i<60;i++)streamChunks();fishT=0`);
   for(let k=0;k<secs*10;k++)R('updateFish(.1,player)');return J(`fishSchools.filter(s=>Math.hypot(s.hx-player.x,s.hz-player.z)<40).map(s=>({id:s.sp.id,n:s.n,key:s.key}))`)};
