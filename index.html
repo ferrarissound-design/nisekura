@@ -141,7 +141,7 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
 /* Creatures: spawn-egg picker and the small chip that shows which egg is in hand. */
 .egg-panel{width:min(580px,100%)}
 #eggGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;margin:10px 0 8px}
-.egg-head{grid-column:1/-1;font-size:11px;letter-spacing:2px;color:#b7d987;margin-top:6px;border-bottom:1px solid #ffffff1c;padding-bottom:3px}
+.egg-icon-slot{display:block;width:48px;height:48px;flex-shrink:0}.egg-head{grid-column:1/-1;font-size:11px;letter-spacing:2px;color:#b7d987;margin-top:6px;border-bottom:1px solid #ffffff1c;padding-bottom:3px}
 #eggGrid .egg{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding:5px 2px 6px;border-radius:10px;font-size:10px;line-height:1.25;min-height:78px;background:#1b3a34cc;touch-action:manipulation}
 #eggGrid .egg canvas{width:46px;height:46px;image-rendering:auto}
 .egg-row{display:flex;gap:8px;align-items:center;margin:6px 0}.egg-row button{flex:1;padding:9px 6px;font-size:12px;touch-action:manipulation}#eggCount{font-size:11px;color:#cfe3c7;flex:1}
@@ -194,6 +194,10 @@ let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=fa
 const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
 const BENCH=(()=>{try{return new URLSearchParams(location.search).has('bench')}catch(e){return false}})();
+let perfEnabled=BENCH;try{perfEnabled=perfEnabled||new URLSearchParams(location.search).has('perf')}catch(e){}
+let perfStats={};
+function perfSample(name,ms){const p=perfStats[name]||(perfStats[name]={calls:0,totalMs:0,maxMs:0});p.calls++;p.totalMs+=ms;p.maxMs=Math.max(p.maxMs,ms)}
+function perfDraw(){if(perfEnabled)perfStats.drawCalls=(perfStats.drawCalls||0)+1}
 let timeOverride=null;try{const q=new URLSearchParams(location.search).get('time');if(q!==null&&Number.isFinite(+q))timeOverride=((+q%1)+1)%1}catch(e){}
 const HUD_KEY='jocraft2-hud';
 let hudMinimal=false,hudDetails=false,photoMode=false;
@@ -562,7 +566,7 @@ function* scanSpots(out){
    res.push(c)}}
  out.spots=res;out.done=true}
 const vista=GRAND?findVista():null;
-function voxelChunk(cx,cz){const key=cx+','+cz;let data=blocks.get(key);if(data)return data;data=generateChunk(cx,cz);
+function voxelChunk(cx,cz){const key=cx+','+cz;let data=blocks.get(key);if(data)return data;const stamp=perfEnabled?performance.now():0;data=generateChunk(cx,cz);if(perfEnabled)perfSample('voxel',performance.now()-stamp);
  const list=changeIndex.get(key);if(list)for(const i of list){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));data[localIdx(x,y,z)]=changes.get(i)}
  blocks.set(key,data);return data}
 const ensureVoxelChunk=voxelChunk;
@@ -1131,12 +1135,11 @@ void main(){vec2 q=floor(mp.xy+.001);float n=hash(q+floor(mp.z)*.13);vec3 c=col;
  if(w.y<${SEA}.88){float ds=${SEA}.88-w.y;c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-v.y,.1):0.)));}
  gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
 let lifeProg=null,lifeU=null,lifeBuffer=null,mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
-function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
+function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(s);gl.deleteShader(s);throw Error(message)}return s}
 function buildProgram(vsrc,fsrc,attribs){
- const p=gl.createProgram();gl.attachShader(p,shader(gl.VERTEX_SHADER,vsrc));gl.attachShader(p,shader(gl.FRAGMENT_SHADER,fsrc));
- attribs.forEach((a,i)=>gl.bindAttribLocation(p,i,a));gl.linkProgram(p);
- if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
- return p
+ const p=gl.createProgram();let vs=null,fs=null,linked=false;
+ try{vs=shader(gl.VERTEX_SHADER,vsrc);fs=shader(gl.FRAGMENT_SHADER,fsrc);gl.attachShader(p,vs);gl.attachShader(p,fs);attribs.forEach((a,i)=>gl.bindAttribLocation(p,i,a));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));linked=true;return p}
+ catch(e){gl.deleteProgram(p);throw e}finally{if(vs){if(linked)gl.detachShader(p,vs);gl.deleteShader(vs)}if(fs){if(linked)gl.detachShader(p,fs);gl.deleteShader(fs)}}
 }
 const SKY_UNIFORMS=['sunDir','zenithCol','horizonCol','sunCol','fogP','dirLight','dirCol','ambCol','misc','skyP'];
 function uniformsOf(p,names){const u={};for(const n of names)u[n]=gl.getUniformLocation(p,n);return u}
@@ -1152,11 +1155,11 @@ function initRenderer(){
  // The far field is optional: if it cannot compile, the game still runs with the near field only.
  try{lodProg=buildProgram(lodVertexSource,lodFragmentSource,['lPos','lCol']);skyProg=buildProgram(skyVertexSource,skyFragmentSource,['sPos']);
   lodU=uniformsOf(lodProg,['org','yaw','pitch','aspect','proj','clock','hole','eyeF','wq',...SKY_UNIFORMS]);skyU=uniformsOf(skyProg,['cFwd','cRight','cUp','cScale',...SKY_UNIFORMS]);lodOK=true}
- catch(farError){console.warn('Far terrain disabled:',farError);lodOK=false}
+ catch(farError){if(lodProg)gl.deleteProgram(lodProg);if(skyProg)gl.deleteProgram(skyProg);lodProg=skyProg=null;console.warn('Far terrain disabled:',farError);lodOK=false}
  // Creatures: one static model buffer for every species; if the program fails, the world simply has no visible creatures.
  try{lifeProg=buildProgram(lifeVertexSource,lifeFragmentSource,['aPos','aColor','aUV','aMat']);lifeU=uniformsOf(lifeProg,['B','yaw','pitch','aspect','proj','clock','eyeF','cL',...SKY_UNIFORMS]);
   lifeBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,lifeBuffer);gl.bufferData(gl.ARRAY_BUFFER,lifeModel.a.subarray(0,lifeModel.n),gl.STATIC_DRAW)}
- catch(lifeError){console.warn('Creatures hidden:',lifeError);lifeProg=null}
+ catch(lifeError){if(lifeProg)gl.deleteProgram(lifeProg);if(lifeBuffer)gl.deleteBuffer(lifeBuffer);lifeProg=lifeBuffer=null;console.warn('Creatures hidden:',lifeError)}
  // Every mesh is made of quads; one shared index buffer serves them all.
  const ind=new Uint16Array(MAXQ*6);for(let i=0;i<MAXQ;i++)ind.set([i*4,i*4+1,i*4+2,i*4,i*4+2,i*4+3],i*6);
  quadIndex=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,quadIndex);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,ind,gl.STATIC_DRAW);
@@ -1166,12 +1169,12 @@ function initRenderer(){
  if(lodOK)buildOcean();
  renderReady=true;
 }
-let attribCount=0;
-function useProgram(p,n){gl.useProgram(p);for(let i=0;i<4;i++)if(i<n)gl.enableVertexAttribArray(i);else gl.disableVertexAttribArray(i);attribCount=n}
+let attribCount=0,activeProgram=null;
+function useProgram(p,n){if(activeProgram!==p){gl.useProgram(p);activeProgram=p}if(n>attribCount){for(let i=attribCount;i<n;i++)gl.enableVertexAttribArray(i)}else{for(let i=n;i<attribCount;i++)gl.disableVertexAttribArray(i)}attribCount=n}
 function bind(buffer,o=0){gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.vertexAttribPointer(0,3,gl.FLOAT,false,36,o);gl.vertexAttribPointer(1,3,gl.FLOAT,false,36,o+12);gl.vertexAttribPointer(2,2,gl.FLOAT,false,36,o+24);gl.vertexAttribPointer(3,1,gl.FLOAT,false,36,o+32)}
 function bindLod(buffer,o=0){gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.vertexAttribPointer(0,4,gl.SHORT,false,12,o);gl.vertexAttribPointer(1,4,gl.UNSIGNED_BYTE,true,12,o+8)}
 // Draw in batches of 16384 quads so 16-bit indices work on every WebGL 1 device.
-function drawQuads(buffer,quads,binder,stride){for(let q=0;q<quads;q+=MAXQ){binder(buffer,q*4*stride);gl.drawElements(gl.TRIANGLES,Math.min(MAXQ,quads-q)*6,gl.UNSIGNED_SHORT,0)}}
+function drawQuads(buffer,quads,binder,stride){for(let q=0;q<quads;q+=MAXQ){binder(buffer,q*4*stride);perfDraw();gl.drawElements(gl.TRIANGLES,Math.min(MAXQ,quads-q)*6,gl.UNSIGNED_SHORT,0)}}
 // Float vertex writer for the voxel/dynamic format: pos3 color3 uv2 material1.
 function writer(n){return{a:new Float32Array(n),n:0}}
 function grow(w,need){if(w.n+need<=w.a.length)return;const b=new Float32Array(Math.max(w.a.length*2,w.n+need));b.set(w.a.subarray(0,w.n));w.a=b}
@@ -1236,7 +1239,7 @@ function waterFields(cx,cz,nb){const x0=cx*CHUNK,z0=cz*CHUNK,fl=[0,0];
   let L=.5;if(GRAND){const u=i/8,v=j/8,a=Math.min(1,Math.floor(u)),b=Math.min(1,Math.floor(v)),fu=u-a,fv=v-b;
    L=(wLg[b*3+a]*(1-fu)+wLg[b*3+a+1]*fu)*(1-fv)+(wLg[b*3+3+a]*(1-fu)+wLg[b*3+a+4]*fu)*fv;riverFlow(x0+i,z0+j,L,fl)}
   wf.ex[c]=GRAND?1-smooth(-.15,.55,L):.5;wf.fx[c]=fl[0];wf.fz[c]=fl[1]}}
-function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)return;
+function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)return;const stamp=perfEnabled?performance.now():0;
  const x0=cx*CHUNK,z0=cz*CHUNK,info=GRAND?columnInfo(cx,cz):null,near=[];
  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const nx=cx+dx,nz=cz+dz;near.push(nx>=0&&nz>=0&&nx<CHUNKS&&nz<CHUNKS?voxelChunk(nx,nz):null)}
  // Outside the world counts as open water, like the ocean drawn beyond the rim.
@@ -1285,7 +1288,7 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
  const key=cx+','+cz;let ch=chunks.get(key);if(!ch){ch={buffer:gl.createBuffer(),water:gl.createBuffer(),cx,cz};chunks.set(key,ch)}
  ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;ch.plantLvl=lvl;
  gl.bindBuffer(gl.ARRAY_BUFFER,ch.buffer);gl.bufferData(gl.ARRAY_BUFFER,opaqueW.a.subarray(0,opaqueW.n),gl.STATIC_DRAW);
- gl.bindBuffer(gl.ARRAY_BUFFER,ch.water);gl.bufferData(gl.ARRAY_BUFFER,waterW.a.subarray(0,waterW.n),gl.STATIC_DRAW)}
+ gl.bindBuffer(gl.ARRAY_BUFFER,ch.water);gl.bufferData(gl.ARRAY_BUFFER,waterW.a.subarray(0,waterW.n),gl.STATIC_DRAW);if(perfEnabled)perfSample('chunkMesh',performance.now()-stamp)}
 
 // ---- Near-field streaming. Chunks load in square rings; only complete rings are drawn, LOD covers the rest.
 let relevelQueue=[],chunkQueue=[],centerCX=null,centerCZ=null,readyR=-1,streamDirty=true;
@@ -1309,7 +1312,7 @@ function streamChunks(initial=false){
  }
  let built=0;const start=performance.now();
  if(initial){while(chunkQueue.length&&Math.max(Math.abs(chunkQueue[0][0]-cx),Math.abs(chunkQueue[0][1]-cz))<=1){rebuild(...chunkQueue.shift());built++}}
- else while(chunkQueue.length&&built<4&&(built===0||performance.now()-start<Q.budget*loadScale)){rebuild(...chunkQueue.shift());built++}
+ else while(chunkQueue.length&&built<(isTitleOpen()?1:4)&&(built===0||performance.now()-start<Q.budget*loadScale)){rebuild(...chunkQueue.shift());built++}
  // Plant detail rings follow the player one chunk per frame, after any missing terrain.
  if(!built&&!initial&&relevelQueue.length){const [x,z]=relevelQueue.shift(),ch=chunks.get(x+','+z);if(ch&&ch.plantLvl!==plantLevel(x,z))rebuild(x,z)}
  if(built)computeReady();
@@ -1376,7 +1379,7 @@ function* tileMesh(s,x0,z0){
  return{quads:lw.n/4,ymin:Math.max(0,Math.floor(ymin)),ymax:Math.ceil(ymax)+1}}
 function uploadTile(t,bytes,r){if(!renderReady)return;if(!t.buffer)t.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,t.buffer);gl.bufferData(gl.ARRAY_BUFFER,bytes,gl.STATIC_DRAW);t.quads=r.quads;t.ymin=r.ymin;t.ymax=r.ymax;t.bytes=bytes.byteLength;t.ready=true}
 function* buildTile(t){const r=yield* tileMesh(t.step,t.x0,t.z0);uploadTile(t,new Uint8Array(lw.buf,0,lw.n*12),r)}
-function buildOcean(){oceanTiles=[];for(let ox=-1;ox<=1;ox++)for(let oz=-1;oz<=1;oz++){if(!ox&&!oz)continue;lw.n=0;lgrow(4);const y=SEA+.875;
+function buildOcean(){for(const t of oceanTiles)if(t.buffer)gl.deleteBuffer(t.buffer);oceanTiles=[];for(let ox=-1;ox<=1;ox++)for(let oz=-1;oz<=1;oz++){if(!ox&&!oz)continue;lw.n=0;lgrow(4);const y=SEA+.875;
  lvert(0,y,0,WATER_DEEP,1,17);lvert(W,y,0,WATER_DEEP,1,17);lvert(W,y,W,WATER_DEEP,1,17);lvert(0,y,W,WATER_DEEP,1,17);
  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(lw.buf,0,lw.n*12),gl.STATIC_DRAW);
  oceanTiles.push({x0:ox*W,z0:oz*W,size:W,buffer:b,quads:1,ymin:SEA,ymax:SEA+1})}}
@@ -1401,33 +1404,34 @@ const smooth=${smooth},mix3=${mix3},clamp01=${clamp01},f01=${f01},VEGK=${k(VEGK)
 const lw={buf:new ArrayBuffer(1<<20),n:0};lw.i16=new Int16Array(lw.buf);lw.u8=new Uint8Array(lw.buf);
 ${[rand,noise,height,grad,pn,fbm,rvf,peakBoost,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,lgrow,lvert,tileMesh,
  fieldClump,fieldGlade,fieldTone,fieldTall,fieldBare,forestDensity,grassColor5,leafColor5,flowerPatches,palettePick,vegEnv,pickSpecies,treeRng,treeAge].join('\n')}
-onmessage=e=>{const{id,step,x0,z0}=e.data,it=tileMesh(step,x0,z0);let r;while(!(r=it.next()).done);const bytes=lw.u8.slice(0,lw.n*12);postMessage({id,bytes,r:r.value},[bytes.buffer])};`}
+onmessage=e=>{const{id,step,x0,z0,measure}=e.data,start=measure?performance.now():0,it=tileMesh(step,x0,z0);let r;while(!(r=it.next()).done);const bytes=lw.u8.slice(0,lw.n*12);postMessage({id,bytes,r:r.value,ms:measure?performance.now()-start:0},[bytes.buffer])};`}
 let lodWorker=null,lodPending=new Map(),lodNextId=1;
 function startLodWorker(){
- try{if(typeof Worker==='undefined'||typeof Blob==='undefined'||!URL.createObjectURL)return;
-  const url=URL.createObjectURL(new Blob([lodWorkerSource()],{type:'text/javascript'}));lodWorker=new Worker(url);
-  lodWorker.onmessage=e=>{const{id,bytes,r}=e.data,t=lodPending.get(id);lodPending.delete(id);if(!t)return;t.building=false;
-   // The tile may have been evicted (or the context lost) while the worker was busy.
+ let url=null;try{if(typeof Worker==='undefined'||typeof Blob==='undefined'||!URL.createObjectURL||lodWorker)return;
+  url=URL.createObjectURL(new Blob([lodWorkerSource()],{type:'text/javascript'}));const worker=new Worker(url);lodWorker=worker;
+  worker.onmessage=e=>{if(lodWorker!==worker||contextLost)return;const{id,bytes,r,ms}=e.data,t=lodPending.get(id);lodPending.delete(id);if(!t)return;t.building=false;
+   if(perfEnabled&&Number.isFinite(ms))perfSample('lodWorker',ms);
    if(lodTiles.get(lodKey(t.size,t.x0,t.z0))===t)uploadTile(t,bytes,r)};
-  lodWorker.onerror=e=>{console.warn('LOD worker disabled:',e.message||e);stopLodWorker()}}
- catch(e){console.warn('LOD worker unavailable:',e);lodWorker=null}}
+  worker.onerror=e=>{if(lodWorker!==worker)return;console.warn('LOD worker disabled:',e.message||e);stopLodWorker()}}
+ catch(e){console.warn('LOD worker unavailable:',e);stopLodWorker()}finally{if(url)URL.revokeObjectURL(url)}}
 function stopLodWorker(){if(lodWorker)lodWorker.terminate();lodWorker=null;for(const t of lodPending.values())t.building=false;lodPending.clear()}
-function lodWork(budget,maxSteps){if(!lodOK)return;
+function lodWork(budget,maxSteps){if(!lodOK||contextLost||!renderReady)return;
  const start=performance.now();let steps=0;
  const next=()=>{let best=null;for(const r of lodRequests)if(!r.t.ready&&!r.t.building&&(!best||r.p<best.p))best=r;return best};
- if(lodWorker){while(lodPending.size<2){const best=next();if(!best)break;best.t.building=true;const id=lodNextId++;lodPending.set(id,best.t);lodWorker.postMessage({id,step:best.t.step,x0:best.t.x0,z0:best.t.z0})}}
+ if(lodWorker){while(lodPending.size<2){const best=next();if(!best)break;best.t.building=true;const id=lodNextId++;lodPending.set(id,best.t);lodWorker.postMessage({id,step:best.t.step,x0:best.t.x0,z0:best.t.z0,measure:perfEnabled})}}
  else while(steps<maxSteps){
   if(!lodJob){const best=next();if(!best)break;best.t.building=true;lodJob={t:best.t,it:buildTile(best.t)}}
   const res=lodJob.it.next();steps++;if(res.done){lodJob.t.building=false;lodJob=null}
   if(performance.now()-start>budget)break}
  // Keep far-field GPU memory bounded per quality preset.
  if(lodTiles.size>Q.lodCap){const old=[...lodTiles.values()].filter(t=>t.used<lodFrame-30&&!t.building).sort((a,b)=>a.used-b.used);
-  for(const t of old){if(lodTiles.size<=Q.lodCap*.78)break;if(t.buffer)gl.deleteBuffer(t.buffer);lodTiles.delete(lodKey(t.size,t.x0,t.z0))}}}
+  for(const t of old){if(lodTiles.size<=Q.lodCap*.78)break;if(t.buffer)gl.deleteBuffer(t.buffer);lodTiles.delete(lodKey(t.size,t.x0,t.z0))}}if(perfEnabled)perfSample('lodMain',performance.now()-start)}
 
 try{initRenderer()}catch(e){console.error(e);$('saveInfo').textContent='描画の初期化に失敗しました。ブラウザを更新してください。'}
 if(lodOK)startLodWorker();
-canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();contextLost=true;renderReady=false});
-canvas.addEventListener('webglcontextrestored',()=>{contextLost=false;chunks.clear();lodTiles.clear();lodJob=null;for(const t of lodPending.values())t.building=false;lodPending.clear();try{initRenderer()}catch(e){console.error(e)}streamDirty=true;streamChunks(true)});
+canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();contextLost=true;renderReady=false;stopLodWorker();lodJob=null;cloudGen=null});
+canvas.addEventListener('webglcontextrestored',()=>{contextLost=false;chunks.clear();lodTiles.clear();lodDraw.length=lodRequests.length=0;lodJob=null;stopLodWorker();oceanTiles=[];cloudBuffer=null;cloudQuads=0;cloudAX=cloudAZ=1e9;cloudGen=null;activeProgram=null;attribCount=0;dynamicCaps.clear();outlineKey=-1;mainProg=waterProg=lodProg=skyProg=lifeProg=null;lifeF=null;lastData=null;pkX=1e9;
+ try{initRenderer();if(lodOK)startLodWorker()}catch(e){console.error(e)}streamDirty=true;streamChunks(true);last=performance.now();titleNext=0});
 streamChunks(true);
 const originalChunks=new Map();
 function compactEdit(x,y,z,t){if(!inside(x,y,z))return;const key=chunkKey(x,z);let data=originalChunks.get(key);if(!data){data=generateChunk(x>>4,z>>4);if(originalChunks.size>=4)originalChunks.delete(originalChunks.keys().next().value);originalChunks.set(key,data)}
@@ -1437,7 +1441,8 @@ function collides(p){if(p.x<.3||p.z<.3||p.x>W-.3||p.z>W-.3||p.y<1||p.y+1.8>=H)re
 if(collides(player))spawn();
 function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
-function refresh(){const bar=$('bar');bar.innerHTML='';slots.forEach((t,i)=>{const b=document.createElement('button');b.className=i===selected&&eggSp<0?'selected':'';b.innerHTML=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
+const hotbarButtons=[];
+function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
 function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
 function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
@@ -1536,7 +1541,8 @@ function surface(x,z,from=H-3){for(let y=Math.min(H-3,Math.floor(from));y>=1;y--
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
 function cuboid(w,x,y,z,sx,sy,sz,color,mat=0,transform=null){const c=typeof color==='string'?rgb(color):color;faces.forEach((f,fi)=>{grow(w,36);const code=mat+32*fi;for(const v of f.v){const p=[x+v[0]*sx,y+v[1]*sy,z+v[2]*sz],q=transform?transform(p):p,uv=faceUV(v,f);vert(w,q[0],q[1],q[2],c[0],c[1],c[2],uv[0],uv[1],code)}})}
 function burst(x,y,z,color){for(let i=0;i<12;i++)particles.push({x,y,z,vx:(Math.random()-.5)*3,vy:1+Math.random()*2,vz:(Math.random()-.5)*3,life:.7,color})}
-function drawData(buffer,w){if(!w.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,w.a.subarray(0,w.n),gl.DYNAMIC_DRAW);drawQuads(buffer,w.n/36,bind,36)}
+const dynamicCaps=new Map();
+function drawData(buffer,w){if(!w.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);const bytes=w.n*4;let capacity=dynamicCaps.get(buffer)||0;if(capacity<bytes){capacity=2**Math.ceil(Math.log2(Math.max(256,bytes)));gl.bufferData(gl.ARRAY_BUFFER,capacity,gl.DYNAMIC_DRAW);dynamicCaps.set(buffer,capacity)}gl.bufferSubData(gl.ARRAY_BUFFER,0,w.a.subarray(0,w.n));drawQuads(buffer,w.n/36,bind,36)}
 function animateWorld(dt){swing=Math.max(0,swing-dt*3.5);const moving=Math.hypot(joy.x,joy.y)> .1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD;if(moving&&ground)walkPhase+=dt*9;
 for(const p of particles){p.life-=dt;p.vy-=dt*8;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt}for(let i=particles.length-1;i>=0;i--)if(particles[i].life<=0)particles.splice(i,1);
 updateLife(dt,player);
@@ -1578,11 +1584,12 @@ function lifeNew(sp,x,y,z,manual,size){const c=lifePool.pop()||{R:new Float32Arr
  Object.assign(c,{id:lifeSeq++,sp,x,y,z,yaw:Math.random()*6.283,want:0,pitch:0,roll:0,vx:0,vy:0,vz:0,manual:!!manual,mode:'idle',timer:.5+Math.random()*2,speed:0,ph:Math.random()*6,t:Math.random()*20,
   hy:0,hp:0,stuck:0,acc:0,size:size||(sp.size?sp.size[0]+Math.random()*(sp.size[1]-sp.size[0]):.9+Math.random()*.2),leader:null,ox:0,oy:0,oz:0,tx:x,ty:y,tz:z,hx:x,hz:z,
   flash:0,swell:0,cool:0,peck:0,sq:0,hopT:0,hopV:0,pa:Math.random()*6,orb:0,lt:false,stranded:0,talk:0,flap:1,air:sp.move==='fly',voiceT:4+Math.random()*16,vanish:-1,dormant:false,sky:1,skyT:0,chaseT:0,detour:0,alt:0,leap:false,ground:true,dist:0});
- c.want=c.yaw;c.Mv=c.M.subarray(0,sp.nb*12);life.push(c);return c}
+ c.poseAt=-Infinity;c.poseVersion=0;c.matrixValid=false;c.want=c.yaw;c.Mv=c.M.subarray(0,sp.nb*12);life.push(c);return c}
 function lifeRemove(c,puff){const i=life.indexOf(c);if(i<0)return;life.splice(i,1);for(const o of life)if(o.leader===c)o.leader=null;
  if(puff){const h=c.sp.top*c.size;for(let k=0;k<(c.sp.cat==='monster'?3:2);k++)burst(c.x,c.y+h*.5,c.z,c.sp.cat==='monster'?'#3b3550':'#e9efe9')}
  c.leader=null;lifePool.push(c)}
-const lifeAround=(c,r)=>life.filter(o=>o!==c&&o.sp===c.sp&&Math.abs(o.x-c.x)<r&&Math.abs(o.z-c.z)<r);
+const herdCenter={x:0,z:0,count:0};
+function lifeHerdCenter(c,r){let x=0,z=0,n=0;for(const o of life)if(o!==c&&o.sp===c.sp&&Math.abs(o.x-c.x)<r&&Math.abs(o.z-c.z)<r){x+=o.x;z+=o.z;n++}herdCenter.x=n?x/n:c.x;herdCenter.z=n?z/n:c.z;herdCenter.count=n;return herdCenter}
 // ---- Natural spawning: a few tries every 0.35 s at points 24-90 blocks away in the loaded square, out of sight where possible.
 function lifeCap(){return LIFE_Q[qualityName].cap*lifeScale}
 function lifePick(cat,hab,night,dark){let tot=0;const ok=[];
@@ -1642,7 +1649,7 @@ function lifeLook(c,dt,dx,dy,dz,dist){let ty=0,tp=0;if(dist<11){ty=Math.max(-1.1
  else if(c.mode==='idle'){ty=Math.sin(c.t*.7+c.id)*.7*Math.max(0,Math.sin(c.t*.31+c.id*2))}
  c.hy+=(ty-c.hy)*Math.min(1,dt*4);c.hp+=(tp-c.hp)*Math.min(1,dt*4)}
 function lifeLand(c,dt,dx,dy,dz,dist,looked){const sp=c.sp,run=sp.run*(.9+c.size*.1),walk=sp.sp;c.timer-=dt;if(c.detour>0)c.detour-=dt;
- const near=Math.abs(dy)<6,plMoving=Math.hypot(joy.x,joy.y)>.1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD||flying;
+ const near=Math.abs(dy)<6,plMoving=lifePlayerMoving;
  let target=0;
  // Animals that startle easily run off; grazers just step aside.
  if(sp.flee&&dist<sp.flee&&near&&(plMoving||dist<sp.flee*.55)&&c.mode!=='flee'){c.mode='flee';c.timer=2.2+Math.random()*1.8;c.want=Math.atan2(-dx,-dz)+(Math.random()-.5)*.8;if(c.sp.move==='hop')c.hopT=0}
@@ -1672,7 +1679,7 @@ function lifeLand(c,dt,dx,dy,dz,dist,looked){const sp=c.sp,run=sp.run*(.9+c.size
    let ax=c.x,az=c.z;const L=c.leader&&life.includes(c.leader)?c.leader:null;
    if(L){ax=L.x+(Math.random()-.5)*5;az=L.z+(Math.random()-.5)*5}
    else if(sp.id==='wolf'){c.pa=(c.pa||0)+1.1;ax=c.hx+Math.sin(c.pa)*14;az=c.hz+Math.cos(c.pa)*14}
-   else{const h=lifeAround(c,16);if(h.length){let mx=0,mz=0;for(const o of h){mx+=o.x;mz+=o.z}mx/=h.length;mz/=h.length;if(Math.hypot(mx-c.x,mz-c.z)>6){ax=mx;az=mz}}}
+   else{const h=lifeHerdCenter(c,16);if(h.count&&Math.hypot(h.x-c.x,h.z-c.z)>6){ax=h.x;az=h.z}}
    const a=Math.random()*6.283,d=(ax===c.x?4+Math.random()*8:Math.random()*3);c.tx=ax+Math.sin(a)*d;c.tz=az+Math.cos(a)*d;c.mode='walk';c.timer=8}
   else if(r<.78&&sp.graze){c.mode='graze';c.timer=3+Math.random()*4}
   else{c.mode='idle';c.timer=1.5+Math.random()*3}}
@@ -1746,28 +1753,29 @@ function lifeFloat(c,dt,dx,dy,dz,dist){c.timer-=dt;const g=groundAt(c.x,c.z,c.y+
  const tx=c.tx-c.x,tz=c.tz-c.z,d=Math.hypot(tx,tz);if(dist>=12)c.want=Math.atan2(tx,tz);c.yaw+=angTo(c.yaw,c.want)*Math.min(1,dt*2);
  if(d>.3){const s=Math.min(d,c.sp.sp*dt),nx=c.x+tx/d*s,nz=c.z+tz/d*s;if(peek(Math.floor(nx),Math.floor(c.y+.5),Math.floor(nz))===0&&peek(Math.floor(nx),Math.floor(c.y+1.4),Math.floor(nz))===0){c.x=nx;c.z=nz}else c.timer=0}
  c.speed=d>.3?c.sp.sp:0;c.y+=(base-c.y)*Math.min(1,dt*2)}
+let lifePlayerMoving=false;
 function updateLife(dt,focus){
- pkX=1e9;const night=isNight();
+ const stamp=perfEnabled?performance.now():0;pkX=1e9;const night=isNight();lifePlayerMoving=Math.hypot(joy.x,joy.y)>.1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD||flying;
  if((lifeSpawnT-=dt)<=0){lifeSpawnT=.35;lifeSpawnTick(focus,night)}
  if((lifeCullT-=dt)<=0){lifeCullT=.5;lifeCull(focus,night)}
  const vx=Math.sin(yaw)*Math.cos(pitch),vy=Math.sin(pitch),vz=Math.cos(yaw)*Math.cos(pitch);
  for(let i=life.length-1;i>=0;i--){const c=life[i];if(!c)continue;const sp=c.sp;
   if(peek(Math.floor(c.x),1,Math.floor(c.z))<0){c.dormant=true;continue}c.dormant=false;
   if(c.vanish>=0&&(c.vanish-=dt)<0){lifeRemove(c,true);continue}
-  c.t+=dt;if(c.sq)c.sq*=Math.max(0,1-dt*7);
+  c.t+=dt;if(c.talk>0)c.talk=Math.max(0,c.talk-dt);if(c.sq)c.sq*=Math.max(0,1-dt*7);
   const dx=focus.x-c.x,dy=focus.y-c.y,dz=focus.z-c.z,dist=Math.hypot(dx,dz);c.dist=dist;
-  const interval=dist<30?0:dist<60?.05:dist<100?.12:.3;c.acc+=dt;if(c.acc<interval)continue;const sdt=Math.min(.3,c.acc);c.acc=0;
+  const baseInterval=dist<30?0:dist<60?.05:dist<100?.12:.3,interval=dist<30?0:Math.min(.3,baseInterval*(loadScale<1?1.5:1)+(paused&&!c.seen?.1:0));c.acc+=dt;if(c.acc<interval)continue;const sdt=Math.min(.3,c.acc);c.acc-=sdt;
   if((c.skyT-=sdt)<=0){c.skyT=1+Math.random();c.sky=skyOpen(c.x,c.y+sp.top*c.size,c.z)}
   const ex=c.x-focus.x,ey=c.y+sp.top*.5-focus.y-1.62,ez=c.z-focus.z,el=Math.hypot(ex,ey,ez)||1,looked=(ex*vx+ey*vy+ez*vz)/el>.6&&!paused;
   if(sp.move==='swim')lifeSwim(c,sdt,dx,dy,dz,dist);else if(sp.move==='fly')lifeFly(c,sdt,dx,dy,dz,dist);else if(sp.move==='float')lifeFloat(c,sdt,dx,dy,dz,dist);else lifeLand(c,sdt,dx,dy,dz,dist,looked);
   if(sp.move!=='fly'&&sp.move!=='swim')lifeLook(c,sdt,dx,dy,dz,dist);else if(sp.move==='swim')c.hy=0;
-  if(sp.voice&&(c.voiceT-=sdt)<=0){c.voiceT=(sp.cat==='monster'?7:10)+Math.random()*(sp.flock?8:22);if(dist<26)lifeVoice(c,sp.voice)}}}
+  if(sp.voice&&(c.voiceT-=sdt)<=0){c.voiceT=(sp.cat==='monster'?7:10)+Math.random()*(sp.flock?8:22);if(dist<26)lifeVoice(c,sp.voice)}}if(perfEnabled)perfSample('lifeAI',performance.now()-stamp)}
 // ---- Animation: per-bone rotations (x pitch, y yaw, z roll), offsets (px) and per-axis scale, then 3x4 matrices for the shader.
 // The bone helpers write into the creature being posed (module-level, so posing allocates nothing per frame).
 let pB=null,pR=null,pO=null,pS=null;
 const bRX=(n,v)=>{const i=pB[n];if(i!==undefined)pR[i*3]+=v},bRY=(n,v)=>{const i=pB[n];if(i!==undefined)pR[i*3+1]+=v},bRZ=(n,v)=>{const i=pB[n];if(i!==undefined)pR[i*3+2]+=v},
  bOY=(n,v)=>{const i=pB[n];if(i!==undefined)pO[i*3+1]+=v},bSC=(n,x,y,z)=>{const i=pB[n];if(i!==undefined){pS[i*3]*=x;pS[i*3+1]*=y;pS[i*3+2]*=z}};
-function lifePose(c){const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=sp.nb;for(let i=0;i<nb*3;i++){R[i]=0;O[i]=0;S[i]=1}for(let i=0;i<nb;i++)R[i*3]=sp.rest[i];pB=B;pR=R;pO=O;pS=S;
+function lifePose(c){c.poseVersion++;const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=sp.nb;for(let i=0;i<nb*3;i++){R[i]=0;O[i]=0;S[i]=1}for(let i=0;i<nb;i++)R[i*3]=sp.rest[i];pB=B;pR=R;pO=O;pS=S;
  const t=c.t,g=Math.min(2,c.speed/Math.max(.1,sp.sp)),gw=Math.min(1,g),ph=c.ph,s=Math.sin(ph);
  switch(sp.rig){
   case'quad':{const run=g>1.3,a=s*gw*(run?.8:.5),b=run?Math.sin(ph+.9)*.8:-a;bRX('fl',a);bRX('br',run?Math.sin(ph+2.2)*.8:a);bRX('fr',b);bRX('bl',run?Math.sin(ph+3.1)*.8:-a);
@@ -1778,7 +1786,7 @@ function lifePose(c){const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=sp.nb;for(let i=0
    bRX('el',Math.sin(t*1.3+c.id)>.92?.5:-.1);bRX('er',Math.sin(t*1.1+c.id*3)>.92?.5:-.1);bRX('tail',Math.sin(t*3)*.12+(air?-.4:0));if(!air)bOY('body',Math.sin(t*9)*.08);break}
   case'biped':{const z=sp.id==='zombie',a=s*.55*gw;bRX('ll',a);bRX('lr',-a);bRZ('body',s*.04*gw);
    if(z){bRX('al',-1.35+Math.sin(t*1.7)*.08+a*.2);bRX('ar',-1.25+Math.sin(t*1.9+1)*.08-a*.2);bRZ('al',-.08);bRZ('ar',.1);bRX('body',.13);bRZ('head',Math.sin(t*.6)*.16);bRZ('body',Math.sin(t*.8)*.04)}
-   else{bRX('al',-a*.9);bRX('ar',-.55+Math.sin(t*2)*.05);bRX('jaw',c.talk>0?.25+Math.sin(t*28)*.25:.04);if(c.talk>0)c.talk-=1/60}
+   else{bRX('al',-a*.9);bRX('ar',-.55+Math.sin(t*2)*.05);bRX('jaw',c.talk>0?.25+Math.sin(t*28)*.25:.04)}
    bRX('head',c.hp);bRY('head',c.hy);break}
   case'bird':{if(c.air){const f=c.flap?Math.sin(t*(sp.soar?7:sp.id==='chicken'?20:22))*(sp.soar?.75:.95):-.08+Math.sin(t*1.3)*.04;bRZ('wl',f);bRZ('wr',-f);bRX('legl',1.1);bRX('legr',1.1);bRX('tail',-c.pitch*.4)}
    else if(sp.move==='fly'){bRY('wl',-1.45);bRY('wr',1.45);bRZ('wl',-.25);bRZ('wr',.25);bOY('wl',-1);bOY('wr',-1);bRX('head',c.peck>0?.8*Math.abs(Math.sin(c.peck*12)):0);bRY('head',Math.sin(t*1.7+c.id)*.6)}
@@ -1796,7 +1804,11 @@ function lifePose(c){const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=sp.nb;for(let i=0
   case'bomb':{const a=s*.6*gw;bRX('ll',a);bRX('lr',-a);const sw=1+c.swell*.35+Math.sin(t*40)*.04*c.swell;bSC('body',sw,sw,sw);bRZ('cap',Math.sin(t*2.5)*.06+Math.sin(ph)*.05*gw);bOY('body',Math.abs(Math.cos(ph))*.4*gw);break}
   case'wisp':{bOY('body',Math.sin(t*1.8)*1.2);bRX('al',-.4+Math.sin(t*1.3)*.2);bRX('ar',-.9+Math.sin(t*1.1)*.12);bRZ('body',Math.sin(t*.9)*.06);bRY('head',c.hy);bRX('head',c.hp);break}}}
 // Root = position (relative to the camera) * yaw * pitch * roll * scale; each bone = parent * T(pivot+offset) * R * S * T(-pivot).
-function lifeMatrices(c,cam){const sp=c.sp,M=c.M,R=c.R,O=c.O,S=c.S,P=sp.piv,k=sp.sc*c.size/16;
+function lifeMatrices(c,cam){
+ const state=c.matrixState||(c.matrixState=new Float64Array(11));
+ if(c.matrixValid&&state[0]===c.poseVersion&&state[1]===c.x&&state[2]===c.y&&state[3]===c.z&&state[4]===c.yaw&&state[5]===c.pitch&&state[6]===c.roll&&state[7]===c.size){const dx=state[8]-cam.x,dy=state[9]-cam.y,dz=state[10]-cam.z;for(let b=0;b<c.sp.nb;b++){const o=b*12;c.M[o+3]+=dx;c.M[o+7]+=dy;c.M[o+11]+=dz}state[8]=cam.x;state[9]=cam.y;state[10]=cam.z;return}
+ state[0]=c.poseVersion;state[1]=c.x;state[2]=c.y;state[3]=c.z;state[4]=c.yaw;state[5]=c.pitch;state[6]=c.roll;state[7]=c.size;state[8]=cam.x;state[9]=cam.y;state[10]=cam.z;c.matrixValid=true;
+ const sp=c.sp,M=c.M,R=c.R,O=c.O,S=c.S,P=sp.piv,k=sp.sc*c.size/16;
  const cy=Math.cos(c.yaw),sy=Math.sin(c.yaw),cx=Math.cos(-c.pitch),sx=Math.sin(-c.pitch),cz=Math.cos(c.roll),sz=Math.sin(c.roll);
  M[0]=(cy*cz+sy*sx*sz)*k;M[1]=(-cy*sz+sy*sx*cz)*k;M[2]=sy*cx*k;M[3]=c.x-cam.x;M[4]=cx*sz*k;M[5]=cx*cz*k;M[6]=-sx*k;M[7]=c.y-cam.y;M[8]=(-sy*cz+cy*sx*sz)*k;M[9]=(sy*sz+cy*sx*cz)*k;M[10]=cy*cx*k;M[11]=c.z-cam.z;
  for(let b=1;b<sp.nb;b++){const p=sp.par[b]*12,o=b*12,r=b*3,X=R[r],Y=R[r+1],Z=R[r+2],a=Math.cos(Y),e=Math.sin(Y),f=Math.cos(X),h=Math.sin(X),u=Math.cos(Z),w=Math.sin(Z);
@@ -1807,10 +1819,12 @@ function drawLife(cam,F,env,fog,aspect,near,far){lifeF=F;lifeDrawn=0;if(!lifePro
  const R=Math.min(LIFE_Q[qualityName].draw,Math.max(24,(readyR+.5)*CHUNK)),glow=env.night;let bound=-1;
  useProgram(lifeProg,4);setEnv(lifeU,env,fog);setView(lifeU,cam,aspect,near,far);gl.uniform3f(lifeU.eyeF,cam.x,cam.y,cam.z);
  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+ // Reuse the global quad indices with a per-species index offset; keep transparent draw order unchanged.
+ const sharedIndices=lifeModel.n/36<=MAXQ;if(sharedIndices)bind(lifeBuffer);
  for(const c of life){c.seen=false;if(c.dormant)continue;const sp=c.sp,d=Math.hypot(c.x-cam.x,c.y-cam.y,c.z-cam.z);if(d>R)continue;const rr=sp.rad*c.size+.3;
   if(!sphereVisible(F,c.x,c.y+sp.top*c.size*.5,c.z,rr))continue;c.seen=true;lifeDrawn++;
-  lifePose(c);lifeMatrices(c,cam);gl.uniform4fv(lifeU.B,c.Mv);gl.uniform4f(lifeU.cL,c.sky,c.flash,glow,0);
-  if(bound!==sp.i){bind(lifeBuffer,sp.q0*144);bound=sp.i}gl.drawElements(gl.TRIANGLES,sp.nq*6,gl.UNSIGNED_SHORT,0)}
+  const poseInterval=d<45?0:d<70?1/30:1/20;if(c.t-c.poseAt>=poseInterval||c.t<c.poseAt){lifePose(c);c.poseAt=c.t}lifeMatrices(c,cam);gl.uniform4fv(lifeU.B,c.Mv);gl.uniform4f(lifeU.cL,c.sky,c.flash,glow,0);
+  if(!sharedIndices&&bound!==sp.i){bind(lifeBuffer,sp.q0*144);bound=sp.i}perfDraw();gl.drawElements(gl.TRIANGLES,sp.nq*6,gl.UNSIGNED_SHORT,sharedIndices?sp.q0*12:0)}
  gl.disable(gl.BLEND)}
 // ---- Voices: tiny synthesised calls (no recorded audio), quiet, rare, and fading with distance.
 let lifeNoise=null;
@@ -1870,17 +1884,19 @@ function lifeIcon(sp,size){const cv=document.createElement('canvas');cv.width=cv
  const k=size*.86/Math.max(x1-x0,y1-y0,1),ox=size/2-(x0+x1)/2*k,oy=size/2-(y0+y1)/2*k;polys.sort((p,q)=>p.z-q.z);
  for(const p of polys){ctx.fillStyle=`rgb(${p.c.join(',')})`;ctx.beginPath();p.pts.forEach((q,i)=>i?ctx.lineTo(q[0]*k+ox,q[1]*k+oy):ctx.moveTo(q[0]*k+ox,q[1]*k+oy));ctx.closePath();ctx.fill();if(!p.glow){ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=.6;ctx.stroke()}}
  return cv}
-let eggBuilt=false;
-function buildEggPanel(){if(eggBuilt)return;eggBuilt=true;const grid=$('eggGrid');
+let eggBuilt=false,eggIconQueue=[],eggIconScheduled=false;
+function scheduleEggIcons(){if(eggIconScheduled||!eggIconQueue.length)return;eggIconScheduled=true;requestAnimationFrame(pumpEggIcons)}
+function pumpEggIcons(){eggIconScheduled=false;if($('eggs').classList.contains('hidden')||suspended||contextLost)return;const start=performance.now();let count=0;while(eggIconQueue.length&&count<2&&(count===0||performance.now()-start<3)){const {sp,slot}=eggIconQueue.shift();slot.appendChild(lifeIcon(sp,48));count++}if(perfEnabled)perfSample('eggIcons',performance.now()-start);scheduleEggIcons()}
+function buildEggPanel(){if(eggBuilt)return;const stamp=perfEnabled?performance.now():0;eggBuilt=true;const grid=$('eggGrid');
  for(const g of LIFE_GROUPS){const hd=document.createElement('div');hd.className='egg-head';hd.textContent=g;grid.appendChild(hd);
-  for(const sp of LIFE_SPECIES.filter(s=>s.group===g)){const b=document.createElement('button');b.className='egg';b.setAttribute('data-sp',sp.i);b.appendChild(lifeIcon(sp,48));const s=document.createElement('span');s.textContent=sp.name;b.appendChild(s);
-   b.onclick=()=>{eggSp=sp.i;refresh();play();toast(`${sp.name}：置きたい場所をタップ（または「置く」）`)};grid.appendChild(b)}}}
+  for(const sp of LIFE_SPECIES.filter(s=>s.group===g)){const b=document.createElement('button');b.className='egg';b.setAttribute('data-sp',sp.i);const slot=document.createElement('span');slot.className='egg-icon-slot';b.appendChild(slot);eggIconQueue.push({sp,slot});const s=document.createElement('span');s.textContent=sp.name;b.appendChild(s);
+   b.onclick=()=>{eggSp=sp.i;refresh();play();toast(`${sp.name}：置きたい場所をタップ（または「置く」）`)};grid.appendChild(b)}}if(perfEnabled)perfSample('eggPanel',performance.now()-stamp)}
 function lifeModeText(){return'生き物：'+(lifeMode==='all'?'すべて':lifeMode==='animals'?'動物だけ':'自然発生OFF')}
 function setLifeMode(m){lifeMode=m;dirty=true;$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText()}
 function openEggs(){if(photoMode)return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();buildEggPanel();
- $('lifeMode').textContent=lifeModeText();$('voices').textContent='鳴き声：'+(lifeVoices?'ON':'OFF');$('eggCount').textContent=`置いた生き物 ${life.filter(c=>c.manual).length} / ${MANUAL_MAX}`;$('eggs').classList.remove('hidden')}
-const eggIcons=new Map();
-function eggChip(){const chip=$('eggChip');chip.classList.toggle('hidden',eggSp<0);if(eggSp<0)return;const sp=LIFE_SPECIES[eggSp];
+ $('lifeMode').textContent=lifeModeText();$('voices').textContent='鳴き声：'+(lifeVoices?'ON':'OFF');$('eggCount').textContent=`置いた生き物 ${life.filter(c=>c.manual).length} / ${MANUAL_MAX}`;$('eggs').classList.remove('hidden');scheduleEggIcons()}
+const eggIcons=new Map();let eggChipSpecies=-2;
+function eggChip(){const chip=$('eggChip');chip.classList.toggle('hidden',eggSp<0);if(eggSp<0){eggChipSpecies=-1;return}if(eggChipSpecies===eggSp)return;eggChipSpecies=eggSp;const sp=LIFE_SPECIES[eggSp];
  if(!eggIcons.has(sp.i))eggIcons.set(sp.i,lifeIcon(sp,40));chip.innerHTML='';chip.appendChild(eggIcons.get(sp.i));const t=document.createElement('span');t.textContent=sp.name+'を置く · 変更';chip.appendChild(t)}
 const cycleLife=()=>setLifeMode(lifeMode==='all'?'animals':lifeMode==='animals'?'off':'all');
 $('lifeBtn').onclick=openEggs;$('eggChip').onclick=openEggs;$('closeEggs').onclick=play;$('lifeMenu').onclick=cycleLife;$('lifeMode').onclick=cycleLife;$('lifeMenu').textContent=lifeModeText();
@@ -1934,7 +1950,8 @@ if(eggSp>=0){const m=LIFE_SPECIES[eggSp].main;cuboid(a,-.11,-.16,-.04,.22,.07,.2
 else{cuboid(a,-.045,-.30,.02,.09,.66,.09,'#93612e',4,transform);
 cuboid(a,-.20,.28,-.02,.40,.09,.14,'#48545a',0,transform);cuboid(a,-.16,.37,-.02,.32,.19,.14,'#9aa8aa',3,transform);cuboid(a,-.10,.56,-.02,.20,.07,.14,'#79888d',0,transform)}
 gl.clear(gl.DEPTH_BUFFER_BIT);drawData(toolBuffer,a)}
-function drawOutline(){if(!hit)return;let a=[],c=[.10,.14,.10];for(const f of faces)for(let i=0;i<4;i++)for(const k of [i,(i+1)%4]){const v=f.v[k];a.push(hit.x+(v[0]-.5)*1.007+.5,hit.y+(v[1]-.5)*1.007+.5,hit.z+(v[2]-.5)*1.007+.5,...c,0,0,224)}bind(outline);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.DYNAMIC_DRAW);gl.drawArrays(gl.LINES,0,a.length/9)}
+const outlineData=new Float32Array(432);let outlineKey=-1;
+function drawOutline(){if(!hit)return;const key=idx(hit.x,hit.y,hit.z);bind(outline);if(key!==outlineKey){let n=0;for(const f of faces)for(let i=0;i<4;i++)for(const k of [i,(i+1)%4]){const v=f.v[k];outlineData[n++]=hit.x+(v[0]-.5)*1.007+.5;outlineData[n++]=hit.y+(v[1]-.5)*1.007+.5;outlineData[n++]=hit.z+(v[2]-.5)*1.007+.5;outlineData[n++]=.10;outlineData[n++]=.14;outlineData[n++]=.10;outlineData[n++]=0;outlineData[n++]=0;outlineData[n++]=224}gl.bufferData(gl.ARRAY_BUFFER,outlineData,gl.DYNAMIC_DRAW);outlineKey=key}perfDraw();gl.drawArrays(gl.LINES,0,48)}
 function moveAxis(axis,d){
  const steps=Math.max(1,Math.ceil(Math.abs(d)/.18)),step=d/steps;
  for(let i=0;i<steps;i++){const old=player[axis];player[axis]+=step;if(collides(player)){player[axis]=old;return false}}
@@ -1976,6 +1993,7 @@ function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenit
 function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>1?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
 // Same as underCol() in the shaders: the colour water fades to at the camera's depth.
 function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.11,.42,.44],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
+const visibleChunks=[];
 function render(cam,titleOpen,w,h){
  const aspect=w/h,F=makeFrustum(cam,aspect),underwater=!titleOpen&&get(Math.floor(cam.x),Math.floor(cam.y),Math.floor(cam.z))===10,env=environment(titleOpen,cam);
  const far=lodOK?Q.far:(Q.near+1)*CHUNK,cd=Math.max(0,SEA+.88-cam.y),fog=[far*.6,far*.8,far*.97,underwater?1+cd:0];
@@ -1992,15 +2010,15 @@ function render(cam,titleOpen,w,h){
   // The sky is drawn after the far terrain with the depth test on, so its (costly) cloud layers only run for pixels that really show sky.
   useProgram(skyProg,1);setEnv(skyU,env,fog);const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
   gl.uniform3f(skyU.cFwd,sy*cp,sp,cy*cp);gl.uniform3f(skyU.cRight,cy,0,-sy);gl.uniform3f(skyU.cUp,-sp*sy,cp,-sp*cy);gl.uniform2f(skyU.cScale,aspect/1.35,1/1.35);
-  gl.depthMask(false);gl.bindBuffer(gl.ARRAY_BUFFER,skyBuffer);gl.vertexAttribPointer(0,2,gl.FLOAT,false,8,0);gl.drawArrays(gl.TRIANGLES,0,3);gl.depthMask(true);
-  const drift=cloudDrift;updateClouds(cam.x-drift,cam.z);
+  gl.depthMask(false);gl.bindBuffer(gl.ARRAY_BUFFER,skyBuffer);gl.vertexAttribPointer(0,2,gl.FLOAT,false,8,0);perfDraw();gl.drawArrays(gl.TRIANGLES,0,3);gl.depthMask(true);
+  const drift=cloudDrift,cloudStart=performance.now();updateClouds(cam.x-drift,cam.z);frameCloudMs+=performance.now()-cloudStart;
   useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,farNear,farFar);gl.uniform3f(mainU.eye,cam.x-drift,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x-drift,cam.y,cam.z); // fragments see the cloud's own coordinates
   if(cloudQuads)drawQuads(cloudBuffer,cloudQuads,bind,36);
   gl.clear(gl.DEPTH_BUFFER_BIT);
  }
  // Near pass: real voxels inside the completed square, animals, translucent water, then the held tool.
  useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,.1,(Q.near+3)*CHUNK*1.5+H);gl.uniform3f(mainU.eye,cam.x,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x,cam.y,cam.z);
- const visible=[];
+ const visible=visibleChunks;visible.length=0;
  for(const ch of chunks.values()){if(Math.max(Math.abs(ch.cx-centerCX),Math.abs(ch.cz-centerCZ))>readyR)continue;const yr=(ch.ymax-ch.ymin)/2;if(!sphereVisible(F,ch.cx*CHUNK+8,ch.ymin+yr,ch.cz*CHUNK+8,Math.sqrt(128+yr*yr)))continue;visible.push(ch);if(ch.quads)drawQuads(ch.buffer,ch.quads,bind,36)}
  drawWorldDetails();drawLife(cam,F,env,fog,aspect,.1,(Q.near+3)*CHUNK*1.5+H);useProgram(mainProg,4);
  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
@@ -2048,36 +2066,43 @@ const DAY_SECONDS=1200;
 function advanceDay(dt){if(timeOverride!==null){dayTime=timeOverride;return}const e=sunFromTime(dayTime)[1];dayTime=(dayTime+dt/DAY_SECONDS*(e<-.12?2.5:1))%1}
 function clockText(){const m=Math.floor(dayTime*1440);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 let loadScale=1,slowWindows=0,slowWarned=false,last=performance.now(),frames=0,fps=60,fpsTime=0,renderScale=1,perfTime=0,perfFrames=0,lastCompassUpdate=-Infinity;
+let titleNext=0,wasTitle=false,perfBuildMs=0,lowStreak=0,highStreak=0,frameCloudMs=0;
+function adaptPerformance(f,buildMs){
+ loadScale=f<40?.5:f>52?1:loadScale;
+ const generationHeavy=buildMs>5;lowStreak=f<44&&!generationHeavy?lowStreak+1:0;highStreak=f>57?highStreak+1:0;
+ if(lowStreak>=2&&renderScale>.6){renderScale=Math.max(.6,+(renderScale-.1).toFixed(2));lowStreak=0;highStreak=0}
+ else if(highStreak>=3&&renderScale<1){renderScale=Math.min(1,+(renderScale+.05).toFixed(2));highStreak=0}
+ lifeScale=f<34?Math.max(.45,lifeScale-.2):f<45?Math.max(.6,lifeScale-.1):f>55?Math.min(1,lifeScale+.1):lifeScale;
+ slowWindows=f<28&&renderScale<=.6?slowWindows+1:0;
+ if(slowWindows>=3&&!slowWarned&&qualityName!=='low'&&!bench){slowWarned=true;toast('動作が重いようです。メニューの「画質」を下げると快適になります')}
+}
 function frame(now){
- const raw=Math.max(0,(now-last)/1000),dt=Math.min(.035,raw);last=now;
- if(suspended||contextLost){requestAnimationFrame(frame);return}
+ if(suspended||contextLost){last=now;titleNext=0;perfFrames=perfTime=perfBuildMs=0;lowStreak=highStreak=0;requestAnimationFrame(frame);return}
  const titleOpen=isTitleOpen();
- if(now-lastCompassUpdate>=100||paused){updateCompass();lastCompassUpdate=now}
+ if(titleOpen&&wasTitle&&now<titleNext-.5){requestAnimationFrame(frame);return}
+ if(titleOpen!==wasTitle){perfFrames=perfTime=perfBuildMs=0;lowStreak=highStreak=0}wasTitle=titleOpen;
+ if(titleOpen)titleNext=now+1000/30;
+ const raw=Math.max(0,(now-last)/1000),dt=Math.min(titleOpen?.1:.035,raw);last=now;
+ if(now-lastCompassUpdate>=100){if(!paused||!compassHUD.classList.contains('hidden'))updateCompass();lastCompassUpdate=now}
+ if(eggIconQueue.length&&!$('eggs').classList.contains('hidden'))scheduleEggIcons();
  if(bench)benchStep(raw,dt);
  if(!paused){time+=dt;update(dt);animateWorld(dt);advanceDay(dt)}
  else if(titleOpen){time+=dt*.65;updateLife(dt*.65,titleCamera())} // Keep the background grass, water, clouds and creatures alive.
  // Wind alternates between calm spells and gusty periods; grass, leaves and clouds share it.
  windStr=Math.min(1,Math.max(0,.45+.55*Math.sin(time*.07)*Math.sin(time*.031+1.7)+.25*Math.sin(time*.19)));cloudDrift+=dt*(.5+windStr*1.6);
- streamChunks();
- // Dynamic resolution: drop render scale when the frame rate sags, recover when there is headroom.
- perfFrames++;perfTime+=raw;if(perfTime>2){const f=perfFrames/perfTime;if(f<44&&renderScale>.6)renderScale=Math.max(.6,renderScale-.1);else if(f>57&&renderScale<1)renderScale=Math.min(1,renderScale+.05);
-  // Under load, terrain building yields more of each frame to rendering.
-  loadScale=f<40?.5:f>52?1:loadScale;
-  // Fewer natural creatures while the frame rate is low; back to the full count when there is headroom.
-  lifeScale=f<34?Math.max(.45,lifeScale-.2):f<45?Math.max(.6,lifeScale-.1):f>55?Math.min(1,lifeScale+.1):lifeScale;
-  slowWindows=!paused&&f<28&&renderScale<=.6?slowWindows+1:0;
-  if(slowWindows>=3&&!slowWarned&&qualityName!=='low'&&!bench){slowWarned=true;toast('動作が重いようです。メニューの「画質」を下げると快適になります')}
-  perfFrames=0;perfTime=0}
+ const buildStart=performance.now();streamChunks();const buildMs=performance.now()-buildStart;
+ // Title's intentional 30 Hz cap and streaming spikes must not be mistaken for sustained GPU pressure.
  const ratio=Math.min(devicePixelRatio||1,Q.dpr)*renderScale,w=Math.max(1,Math.floor(innerWidth*ratio)),h=Math.max(1,Math.floor(innerHeight*ratio));
  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}
  gl.viewport(0,0,w,h);
  const cam=titleOpen?titleCamera():{x:player.x,y:player.y+1.62,z:player.z,yaw,pitch};
- if(renderReady)render(cam,titleOpen,w,h);
- lodWork(Q.budget*.6*loadScale,64);
- if(!titleOpen)$('target').textContent=hit?defs[hit.t][0]:'';
+ frameCloudMs=0;if(renderReady){render(cam,titleOpen,w,h);if(perfEnabled)perfStats.renderFrames=(perfStats.renderFrames||0)+1}
+ const lodStart=performance.now();lodWork(Q.budget*.6*loadScale,64);
+ if(!paused){perfFrames++;perfTime+=raw;perfBuildMs+=buildMs+frameCloudMs+performance.now()-lodStart;if(perfTime>2){adaptPerformance(perfFrames/perfTime,perfBuildMs/perfFrames);perfFrames=0;perfTime=0;perfBuildMs=0}}
+ if(!titleOpen){const label=hit?defs[hit.t][0]:'';if($('target').textContent!==label)$('target').textContent=label}
  frames++;fpsTime+=raw;
- if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}
- $('hint').style.opacity=now>toastUntil?'0':'1';
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;if(!paused){$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}}
+ const opacity=now>toastUntil?'0':'1';if($('hint').style.opacity!==opacity)$('hint').style.opacity=opacity;
  if(now-lastSave>15000&&!paused){queueSave();lastSave=now}
  requestAnimationFrame(frame)
 }
@@ -2087,7 +2112,7 @@ try{if(!BENCH&&saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=f
 // ---- Benchmark (?bench): a fixed 33 s flight (orbit over the vista, then a low pass toward the coast).
 // It never writes the save, so it is safe to run on a real device with an existing world.
 let bench=null,benchLock=false,benchReport=null;
-function startBench(){benchLock=true;paused=false;suspended=false;$('menu').classList.add('hidden');$('craft').classList.add('hidden');flying=true;clearInput();refresh();
+function startBench(){perfEnabled=true;perfStats={};benchLock=true;paused=false;suspended=false;$('menu').classList.add('hidden');$('craft').classList.add('hidden');flying=true;clearInput();refresh();
  if(timeOverride===null)timeOverride=.45;const bx=vista?vista.x:Math.floor(player.x),bz=vista?vista.z:Math.floor(player.z);
  bench={t:0,frames:[],bx,bz,by:(vista?vista.eye:player.y)+40,builds:0};toast('性能を計測しています…（約35秒・操作不要）')}
 function benchStep(raw,dt){const b=bench,th=GRAND?height4:height;b.t+=Math.min(raw,.1);
@@ -2100,10 +2125,10 @@ function finishBench(){const f=bench.frames.slice().sort((a,b)=>a-b),n=f.length|
  let near=0,far=0;for(const ch of chunks.values())near+=(ch.quads+ch.waterQuads)*144;for(const t of lodTiles.values())far+=t.bytes||0;
  const heap=performance.memory?.usedJSHeapSize;
  benchReport={quality:Q.label+(qualityAuto?'（自動）':''),frames:f.length,avgFps:+(1000/mean).toFixed(1),low1Fps:+(1000/p99).toFixed(1),worstMs:+(f[f.length-1]||0).toFixed(1),over33:+(f.filter(x=>x>33.4).length/n*100).toFixed(1),
-  resolution:canvas.width+'×'+canvas.height,renderScale:Math.round(renderScale*100),nearChunks:chunks.size,lodTiles:[...lodTiles.values()].filter(t=>t.ready).length,gpuMB:+((near+far)/1048576).toFixed(1),heapMB:heap?+(heap/1048576).toFixed(1):null,worker:!!lodWorker,life:life.length,
+  resolution:canvas.width+'×'+canvas.height,renderScale:Math.round(renderScale*100),nearChunks:chunks.size,lodTiles:[...lodTiles.values()].filter(t=>t.ready).length,gpuMB:+((near+far+lifeModel.n*4+MAXQ*12+cloudQuads*144+oceanTiles.length*48+24+[...dynamicCaps.values()].reduce((a,b)=>a+b,0))/1048576).toFixed(1),heapMB:heap?+(heap/1048576).toFixed(1):null,worker:!!lodWorker,life:life.length,visibleLife:lifeDrawn,profile:JSON.parse(JSON.stringify(perfStats)),drawCallsPerFrame:+((perfStats.drawCalls||0)/Math.max(1,perfStats.renderFrames||0)).toFixed(1),
   device:(typeof navigator!=='undefined'?navigator.userAgent:'').slice(0,120)};
  bench=null;paused=true;console.log('JOCRAFT2 BENCH',JSON.stringify(benchReport));window.__bench=benchReport;
- const r=benchReport,text=`JOCRAFT2 性能計測（v5.2）\n画質：${r.quality} / 描画 ${r.resolution}（${r.renderScale}%）\n平均 ${r.avgFps} FPS / 1%低下 ${r.low1Fps} FPS\n最悪フレーム ${r.worstMs} ms / 33ms超え ${r.over33}%\n近景 ${r.nearChunks}チャンク / 遠景 ${r.lodTiles}タイル\nGPU推定 ${r.gpuMB} MB${r.heapMB?` / JS ${r.heapMB} MB`:''} / ワーカー ${r.worker?'有効':'無効'} / 生き物 ${r.life}体\n${r.device}`;
+ const r=benchReport,text=`JOCRAFT2 性能計測（v5.2）\n画質：${r.quality} / 描画 ${r.resolution}（${r.renderScale}%）\n平均 ${r.avgFps} FPS / 1%低下 ${r.low1Fps} FPS\n最悪フレーム ${r.worstMs} ms / 33ms超え ${r.over33}%\n近景 ${r.nearChunks}チャンク / 遠景 ${r.lodTiles}タイル\nGPU推定 ${r.gpuMB} MB${r.heapMB?` / JS ${r.heapMB} MB`:''} / ワーカー ${r.worker?'有効':'無効'} / 生き物 ${r.life}体\n${r.device}\n描画命令/フレーム ${r.drawCallsPerFrame} / 表示生き物 ${r.visibleLife}\n詳細計測：${JSON.stringify(r.profile)}`;
  const wrap=document.createElement('div'),panel=document.createElement('div'),pre=document.createElement('pre'),copy=document.createElement('button'),close=document.createElement('button');
  wrap.className='overlay';panel.className='panel';pre.textContent=text;pre.style.cssText='white-space:pre-wrap;font:12px/1.7 monospace;user-select:text;-webkit-user-select:text';
  copy.className=close.className='primary';copy.textContent='結果をコピー';close.textContent='閉じる（通常プレイへ）';
@@ -2111,5 +2136,5 @@ function finishBench(){const f=bench.frames.slice().sort((a,b)=>a-b),n=f.length|
  panel.appendChild(pre);panel.appendChild(copy);panel.appendChild(close);wrap.appendChild(panel);(document.body||{appendChild(){}}).appendChild(wrap)}
 if(BENCH)startBench();
 requestAnimationFrame(frame);
-window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,get cows(){return life.filter(c=>c.sp===COW)},life,LIFE_SPECIES,animateWorld,vertexSource,fragmentSource,waterFragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
+window.Nisekura={get performanceProfile(){return perfEnabled?JSON.parse(JSON.stringify(perfStats)):null},get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,get cows(){return life.filter(c=>c.sp===COW)},life,LIFE_SPECIES,animateWorld,vertexSource,fragmentSource,waterFragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
 </script></html>
