@@ -83,8 +83,8 @@ body:has(#menu:not(.hidden)) #bar{display:none}
 #compassTrack::after{content:"";position:absolute;top:0;left:50%;height:28px;width:2px;background:#ffda8c;box-shadow:0 0 5px #0009;transform:translateX(-50%)}
 .compass-tick{position:absolute;top:6px;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:#e6f4f2}
 .compass-tick.cardinal{font-weight:900;font-size:12px;top:4px;color:#fff4ce}
-#compassHeading{position:absolute;right:7px;top:6px;font-size:9px;color:#d8eef2;background:#183338b8;padding:1px 3px;border-radius:3px}
-#compassInfo{display:flex;justify-content:center;align-items:center;gap:5px;margin-top:4px}
+#compassHeading{position:static;flex:0 0 auto;font-size:9px;line-height:1.4;white-space:nowrap;color:#d8eef2;background:#183338b8;padding:2px 5px;border-radius:3px}
+#compassInfo{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px;margin-top:4px;max-width:100%}
 #compassHome,#compassWarning{display:flex;align-items:center;gap:5px;background:#10292bd9;border:1px solid #ffffff46;border-radius:6px;padding:3px 7px;white-space:nowrap}
 #compassHomeArrow{display:inline-block;font-size:13px;color:#ffe49e;transform-origin:center}
 #compassWarning{color:#ffe4bd;background:#64371ddd;border-color:#ffd39b80;font-weight:700}
@@ -104,7 +104,7 @@ body.hud-details #statsDetails{display:block}
 body.hud-details #compass{top:calc(max(12px,env(safe-area-inset-top)) + 66px)}
 #compassTrack{height:23px;background:#112b3059;border-color:#ffffff38;border-radius:5px;box-shadow:none;backdrop-filter:none}
 #compassTrack::after{height:23px;width:1px}.compass-tick{top:4px}.compass-tick.cardinal{top:3px;font-size:11px}
-#compassHeading{top:4px;right:4px;background:#10272180}
+#compassHeading{background:#10272180}
 #compassInfo{gap:4px;margin-top:2px;flex-wrap:wrap}
 #compassHome,#compassWarning{padding:2px 5px;border-color:#ffffff26;background:#10292b66}
 #compassWarning{background:#64371dbb}#compassHomeArrow{font-size:11px}
@@ -114,8 +114,9 @@ body.hud-details #compass{top:calc(max(12px,env(safe-area-inset-top)) + 66px)}
 .actions button{height:44px;min-width:44px;padding:4px;font-size:11px;background:#10272140;border:1px solid #ffffff38;border-radius:7px;text-shadow:0 1px 3px #000}
 .actions #jump{background:#315b434d}.actions #fly.active{background:#225d897d;border-color:#b6e7ff;box-shadow:inset 0 -2px #b6e7ff}
 .actions button:active,.hud-tools button:active{background:#467857aa}
-#bar{max-width:calc(100vw - 16px);padding:2px;gap:1px;border:1px solid #ffffff30;border-radius:7px;background:#10232240}
-#bar button{flex:0 0 auto;width:44px;height:46px;border:1px solid #ffffff26;border-radius:4px;background:#25362d45;font-size:9px}
+#bar{width:max-content;max-width:calc(100vw - 16px);padding:2px;gap:1px;border:1px solid #ffffff30;border-radius:7px;background:#10232240;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;touch-action:pan-x;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none}
+#bar::-webkit-scrollbar{display:none}
+#bar button{flex:0 0 auto;width:44px;height:46px;border:1px solid #ffffff26;border-radius:4px;background:#25362d45;font-size:9px;touch-action:pan-x}
 #bar button.selected{border:1px solid #efffc5;background:#61764985;box-shadow:none}
 #bar .block-icon{width:20px;height:20px;margin-bottom:2px}
 #cross{font-size:22px;color:#ffffffcf}#target{font-size:11px}
@@ -154,8 +155,8 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
 @media(max-height:480px){#eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px)}#eggGrid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))}#eggGrid .egg{min-height:68px}#eggGrid .egg canvas{width:38px;height:38px}}
 
 </style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>UNDERGROUND · v11.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
- <div id="compassTrack"><div id="compassHeading"></div></div>
- <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
+ <div id="compassTrack"></div>
+ <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
 <div class="title-stage">
  <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">あの山の向こうへ！</span></div>
@@ -170,7 +171,7 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
   <div class="title-pair"><button id="exportWorld" class="title-button">ワールドをバックアップ</button><button id="importWorld" class="title-button">バックアップから復元</button></div>
 <input id="importFile" type="file" accept=".json,application/json" hidden>
 <details class="title-help"><summary>保存データの復旧</summary><button id="recoverWorld" class="title-button">保存データを復旧（直前の正常セーブ）</button><button id="restoreProtected" class="title-button">切り替え前の世界に戻す</button><button id="exportProtected" class="title-button">退避データを書き出す</button></details>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
 <div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v11.0</span></div>
@@ -192,7 +193,7 @@ const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='j
 const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
 const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341'],null,null,null,null,null,null,null,null,null,['青い結晶','#4d8cff'],['紫の結晶','#b45cff'],['翠の結晶','#38f09a'],['光ゴケ','#3fbf9a']];
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
-const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
+const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
 const BENCH=(()=>{try{return new URLSearchParams(location.search).has('bench')}catch(e){return false}})();
 let perfEnabled=BENCH;try{perfEnabled=perfEnabled||new URLSearchParams(location.search).has('perf')}catch(e){}
@@ -2446,7 +2447,7 @@ function frame(now){
  if(now-lastSave>15000&&!paused){queueSave();lastSave=now}
  requestAnimationFrame(frame)
 }
-if(saved?.settings){const q=saved.settings;qualityName=q.qualityName;Q=QUALITY[qualityName];hudMinimal=q.hudMinimal;hudDetails=q.hudDetails;lifeVoices=q.lifeVoices;selected=q.selected;eggSp=q.eggSp;applyHUD();streamDirty=true}
+if(saved?.settings){const q=saved.settings;qualityName=q.qualityName;Q=QUALITY[qualityName];hudMinimal=q.hudMinimal;hudDetails=q.hudDetails;lifeVoices=q.lifeVoices;selected=Number.isInteger(q.selected)&&q.selected>=0&&q.selected<slots.length?q.selected:0;eggSp=q.eggSp;applyHUD();streamDirty=true}
 refresh();
 try{if(!BENCH&&saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');streamChunks(true);toast('前のプレイを再開した')}}catch(e){}
 // ---- Benchmark (?bench): a fixed 33 s flight (orbit over the vista, then a low pass toward the coast).
