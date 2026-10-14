@@ -350,3 +350,36 @@ const SEA_=62;
   const main=JSON.parse(R(`(()=>{const it=tileMesh(${step},${x0},${z0});let r;while(!(r=it.next()).done);return JSON.stringify({r:r.value,b:Array.from(lw.u8.subarray(0,lw.n*12))})})()`));
   assert.equal(JSON.stringify(out.r),JSON.stringify(main.r),'worker bounds match');assert.equal(out.bytes.length,main.b.length);for(let i=0;i<main.b.length;i+=53)assert.equal(out.bytes[i],main.b[i],'worker bytes match')}
  console.log(`PASS: spot button (${f.n} spots, 4 kinds, cycling, safe landing), legacy worlds untouched, worker matches main thread on scenic tiles`)}
+
+// ---- Phase 9: volumetric clouds and sky layers.
+{const d=boot(),R=c=>run(d,c);
+ // Clouds: deterministic per cell, a mix of kinds and sizes, with gaps of open sky.
+ const cl=JSON.parse(R(`(()=>{const o=[];let n=0,cells=0;const kinds=new Set(),sizes=new Set(),bases=new Set(),hs=new Set();
+  for(let gx=-20;gx<20;gx++)for(let gz=-20;gz<20;gz++){cells++;const c=cloudAt(gx,gz),c2=cloudAt(gx,gz);if(JSON.stringify(c)!==JSON.stringify(c2))return JSON.stringify('nondeterministic');
+   if(!c)continue;n++;kinds.add(c.kind);sizes.add(c.nx*c.ny*c.nz);bases.add(c.y);hs.add(c.ny);let occ=0;for(const v of c.occ)occ+=v;if(occ<1||c.nx*c.ny*c.nz>200)return JSON.stringify('bad shape '+gx+','+gz)}
+  return JSON.stringify({cover:n/cells,kinds:[...kinds].sort(),sizes:sizes.size,bases:bases.size,thick:[...hs].sort()})})()`));
+ assert.notEqual(cl,'nondeterministic');assert(typeof cl==='object',String(cl));
+ assert(cl.cover>.25&&cl.cover<.7,`cloud cover leaves open sky (${(cl.cover*100).toFixed(0)}%)`);assert.deepEqual(cl.kinds,[0,1,2],'cumulus, stratus and puffs');assert(cl.sizes>=10&&cl.bases>=4&&cl.thick.length>=3,'clouds differ in size, height and thickness');
+ // Mesh: only exposed faces, finite data, packed colour channels in range, quad budget grows with quality.
+ const stat={};for(const q of['low','standard','high']){R(`Q=QUALITY.${q};buildClouds(1000,1000)`);
+  stat[q]=JSON.parse(R(`(()=>{const a=cw.a;let bad=0,max=0;for(let i=0;i<cw.n;i+=9){const r=a[i+3],g=a[i+4],b=a[i+5],m=a[i+8];if(!(r>=0&&r<=1&&g>=.84&&g<=1&&b>=0&&b<=1&&a[i+1]>40&&Number.isFinite(a[i])&&Number.isFinite(a[i+2])))bad++;const face=Math.floor(m/32),mat=m-face*32;if(mat!==18||face>5)bad++}return JSON.stringify({quads:cloudQuads,bad})})()`))}
+ assert(stat.low.quads>200&&stat.low.quads<stat.standard.quads&&stat.standard.quads<stat.high.quads&&stat.high.quads<40000,`cloud quads ${stat.low.quads}/${stat.standard.quads}/${stat.high.quads}`);
+ assert.equal(stat.low.bad+stat.standard.bad+stat.high.bad,0,'cloud vertices are valid');
+ const solid=JSON.parse(R(`(()=>{let faces=0,vox=0;for(let gx=0;gx<12;gx++)for(let gz=0;gz<12;gz++){const c=cloudAt(gx,gz);if(!c)continue;const{nx,ny,nz,occ}=c;const at=(i,j,k)=>i<0||j<0||k<0||i>=nx||j>=ny||k>=nz?0:occ[(j*nz+k)*nx+i];
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)if(occ[(j*nz+k)*nx+i]){vox++;for(const f of FACE)if(!at(i+f.n[0],j+f.n[1],k+f.n[2]))faces++}}return JSON.stringify({faces,vox})})()`));
+ assert(solid.faces<solid.vox*5,'faces between neighbouring cloud blocks are not drawn');
+ // Shaders: layers exist in the sky shader, clouds are mirrored in the sea, the new uniform is wired and stage-local.
+ const sky=d.api.skyFragmentSource,water=R('waterFragmentSource');
+ assert(sky.includes('skyDeck(d,')&&sky.includes('skyCirrus(d)')&&sky.includes('uniform vec4 skyP'),'sky fragment draws both cloud layers');
+ assert(water.includes('skyDeck(r,fp>3.?-1.:0.)'),'water mirrors clouds');assert(!R('fragmentSource').includes('skyDeck(r'),'terrain shader has no reflection code');
+ assert(R('SKY_UNIFORMS').includes('skyP'));
+ // A far rebuild is spread over frames: the old mesh stays until the new one is ready.
+ R('Q=QUALITY.standard;cloudGen=null;buildClouds(500,500);var __t=0;performance.now=()=>(__t+=1)');const q0=R('cloudQuads'),ax0=R('cloudAX');R('updateClouds(500+cloudRadius()*.5,500)');assert(R('cloudGen')!==null&&R('cloudAX')===ax0&&R('cloudQuads')===q0,'rebuild starts without replacing the visible mesh');
+ let steps=0;while(R('cloudGen')!==null&&steps++<500)R('updateClouds(500+cloudRadius()*.5,500)');assert(R('cloudAX')!==ax0&&R('cloudQuads')>0,'rebuild finishes and swaps the mesh'); R('performance.now=()=>0');
+ const calls=[];R(`gl.uniform4f=(l,...a)=>{if(l&&l.n==='skyP')__calls.push(a)}`);d.c.__calls=calls;
+ R(`(()=>{const u={sunDir:1,zenithCol:1,horizonCol:1,sunCol:1,fogP:1,dirLight:1,dirCol:1,ambCol:1,misc:1,skyP:{n:'skyP'}};const env=skyEnv(sunFromTime(.5));cloudDrift=123.5;time=100;Q=QUALITY.high;setEnv(u,env,[1,1,1,0])})()`);
+ assert(calls.length===1&&calls[0][0]===123.5&&calls[0][1]>.1&&calls[0][1]<.9&&calls[0][2]===2,`sky uniform carries drift, cover and quality ${JSON.stringify(calls[0])}`);
+ // Lighting inputs follow the time of day: warm and low at sunset, cool and dim at night.
+ const env=t=>JSON.parse(R(`JSON.stringify(skyEnv(sunFromTime(${t})))`));const noon=env(.5),dusk=env(.74),night=env(0);
+ assert(dusk.dirCol[0]>dusk.dirCol[2]*1.5,'sunset cloud light is warm');assert(noon.amb[1]>night.amb[1]*2.5,'night clouds are dark');
+ console.log(`PASS: clouds: cover ${(cl.cover*100).toFixed(0)}%, ${cl.sizes} sizes, 3 kinds, quads ${stat.low.quads}/${stat.standard.quads}/${stat.high.quads} (low/standard/high), hidden faces culled, sky layers + sea reflection wired`)}
