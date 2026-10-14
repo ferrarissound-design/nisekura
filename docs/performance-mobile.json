@@ -1,0 +1,151 @@
+{
+  "baseline_commit": "34ba2c8e79c1429682f06d073ac52a0c95588a07",
+  "after_index_sha256": "d414596ac2520e7493beabfc2bc333e32d8d1355b20a54927d28515c1b74eed8",
+  "device_claim": "No real GPU, Safari, iPhone or iPad measurements. CPU wall times are noisy.",
+  "runs": [
+    {
+      "before": {
+        "environment": "Node VM / mocked WebGL, deterministic seed 42",
+        "near120CpuMs": 63.41,
+        "distant120CpuMs": 58.78,
+        "creatureCommands240Frames": {
+          "binds": 14400,
+          "pointers": 57600,
+          "draws": 14400
+        },
+        "distantPoseCalls": 7200,
+        "nearAI240Ms": 73.75,
+        "title120Callbacks": {
+          "renders": 120,
+          "streamCalls": 120,
+          "renderScale": 1
+        },
+        "synchronousEggIcons": 30,
+        "dynamic20Frames": {
+          "allocations": 20,
+          "subUploads": 0
+        },
+        "outlineUploads60Frames": 60
+      },
+      "after": {
+        "environment": "Node VM / mocked WebGL, deterministic seed 42",
+        "near120CpuMs": 55.98,
+        "distant120CpuMs": 25.62,
+        "creatureCommands240Frames": {
+          "binds": 240,
+          "pointers": 960,
+          "draws": 14400
+        },
+        "distantPoseCalls": 2058,
+        "nearAI240Ms": 73.8,
+        "title120Callbacks": {
+          "renders": 60,
+          "streamCalls": 60,
+          "renderScale": 1
+        },
+        "synchronousEggIcons": 0,
+        "dynamic20Frames": {
+          "allocations": 1,
+          "subUploads": 20
+        },
+        "outlineUploads60Frames": 1
+      }
+    },
+    {
+      "before": {
+        "environment": "Node VM / mocked WebGL, deterministic seed 42",
+        "near120CpuMs": 113.82,
+        "distant120CpuMs": 118.32,
+        "creatureCommands240Frames": {
+          "binds": 14400,
+          "pointers": 57600,
+          "draws": 14400
+        },
+        "distantPoseCalls": 7200,
+        "nearAI240Ms": 135.27,
+        "title120Callbacks": {
+          "renders": 120,
+          "streamCalls": 120,
+          "renderScale": 1
+        },
+        "synchronousEggIcons": 30,
+        "dynamic20Frames": {
+          "allocations": 20,
+          "subUploads": 0
+        },
+        "outlineUploads60Frames": 60
+      },
+      "after": {
+        "environment": "Node VM / mocked WebGL, deterministic seed 42",
+        "near120CpuMs": 55.67,
+        "distant120CpuMs": 25,
+        "creatureCommands240Frames": {
+          "binds": 240,
+          "pointers": 960,
+          "draws": 14400
+        },
+        "distantPoseCalls": 2058,
+        "nearAI240Ms": 69.87,
+        "title120Callbacks": {
+          "renders": 60,
+          "streamCalls": 60,
+          "renderScale": 1
+        },
+        "synchronousEggIcons": 0,
+        "dynamic20Frames": {
+          "allocations": 1,
+          "subUploads": 20
+        },
+        "outlineUploads60Frames": 1
+      }
+    },
+    {
+      "before": {
+        "environment": "Node VM / mocked WebGL, deterministic seed 42",
+        "near120CpuMs": 113.08,
+        "distant120CpuMs": 106.12,
+        "creatureCommands240Frames": {
+          "binds": 14400,
+          "pointers": 57600,
+          "draws": 14400
+        },
+        "distantPoseCalls": 7200,
+        "nearAI240Ms": 131.82,
+        "title120Callbacks": {
+          "renders": 120,
+          "streamCalls": 120,
+          "renderScale": 1
+        },
+        "synchronousEggIcons": 30,
+        "dynamic20Frames": {
+          "allocations": 20,
+          "subUploads": 0
+        },
+        "outlineUploads60Frames": 60
+      },
+      "after": {
+        "environment": "Node VM / mocked WebGL, deterministic seed 42",
+        "near120CpuMs": 64.08,
+        "distant120CpuMs": 27.03,
+        "creatureCommands240Frames": {
+          "binds": 240,
+          "pointers": 960,
+          "draws": 14400
+        },
+        "distantPoseCalls": 2058,
+        "nearAI240Ms": 76.87,
+        "title120Callbacks": {
+          "renders": 60,
+          "streamCalls": 60,
+          "renderScale": 1
+        },
+        "synchronousEggIcons": 0,
+        "dynamic20Frames": {
+          "allocations": 1,
+          "subUploads": 20
+        },
+        "outlineUploads60Frames": 1
+      }
+    }
+  ]
+}

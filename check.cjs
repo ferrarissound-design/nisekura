@@ -1,9 +1,9 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const script=fs.readFileSync(__dirname+'/index.html','utf8').match(/<script>([\s\S]*)<\/script>/)[1];
 function boot(saved,session={},prefs={}){const nodes={},storage={...prefs},events={},windowEvents={};if(saved)storage['nisekura-v1']=saved;let triangles=0;
-const gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true,createBuffer:()=>({}),getAttribLocation:()=>1,bufferData:(_,data)=>{assert(data.every(Number.isFinite));triangles+=data.length}}, {get:(o,k)=>k in o?o[k]:(()=>({}))});
+const gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true,createBuffer:()=>({}),getAttribLocation:()=>1,bufferData:(_,data)=>{if(typeof data==='number'){assert(Number.isFinite(data)&&data>=0);return}assert(data.every(Number.isFinite));triangles+=data.length},bufferSubData:(_,offset,data)=>{assert(data.every(Number.isFinite));triangles+=data.length}}, {get:(o,k)=>k in o?o[k]:(()=>({}))});
 const node=()=>({style:{},classList:{values:new Set(),add(n){this.values.add(n)},remove(n){this.values.delete(n)},toggle(n,on){if(on)this.values.add(n);else this.values.delete(n)},contains(n){return this.values.has(n)}},setAttribute(){},focus(){},listeners:{},addEventListener(n,f){(this.listeners[n]??=[]).push(f)},appendChild(){},getContext:()=>gl,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:112,height:112})});
-const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v,removeItem:k=>{delete session[k]}},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v,removeItem:k=>{delete storage[k]}},document:{body:node(),getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=(n,f)=>windowEvents[n]=f;c.confirm=()=>true;c.location={pathname:'/jocraft/',href:'/jocraft/'};vm.createContext(c);vm.runInContext(script,c);return {c,api:c.Nisekura,storage,get triangles(){return triangles},events,windowEvents,nodes,session}}
+const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v,removeItem:k=>{delete session[k]}},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v,removeItem:k=>{delete storage[k]}},document:{body:node(),getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=(n,f)=>windowEvents[n]=f;c.confirm=()=>true;c.location={pathname:'/jocraft/',href:'/jocraft/'};vm.createContext(c);vm.runInContext(script,c);return {gl,c,api:c.Nisekura,storage,get triangles(){return triangles},events,windowEvents,nodes,session}}
 const run=(b,code)=>vm.runInContext(code,b.c);
 function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++)for(let y=0;y<y1;y++){h^=api.get(x,y,z);h=Math.imul(h,16777619)}return h>>>0}
 
@@ -538,3 +538,57 @@ const SEA_=62;
  await d.nodes.importFile.onchange({target:{files:[{size:legacy.length,text:async()=>legacy}],value:'chosen'}});assert(run(d,'resettingWorld'));assert(d.storage['nisekura-v1-protected']);
  console.log('PASS: asynchronous file selection, cancellation, size/parse/read failures and successful import');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+// ---- Mobile performance: command equivalence, cadence, resource lifetimes and async UI.
+{
+ const d=boot(legacy);run(d,'life.length=0;readyR=8;for(let i=0;i<12;i++)lifeNew(LIFE_SPECIES[i%2],player.x+(i%3),player.y,player.z+10+i,true,1)');
+ let binds=0,pointers=0,draws=[];d.gl.bindBuffer=()=>binds++;d.gl.vertexAttribPointer=()=>pointers++;d.gl.drawElements=(mode,n,type,offset)=>draws.push({n,offset});
+ run(d,'const testCam={...player,y:player.y+1.62,yaw:0,pitch:0};drawLife(testCam,makeFrustum(testCam,1.5),skyEnv(sunFromTime(.5)),[300,400,500,0],1.5,.1,250)');
+ assert.equal(run(d,'lifeDrawn'),12);assert.equal(binds,1);assert.equal(pointers,4);assert.equal(draws.length,12);
+ const spans=JSON.parse(run(d,'JSON.stringify(life.map(c=>({n:c.sp.nq*6,offset:c.sp.q0*12})))'));assert.deepEqual(draws,spans,'same ordered creatures, index offsets select exact original model vertices');
+ assert(run(d,'LIFE_SPECIES.every(sp=>(sp.q0+sp.nq)*4<=65536)'));
+ run(d,'const testCreature=life[0];lifePose(testCreature);lifeMatrices(testCreature,testCam);lifeMatrices(testCreature,{...testCam,x:testCam.x+.25,y:testCam.y+.5,z:testCam.z-.1});const cachedMatrix=Array.from(testCreature.Mv);testCreature.matrixValid=false;lifeMatrices(testCreature,{...testCam,x:testCam.x+.25,y:testCam.y+.5,z:testCam.z-.1})');
+ assert(run(d,'cachedMatrix.every((v,i)=>Math.abs(v-testCreature.Mv[i])<.0001)'),'camera-rebased matrices match full computation');
+ run(d,'for(const c of life)c.z=player.z+70;var poseCount=0;const originalPose=lifePose;lifePose=c=>{poseCount++;originalPose(c)};for(let i=0;i<120;i++){for(const c of life)c.t+=1/60;drawLife(testCam,makeFrustum(testCam,1.5),skyEnv(sunFromTime(.5)),[300,400,500,0],1.5,.1,250)}');assert(run(d,'poseCount<12*60&&poseCount>12*25'));
+ run(d,'poseCount=0;for(const c of life)c.z=player.z-70;drawLife(testCam,makeFrustum(testCam,1.5),skyEnv(sunFromTime(.5)),[300,400,500,0],1.5,.1,250)');assert.equal(run(d,'poseCount'),0,'offscreen creatures never posed');
+ console.log('PASS: shared model/index buffer, unchanged draw order, exact camera rebasing, distant poses and offscreen culling');
+}
+{
+ const d=boot(legacy),pos=JSON.stringify(d.api.player);run(d,'var rendered=0,physics=0;render=()=>rendered++;streamChunks=()=>0;lodWork=()=>{};update=()=>physics++;updateLife=()=>{};last=0;for(let i=1;i<=120;i++)frame(i*1000/60)');assert.equal(run(d,'rendered'),60);assert.equal(run(d,'physics'),0);assert.equal(JSON.stringify(d.api.player),pos);assert.equal(run(d,'renderScale'),1);assert(run(d,'time>1.27&&time<1.31'),'title clock follows elapsed time');
+ run(d,'play();for(let i=121;i<=240;i++)frame(i*1000/60)');assert.equal(run(d,'physics'),120,'play resumes full update cadence');
+ run(d,'suspended=true;for(let i=241;i<=300;i++)frame(i*1000/60)');assert.equal(run(d,'rendered'),180,'background stops all rendering');
+ run(d,'renderScale=1;lowStreak=highStreak=0;adaptPerformance(30,0)');assert.equal(run(d,'renderScale'),1,'one bad window does not change resolution');run(d,'adaptPerformance(30,0)');assert.equal(run(d,'renderScale'),.9);
+ run(d,'adaptPerformance(60,0);adaptPerformance(60,0)');assert.equal(run(d,'renderScale'),.9);run(d,'adaptPerformance(60,0)');assert.equal(run(d,'renderScale'),.95);
+ run(d,'renderScale=1;lowStreak=0;for(let i=0;i<5;i++)adaptPerformance(30,12)');assert.equal(run(d,'renderScale'),1,'streaming-heavy windows do not trigger resolution loss');assert.equal(run(d,'loadScale'),.5);
+ assert.equal(d.api.performanceProfile,null,'detailed counters disabled in ordinary play');
+ console.log('PASS: title 30Hz, unchanged physics/clock, full play resume, hidden suspension and quality hysteresis');
+}
+{
+ const d=boot(legacy);let callbacks=[],icons=0;d.c.requestAnimationFrame=fn=>callbacks.push(fn);d.c.iconStub=()=>{icons++;return d.c.document.createElement('canvas')};run(d,'lifeIcon=iconStub;openEggs()');assert.equal(icons,0);assert.equal(run(d,'eggIconQueue.length'),30);assert.equal(callbacks.length,1);
+ callbacks.shift()();assert.equal(icons,2);run(d,'play()');callbacks.shift()();assert.equal(icons,2,'closed UI generates no icons');run(d,'openEggs()');while(callbacks.length)callbacks.shift()();assert.equal(icons,30);run(d,'play();openEggs()');assert.equal(callbacks.length,0,'reopen uses cached panel');
+ const buttons=run(d,'hotbarButtons.slice()');run(d,'refresh();refresh()');assert(buttons.every((b,i)=>b===run(d,`hotbarButtons[${i}]`)),'hotbar nodes reused');
+ console.log('PASS: immediate egg labels, 2 icons per callback, pause/resume, cached reopen and stable hotbar DOM');
+}
+{
+ const d=boot(legacy);let allocations=0,uploads=0;d.gl.bufferData=()=>allocations++;d.gl.bufferSubData=()=>uploads++;
+ run(d,'dyn.n=36;for(let i=0;i<20;i++)drawData(dynamicBuffer,dyn)');assert.equal(allocations,1);assert.equal(uploads,20);run(d,'dyn.n=100;drawData(dynamicBuffer,dyn)');assert.equal(allocations,2);assert.equal(run(d,'dynamicCaps.size'),1);
+ let shaders=0,programs=0;d.gl.deleteShader=()=>shaders++;d.gl.deleteProgram=()=>programs++;run(d,'buildProgram(vertexSource,fragmentSource,[])');assert.equal(shaders,2);d.gl.getProgramParameter=()=>false;assert.throws(()=>run(d,'buildProgram(vertexSource,fragmentSource,[])'));assert.equal(shaders,4);assert.equal(programs,1);
+ console.log('PASS: dynamic buffer capacity reuse and shader cleanup on successful/failed links');
+}
+{
+ const d=boot(legacy);d.api.save();const saved=d.storage['nisekura-v1'];let terminated=0,revoked=0,workers=[];
+ d.c.Blob=class{};d.c.URL={createObjectURL:()=> 'blob:worker',revokeObjectURL:()=>revoked++};d.c.Worker=class{constructor(){workers.push(this)}terminate(){terminated++}postMessage(){}};
+ run(d,'startLodWorker();buildClouds(player.x,player.z)');const oldCloud=run(d,'cloudBuffer'),oldWorker=workers[0];assert.equal(revoked,1);
+ d.nodes.world.listeners.webglcontextlost[0]({preventDefault(){}});assert.equal(terminated,1);assert.equal(run(d,'renderReady'),false);assert.equal(run(d,'lodPending.size'),0);
+ d.nodes.world.listeners.webglcontextrestored[0]();assert(run(d,'renderReady'));assert.equal(revoked,2);assert.equal(workers.length,2);assert.equal(run(d,'cloudAX'),1e9);assert.equal(run(d,'activeProgram'),null);assert.equal(run(d,'dynamicCaps.size'),0);
+ oldWorker.onmessage({data:{id:1,bytes:new Uint8Array(12),r:{quads:1,ymin:1,ymax:2}}});assert.equal(run(d,'lodPending.size'),0,'stale worker completion ignored');
+ run(d,'updateClouds(player.x,player.z)');assert(run(d,'cloudQuads>0'));assert.notEqual(run(d,'cloudBuffer'),oldCloud);assert.equal(d.storage['nisekura-v1'],saved,'context recovery never writes saves');
+ run(d,'stopLodWorker()');assert.equal(terminated,2);
+ console.log('PASS: context recovery rebuilds clouds/buffers, restarts worker, revokes URLs and rejects stale results without saving');
+}
+
+{
+ const d=boot(legacy);run(d,'life.length=0;lifeMode="off";const slowCreature=lifeNew(COW,player.x,player.y,player.z,true,1);var simulatedSeconds=0;lifeLand=(c,dt)=>simulatedSeconds+=dt;for(let i=0;i<100;i++)updateLife(.035,{x:player.x+120,y:player.y,z:player.z})');assert(run(d,'Math.abs(simulatedSeconds+slowCreature.acc-3.5)<1e-8'),'distant AI retains elapsed-time remainder');
+ let uploads=0;d.gl.bufferData=()=>uploads++;run(d,'hit={x:30,y:30,z:30};for(let i=0;i<60;i++)drawOutline()');assert.equal(uploads,1);run(d,'hit.x++;drawOutline()');assert.equal(uploads,2);assert(run(d,'outlineData.every(Number.isFinite)'));
+ console.log('PASS: distant AI elapsed-time remainder and cached outline geometry');
+}
