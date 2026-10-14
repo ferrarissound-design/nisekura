@@ -322,6 +322,15 @@ Minecraft公式作品ではありません。コードとブロックの外観�
 |---|---|---|
 | ![canyon](docs/screenshots/phase14-canyon-air.png) | ![far falls](docs/screenshots/phase14-falls-far.png) | ![behind](docs/screenshots/phase14-behind-falls.png) |
 
+| 大渓谷の縁から（絶景スポット） | 天然アーチ | 海底アーチ |
+|---|---|---|
+| ![canyon rim](docs/screenshots/phase14-canyon.png) | ![arch](docs/screenshots/phase14-arch.png) | ![undersea arch](docs/screenshots/phase14-undersea-arch.png) |
+
+| 変更前（v8）→ 変更後（v9）：同じシード・同じ位置・同じ向き |
+|---|
+| 上空 ![before](docs/screenshots/phase14-before-air.png) ![after](docs/screenshots/phase14-canyon-air.png) |
+| 遠くの山 ![before](docs/screenshots/phase14-before-far.png) ![after](docs/screenshots/phase14-falls-far.png) |
+
 **新規ワールド（生成バージョン9）のみ**。v8以前のワールドは地形・ブロック・近景メッシュ・遠景タイル・出発地点まで従来と完全一致（テストで確認）。「新しい世界」を押すとv9の世界になる。
 
 - **大渓谷**（1ワールドに1〜3本）：高地から海へ向かって蛇行しながら下る、長さ300〜750m・深さ70〜100mの谷。谷底は海面の高さの川と、明るい草地・砂利の河原。壁は垂直に近い段（2〜3段）と岩棚（棚には低木）、壁の位置は少しずつ揺らぎ、細い峡谷と広い谷が交互に現れる。上流端は円形の谷頭。谷底は森が濃く、崖の上は草原（見晴らしを優先）

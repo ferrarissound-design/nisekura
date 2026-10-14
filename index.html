@@ -2500,7 +2500,8 @@ function wonderView(s){const f=s.f,C=[];
  else{const g=height4(Math.round(f.x),Math.round(f.z));for(const k of[1,1.35])for(const sd of[1,-1])for(const o of[0,.45]){const d=(f.span*.9+12)*k,px=-f.az*sd,pz=f.ax*sd;C.push([f.x+(px+f.ax*o)*d,f.z+(pz+f.az*o)*d,f.x,g+f.h*.6,f.z])}}
  let best=null;
  for(const c of C){const p=standNear(c[0],c[1],6),opts=[];if(p)opts.push({x:p.x,y:p.y,z:p.z,fly:false,pen:0});
-  if(hover)opts.push({x:p?p.x:c[0],z:p?p.z:c[1],y:(p?p.y:Math.max(SEA+1,terrainH(Math.floor(c[0]),Math.floor(c[1]))+1))+5,fly:true,pen:4});
+  // a canyon is best seen from the air just above its rim, clear of the rim forest; elsewhere hovering is the fallback
+  if(hover){const up=s.kind==='canyon'?20:5;opts.push({x:p?p.x:c[0],z:p?p.z:c[1],y:(p?p.y:Math.max(SEA+1,terrainH(Math.floor(c[0]),Math.floor(c[1]))+1))+up,fly:true,pen:s.kind==='canyon'?0:4})}
   for(const o of opts){const cost=o.pen+10*sightCost(o.x,o.y+1.62,o.z,c[2],c[3],c[4]);if(!best||cost<best.cost)best={x:o.x,y:o.y,z:o.z,tx:c[2],ty:c[3],tz:c[4],fly:o.fly,cost}}
   if(best&&best.cost===0)break}
  if(best)return best;const c=C[0];return{x:c[0],z:c[1],y:Math.max(SEA+3,terrainH(Math.floor(c[0]),Math.floor(c[1]))+4),tx:c[2],ty:c[3],tz:c[4],fly:true}}
