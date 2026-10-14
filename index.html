@@ -15,6 +15,9 @@
 
 .actions button{height:46px}.actions #fly.active{background:#5283aacc;border-color:#beeeff}.actions #down:disabled{opacity:.3;pointer-events:none}
 @media(max-height:480px){.actions{bottom:78px;gap:5px}.actions button{height:40px}.top{top:max(6px,env(safe-area-inset-top))}}
+/* Prevent browser viewport zoom without disabling one-finger scrolling in menus. */
+html{touch-action:none;overscroll-behavior:none}
+#world{touch-action:none}
 /* iOS/iPadOS Safari: disable native text selection, blue hold highlight and callout
    on game controls, without changing pointer/hold handlers or menu scrolling. */
 html,body,body *,body *::before,body *::after{
@@ -171,6 +174,13 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world');
+// iOS/iPadOS Safari may still zoom despite the viewport meta tag.
+// Block only browser zoom gestures; leave single-finger camera movement and menu scrolling intact.
+function preventPageZoom(e){if(e.cancelable)e.preventDefault()}
+for(const type of ['gesturestart','gesturechange'])document.addEventListener(type,preventPageZoom,{passive:false});
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)preventPageZoom(e)},{passive:false});
+document.addEventListener('dblclick',preventPageZoom,{passive:false});
+document.addEventListener('wheel',e=>{if(e.ctrlKey)preventPageZoom(e)},{passive:false});
 const gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'})||canvas.getContext('experimental-webgl');
 if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてください。';throw Error('WebGL unavailable')}
 // The world is generated on demand. Near 16x16 columns are real voxels; everything farther is a light LOD mesh.
