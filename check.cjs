@@ -18,7 +18,7 @@ console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/re
 
 // ---- Mobile browser zoom prevention: keep game gestures and menu scrolling working.
 assert.match(fs.readFileSync(__dirname+'/index.html','utf8'),/<meta name="viewport" content="[^"]*user-scalable=no/);
-assert.match(fs.readFileSync(__dirname+'/index.html','utf8'),/#world\\{touch-action:none\\}/);
+assert(fs.readFileSync(__dirname+'/index.html','utf8').includes('#world{touch-action:none}'));
 const zoomEvent=(props={})=>({cancelable:true,defaultPrevented:false,...props,preventDefault(){this.defaultPrevented=true}});
 for(const eventName of ['gesturestart','gesturechange','dblclick']){
  const e=zoomEvent();a.events[eventName](e);assert(e.defaultPrevented,eventName+' must not zoom the page');
