@@ -135,7 +135,7 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
 @media(max-width:374px){#bar{width:calc(100vw - 16px);overflow-x:auto;justify-content:flex-start;touch-action:pan-x}}
 @media(max-height:480px){#compass{top:max(6px,env(safe-area-inset-top));width:min(220px,calc(100vw - 310px));min-width:170px}body.hud-details #compass{top:max(6px,env(safe-area-inset-top))}#stats{max-width:230px}#statsDetails{max-width:200px}.actions,#stick{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 58px)}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>SCENIC WORLD · v8.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>SKY & CLOUDS · v9.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"><div id="compassHeading"></div></div>
  <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -151,7 +151,7 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v8.0</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v9.0</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
 <script>
 'use strict';
