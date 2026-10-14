@@ -890,14 +890,18 @@ float cloudSun(vec3 w){
  float dy=max(0.,520.-w.y);
  vec2 p=w.xz+sunDir.xz*(dy/max(sunDir.y,.18))-vec2(skyP.x,0.);
  float th=.67-skyP.y*.27;
- float cover=smoothstep(th-.055,th+.16,deckBroad(p));
- return 1.-cover*.46*smoothstep(.015,.28,sunDir.y)*smoothstep(0.,50.,dy);
+ // A wider penumbra and a stronger core make the moving shade visible at walking height.
+ float cover=smoothstep(th-.10,th+.13,deckBroad(p));
+ return 1.-cover*.58*smoothstep(.005,.16,sunDir.y)*smoothstep(0.,50.,dy);
 }
 // Sun (or moon) direct light plus a sky/ground ambient. Faces under a roof keep only drifting canopy gaps.
 vec3 lighting(vec3 n,float shade,vec3 w,float soft){
  float nd=mix(max(dot(n,dirLight),0.),.3+.45*max(dirLight.y,0.),soft);vec3 amb=ambCol*(.8+.2*n.y);
+ float cloud=1.-cloudSun(w);
+ // Under clouds the sky fill turns a little cooler while direct sunlight softens.
+ amb*=mix(vec3(1.),vec3(.82,.88,1.),cloud*.55);
  if(shade>.5){vec2 p=floor(w.xz*8.)/8.*.42+misc.y*vec2(.11,.06)*(.4+misc.z);float g=vnoise(p)*.65+vnoise(p*2.7+5.3)*.35;nd*=smoothstep(.56,.66,g)*step(.5,n.y)*.95;amb*=.76;}
- return amb+dirCol*nd*cloudSun(w);}
+ return amb+dirCol*nd*(1.-cloud);}
 float caustic(vec2 p,float t){p=floor(p*16.)/16.;vec2 q=p*.62+vec2(sin(p.y*.37+t*.4),cos(p.x*.41-t*.33))*.35;
  float a=vnoise(q+vec2(t*.23,t*.13)),b=vnoise(q*1.31+vec2(-t*.17,t*.21)+5.3);return pow(clamp(1.-abs(a-b)*3.2,0.,1.),5.);}
 // ---- Sky cloud layers (also used for reflections). Both are flat layers seen in perspective; the lower one is a patchy deck lit from the sun's side.
