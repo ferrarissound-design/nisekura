@@ -882,15 +882,31 @@ vec3 fogMix(vec3 c,vec3 rel,float wy){float d=length(rel);vec3 dir=rel/max(d,.00
  float f=1.-exp(-pow(d/fogP.x,1.6));f*=1.-.45*clamp((wy-${SEA+25}.)/140.,0.,1.);f=max(f,smoothstep(fogP.y,fogP.z,d));
  return mix(c,mix(skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),vec3(.022,.03,.056),misc.w),clamp(f,0.,1.));}
 vec3 faceNormal(float f){return f<.5?vec3(1.,0.,0.):f<1.5?vec3(-1.,0.,0.):f<2.5?vec3(0.,1.,0.):f<3.5?vec3(0.,-1.,0.):f<4.5?vec3(0.,0.,1.):f<5.5?vec3(0.,0.,-1.):vec3(0.,1.,0.);}
-// Sun (or moon) direct light plus a sky/ground ambient. Faces under a roof keep only drifting canopy gaps.
+// Sun (or moon) direct light plus sky fill. Cloud shadows reuse skyP.x/skyP.y so they drift with the visible cloud deck.
+float cloudShadow(vec3 w,vec3 n,float soft);
 vec3 lighting(vec3 n,float shade,vec3 w,float soft){
  float nd=mix(max(dot(n,dirLight),0.),.3+.45*max(dirLight.y,0.),soft);vec3 amb=ambCol*(.8+.2*n.y);
+ float cs=cloudShadow(w,n,soft);
+ nd*=1.-cs;
+ // Shadowed surfaces borrow a little more cool sky fill; low sun keeps the warm/cool contrast.
+ amb*=mix(vec3(1.),vec3(.78,.86,1.),cs*.38);
  if(shade>.5){vec2 p=floor(w.xz*8.)/8.*.42+misc.y*vec2(.11,.06)*(.4+misc.z);float g=vnoise(p)*.65+vnoise(p*2.7+5.3)*.35;nd*=smoothstep(.56,.66,g)*step(.5,n.y)*.95;amb*=.76;}
  return amb+dirCol*nd;}
 float caustic(vec2 p,float t){p=floor(p*16.)/16.;vec2 q=p*.62+vec2(sin(p.y*.37+t*.4),cos(p.x*.41-t*.33))*.35;
  float a=vnoise(q+vec2(t*.23,t*.13)),b=vnoise(q*1.31+vec2(-t*.17,t*.21)+5.3);return pow(clamp(1.-abs(a-b)*3.2,0.,1.),5.);}
 // ---- Sky cloud layers (also used for reflections). Both are flat layers seen in perspective; the lower one is a patchy deck lit from the sun's side.
 float cfbm(vec2 p,float oct){float s=0.,a=.5;for(int i=0;i<4;i++){if(float(i)>=oct)break;s+=a*vnoise(p);p=p*2.07+vec2(11.3,7.9);a*=.5;}return s;}
+float cloudShadow(vec3 w,vec3 n,float soft){
+ // Match the sky deck's 520/820 projection at a nominal 190-block cloud height.
+ // Two octaves give a soft broad shadow at bounded fragment cost; low quality skips it entirely.
+ if(skyP.z<.5||dirLight.y<.015||misc.x>.7)return 0.;
+ vec2 p=w.xz*(520./(190.*820.))-vec2(skyP.x/820.,0.)+vec2(3.1,1.7);
+ float density=cfbm(p,2.),threshold=.67-skyP.y*.27;
+ float mask=smoothstep(threshold-.10,threshold+.18,density);
+ float sunHeight=smoothstep(.015,.55,dirLight.y);
+ float strength=mix(.30,.16,sunHeight)*(1.-.58*misc.x);
+ return mask*strength*mix(.38,1.,max(n.y,0.));
+}
 // Mid deck: rgb + alpha. q = sky quality (0 unlit and cheap, 1 lit, 2 finer detail).
 vec4 skyDeck(vec3 d,float q){
  if(d.y<.02)return vec4(0.);
@@ -2289,9 +2305,12 @@ const norm=v=>{const l=Math.hypot(...v);return v.map(c=>c/l)};
 const SKY_KEYS=[[-.18,{z:[.015,.03,.08],h:[.05,.08,.16],g:[0,0,0],a:[.13,.17,.27],d:[.17,.21,.33]}],[-.04,{z:[.10,.15,.32],h:[.52,.38,.40],g:[.8,.35,.2],a:[.30,.29,.36],d:[.10,.06,.05]}],[.10,{z:[.25,.40,.72],h:[1,.74,.52],g:[1,.62,.32],a:[.56,.52,.54],d:[.80,.52,.30]}],[.45,{z:[.22,.46,.86],h:[.71,.83,.95],g:[1,.9,.72],a:[.66,.68,.72],d:[.44,.43,.38]}]];
 function skyEnv(sun){const e=sun[1];let i=0;while(i<SKY_KEYS.length-2&&e>SKY_KEYS[i+1][0])i++;
  const [e0,k0]=SKY_KEYS[i],[e1,k1]=SKY_KEYS[i+1],t=Math.max(0,Math.min(1,(e-e0)/(e1-e0))),m=key=>mix3(k0[key],k1[key],t);
+ // Warm direct light tapers into the neutral high sun; the shadow fill stays cool by comparison.
+ const warm=smooth(-.16,.025,e)*(1.-smooth(.12,.48,e))*.16;
+ const warmColor=[1.,.70,.45];const direct=m('d').map((v,j)=>v+(warmColor[j]-v)*warm);
  // Below the horizon the moon (opposite the sun) becomes the directional light.
  const dir=e>-.1?norm([sun[0],Math.max(sun[1],.04),sun[2]]):norm([-sun[0],-sun[1],-sun[2]]);
- return{sun,zenith:m('z'),horizon:m('h'),sunCol:m('g'),amb:m('a'),dirCol:m('d'),dir,night:smooth(-.02,-.2,e)}}
+ return{sun,zenith:m('z'),horizon:m('h'),sunCol:m('g'),amb:m('a'),dirCol:direct,dir,night:smooth(-.02,-.2,e)}}
 // dayTime 0.25 = sunrise in the east, 0.5 = noon, 0.75 = sunset in the west.
 function sunFromTime(t){const a=(t-.25)*Math.PI*2;return norm([Math.cos(a),Math.sin(a)*.72,.42])}
 function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayTime));
