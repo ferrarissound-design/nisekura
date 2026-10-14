@@ -709,3 +709,67 @@ const SEA_=62;
  assert(m.every(c=>c.sh-c.y>=6),'they live underground, not on the surface');assert(m.every(c=>c.inside<=0||c.inside===undefined||c.inside===0),'none are inside rock');
  R('lifeMode="animals";life.length=0;for(let k=0;k<200;k++)updateLife(.1,player)');assert.equal(R('life.length'),0,'animals-only mode keeps caves quiet');
  console.log(`PASS: cave creatures: ${m.map(c=>c.id).join('/')} on cave floors, none on the surface, quiet in animals-only mode`)}
+
+// ---- Phase 12: underwater life. Flora is mesh-only (material 31), fish are runtime-only schools; neither touches saves.
+const AQ_SPOTS={river:[982,808],lake:[1102,712],reef:[1258,856],kelp:[1258,598]};
+const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=opaqueW.a,o=[];for(let i=0;i<opaqueW.n;i+=36){let code=a[i+8];const cv=Math.floor(code/1024);code-=cv*1024;const wet=code>=511.5;if(wet)code-=512;const sh=code>=255.5;if(sh)code-=256;
+ const face=Math.floor((code+.5)/32),m=code-face*32;if(m<30.5)continue;let y0=1e9,y1=-1e9,xs=0,zs=0;for(let k=0;k<4;k++){const j=i+k*9;y0=Math.min(y0,a[j+1]);y1=Math.max(y1,a[j+1]);xs+=a[j];zs+=a[j+2]}
+ o.push([Math.round((m-31)*10),face,+(xs/4).toFixed(3),+y0.toFixed(3),+y1.toFixed(3),+(zs/4).toFixed(3),wet?1:0,+a[i+7].toFixed(2)])}return JSON.stringify(o)})()`));
+{const d=boot(),R=c=>run(d,c);const found={},stat={};
+ for(const [name,[x,z]] of Object.entries(AQ_SPOTS)){R(`paused=false;player.x=${x}+.5;player.z=${z}+.5;player.y=70;streamChunks(true);for(let i=0;i<40;i++)streamChunks()`);
+  let all=[];for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++)all=all.concat(aquaQuads(d,(x>>4)+dx,(z>>4)+dz));stat[name]=all.length;
+  const kinds=new Set(all.map(q=>(q[1]===6?'b':'x')+q[0]));found[name]=kinds;
+  for(const q of all){assert.equal(q[6],1,'underwater decorations are lit as wet faces');assert(q[4]<62.88,`${name}: nothing pokes out of the water (${q})`)}
+  // Every decoration stands on a solid floor block with water above it (billboards: a crossed pair shares the cell of its root).
+  for(const q of all.filter(q=>q[1]===6&&q[7]===0)){const X=Math.floor(q[2]),Z=Math.floor(q[5]),Y=Math.round(q[3]);if(Y!==q[3])continue;assert(R(`solid(${X},${Y-1},${Z})&&get(${X},${Y},${Z})===10`),`${name}: plant on a floor under water (${q})`)}}
+ assert(found.river.has('b0'),'river: short seagrass');assert(found.lake.has('b1'),'lake: long waterweed');assert(found.kelp.has('b2'),'sea: kelp');
+ assert(['x0','x1','x3','b4'].filter(k=>found.reef.has(k)).length>=3,'reef: several coral forms '+[...found.reef]);assert(found.reef.has('b0')||found.lake.has('b3')||found.river.has('b3'),'seagrass and small plants mix in');
+ assert(!found.river.has('x0')&&!found.lake.has('x0')&&!found.river.has('b2'),'no coral or kelp in fresh water');
+ // Deterministic: a second boot of the same seed meshes identical decorations; lower quality keeps a subset.
+ const e=boot();run(e,`paused=false;player.x=${AQ_SPOTS.reef[0]}.5;player.z=${AQ_SPOTS.reef[1]}.5;player.y=70;streamChunks(true);for(let i=0;i<40;i++)streamChunks()`);
+ const cx=AQ_SPOTS.reef[0]>>4,cz=AQ_SPOTS.reef[1]>>4;R(`player.x=${AQ_SPOTS.reef[0]}.5;player.z=${AQ_SPOTS.reef[1]}.5;streamChunks(true);for(let i=0;i<40;i++)streamChunks()`);
+ const hi=aquaQuads(d,cx,cz);assert.deepEqual(aquaQuads(e,cx,cz),hi,'same seed, same reef');
+ R("Q=QUALITY.low");const lo=aquaQuads(d,cx,cz);R("Q=QUALITY[qualityName]");const key=q=>q.slice(0,6).join(),hs=new Set(hi.map(key));
+ assert(lo.length<hi.length*.9&&lo.length>0&&lo.every(q=>hs.has(key(q))),`low quality keeps a subset (${lo.length}/${hi.length})`);
+ // Edits: digging out the floor under a plant removes it; nothing floats.
+ const p=hi.find(q=>q[1]===6&&q[7]===0&&Math.round(q[3])===q[3]);const X=Math.floor(p[2]),Y=p[3]-1,Z=Math.floor(p[5]);const t=R(`get(${X},${Y},${Z})`);
+ d.api.edit(X,Y,Z,10);assert(!aquaQuads(d,cx,cz).some(q=>Math.floor(q[2])===X&&Math.floor(q[5])===Z&&q[3]===Y+1),'no plant left floating over a dug hole');d.api.edit(X,Y,Z,t);
+ assert.deepEqual(aquaQuads(d,cx,cz),hi,'restoring the floor restores the plant');
+ // Saves: nothing new is stored.
+ const snap=JSON.parse(R('JSON.stringify(snapshot())'));assert.deepEqual(Object.keys(snap).sort(),['changes','creative','dayTime','flying','inventory','life','pitch','player','seed','settings','terrainVersion','version','worldHeight','worldWidth','yaw'].sort());
+ assert(!JSON.stringify(snap.life).includes('medaka'),'fish are not saved');
+ console.log(`PASS: underwater flora: river ${[...found.river]} / lake ${[...found.lake]} / reef ${[...found.reef]} / kelp sea ${[...found.kelp]} (${Object.values(stat).join('/')} quads), on floors under water, deterministic, quality subset ${lo.length}/${hi.length}, edits, saves unchanged`)}
+{// Fish: models, habitats, staying in water, flight from the player, bounded numbers and determinism.
+ const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ const sp=J('FISH_SPECIES.map(s=>({id:s.id,nq:s.nq,q0:s.q0,tail:s.parts.filter(p=>p[0]==="tail").length,fins:s.parts.length,rare:!!s.rare,zone:s.zone,dims:[s.rad.toFixed(2),s.h.toFixed(2)]}))');
+ assert(sp.length>=8,'at least eight new fish');assert.equal(R('LIFE_SPECIES.length'),30,'the 30 existing creatures are unchanged');
+ assert(sp.every(s=>!R(`!!LIFE_BY_ID['${s.id}']`)),'new ids');assert(sp.every(s=>s.tail>=1&&s.fins>=8),'every fish has a tail and fins');
+ assert.equal(new Set(sp.map(s=>s.dims.join())).size,sp.length,'every species has its own shape');assert(sp.some(s=>s.rare)&&sp.some(s=>s.zone==='bottom')&&sp.some(s=>s.zone==='top'));
+ assert(sp.every(s=>s.q0+s.nq*8<=R('MAXQ')),'shared index buffer covers every batch');
+ const sim=(x,z,secs)=>{R(`paused=false;fishSchools.length&&fishSchools.splice(0);fishCells.clear();fishCount=0;lifeMode='all';player.x=${x}+.5;player.z=${z}+.5;player.y=75;flying=true;streamChunks(true);for(let i=0;i<60;i++)streamChunks();fishT=0`);
+  for(let k=0;k<secs*10;k++)R('updateFish(.1,player)');return J('fishSchools.map(s=>({id:s.sp.id,n:s.n,key:s.key,m:s.m.slice(0,s.n).map(m=>[m.x,m.y,m.z,peek(Math.floor(m.x),Math.floor(m.y),Math.floor(m.z))])}))')};
+ const hab={};let total=0;
+ for(const [name,[x,z]] of Object.entries(AQ_SPOTS)){const s=sim(x,z,40);hab[name]=[...new Set(s.map(q=>q.id))];total+=s.length;
+  for(const q of s)for(const m of q.m){assert.equal(m[3],10,`${q.id} stays in water`);assert(m[1]<=62.6,`${q.id} stays under the surface`)}
+  assert(s.reduce((a,q)=>a+q.n,0)<=R('FISH_Q[qualityName].fish')+16,'bounded numbers')}
+ const fresh=['medaka','koi','nishiki','namazu'],salt=['hanadai','aobudai','kasago','hirame','ryugu'];
+ assert(hab.river.length&&hab.river.every(i=>fresh.includes(i)),'river fish: '+hab.river);assert(hab.lake.length&&hab.lake.every(i=>fresh.includes(i)),'lake fish: '+hab.lake);
+ assert(hab.reef.includes('hanadai')&&hab.reef.every(i=>salt.includes(i)),'reef fish: '+hab.reef);
+ // Deterministic schools: leaving and coming back finds the same species in the same cells, never more.
+ const a1=sim(...AQ_SPOTS.reef,8).map(q=>q.key+q.id).sort();R(`player.x=200;player.z=200;for(let k=0;k<20;k++)updateFish(.1,player)`);assert.equal(R('fishSchools.length'),0,'schools leave with the player');
+ const a2=sim(...AQ_SPOTS.reef,8).map(q=>q.key+q.id).sort();assert.deepEqual(a2,a1,'same schools on return');
+ for(let k=0;k<5;k++){R(`player.x=200;player.z=200;for(let k=0;k<6;k++)updateFish(.1,player);player.x=${AQ_SPOTS.reef[0]}.5;player.z=${AQ_SPOTS.reef[1]}.5;for(let k=0;k<30;k++)updateFish(.1,player)`)}
+ assert(R('fishSchools.length')<=a1.length&&R('fishCount')===R('fishSchools.reduce((a,s)=>a+s.n,0)'),'reloading never multiplies fish');
+ // A school of small fish scatters when the player swims into it; matrices stay finite.
+ const sc=J(`(()=>{const s=fishSchools.find(s=>s.sp.flee&&s.n>3);return s?{x:s.x,y:s.y,z:s.z,id:s.sp.id}:null})()`);assert(sc,'a school that can flee');
+ R(`player.x=${sc.x};player.y=${sc.y}-1;player.z=${sc.z};for(let k=0;k<5;k++)updateFish(.1,player)`);const fl=J(`(()=>{const s=fishSchools.find(s=>Math.hypot(s.x-${sc.x},s.z-${sc.z})<6&&s.sp.id==='${sc.id}');return{flee:s.flee,d:Math.hypot(s.x-player.x,s.z-player.z)}})()`);
+ assert(fl.flee>0,'the school takes fright');for(let k=0;k<15;k++)R('updateFish(.1,player)');
+ const away=R(`(()=>{let b=1e9;for(const s of fishSchools)if(s.sp.id==='${sc.id}')b=Math.min(b,Math.hypot(s.x-player.x,s.z-player.z));return b})()`);assert(away>fl.d+1,`it swims away (${fl.d.toFixed(1)} -> ${away.toFixed(1)})`);
+ assert(R(`(()=>{for(const s of fishSchools)for(let i=0;i<s.n;i++){fishMats(0,s.m[i],s.sp,{x:player.x,y:player.y,z:player.z});if(!FB.subarray(0,24).every(Number.isFinite))return false}return true})()`),'finite fish matrices');
+ const perQ={};for(const q of['low','standard','high']){R(`qualityName='${q}';Q=QUALITY.${q}`);const s=sim(...AQ_SPOTS.reef,25);perQ[q]=s.reduce((a,x)=>a+x.n,0);
+  assert(perQ[q]<=R(`FISH_Q.${q}.fish`)+16&&s.length<=R(`FISH_Q.${q}.schools`),`${q}: within caps (${perQ[q]} fish, ${s.length} schools)`)}
+ assert(perQ.low<=perQ.high,'low quality never has more fish than high');R("qualityName='standard';Q=QUALITY.standard");
+ R("lifeMode='off';updateFish(.1,player)");assert.equal(R('fishSchools.length+fishCount'),0,'creatures off clears the fish');
+ // Caps per quality.
+ assert(R('FISH_Q.low.fish<FISH_Q.standard.fish&&FISH_Q.standard.fish<FISH_Q.high.fish'));
+ console.log(`PASS: fish: ${sp.length} species (${sp.map(s=>s.id).join('/')}), river ${hab.river} / lake ${hab.lake} / reef ${hab.reef} / kelp sea ${hab.kelp}, all in water, deterministic schools, flight, fish per quality ${perQ.low}/${perQ.standard}/${perQ.high}`)}
