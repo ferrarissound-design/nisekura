@@ -798,6 +798,13 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  // Lower quality keeps fewer decorations (a subset), so phones pay less for the same reef.
  R(`player.x=${tier.spots.core[0]}.5;player.z=${tier.spots.core[1]}.5`);R("Q=QUALITY.low");const lo=quads(...tier.spots.core);R("Q=QUALITY[qualityName]");
  const key=q=>q.join(),hs=new Set(core.map(key));assert(lo.length<core.length*.8&&lo.every(q=>hs.has(key(q))),`low quality: a smaller subset (${lo.length}/${core.length})`);
+ // Coral mounds: big colonies in cores (none over plain sea), taller than a block, each owning its 3x3 columns.
+ const mounds=(x,z)=>{R(`paused=false;player.x=${x}+.5;player.z=${z}+.5;player.y=70;streamChunks(true);for(let i=0;i<40;i++)streamChunks()`);const o=[];
+  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++)o.push(...J(`(()=>{rebuild(${(x>>4)+dx},${(z>>4)+dz});const cx=${(x>>4)+dx},cz=${(z>>4)+dz};return aqM.filter(m=>m.ax>>4===cx&&m.az>>4===cz)})()`));return o};
+ const mc=mounds(...tier.spots.core),mp=mounds(...tier.spots.plain);
+ assert(mc.length>=3&&mp.length===0,`coral mounds in cores only (${mc.length} vs ${mp.length})`);
+ const tall=core.filter(coralQ).filter(q=>mc.some(m=>Math.abs(q[6]-m.ax-.5)<1.6&&Math.abs(q[7]-m.az-.5)<1.6&&q[2]-m.fy>1));assert(tall.length>0,'mounds rise more than a block above the floor');
+ for(let i=0;i<mc.length;i++)for(let j=i+1;j<mc.length;j++)assert(Math.max(Math.abs(mc[i].ax-mc[j].ax),Math.abs(mc[i].az-mc[j].az))>=3,'mound footprints never overlap');
  // Sun shafts: slanted pale columns over reef cores only, none over plain sea, none on low quality; they end at the surface.
  const shafts=(x,z)=>{R(`paused=false;player.x=${x}+.5;player.z=${z}+.5;player.y=70;streamChunks(true);for(let i=0;i<40;i++)streamChunks()`);let n=0,top=-1e9,bot=1e9;
   for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const o=JSON.parse(R(`(()=>{rebuild(${(x>>4)+dx},${(z>>4)+dz});const a=waterW.a,o=[];for(let i=0;i<waterW.n;i+=36){let code=a[i+8];code-=Math.floor(code/1024)*1024;if(code>=511.5)code-=512;if(code>=255.5)code-=256;const m=code-Math.floor((code+.5)/32)*32;if(m>30.3&&m<30.5)o.push([a[i+1],a[i+10],a[i+19],a[i+28]])}return JSON.stringify(o)})()`));
@@ -822,7 +829,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert(cnt(fc)>cnt(fp)&&fc.filter(s=>reefIds.includes(s.id)).length>=2,`reef fish gather at a core (${cnt(fc)} fish: ${fc.map(s=>s.id)}) vs plain sea (${cnt(fp)}: ${fp.map(s=>s.id)})`);
  assert(fc.some(s=>s.key>=16777216),'reef cells host a second school');assert(!fp.some(s=>['kakure','chocho','hatatate'].includes(s.id)),'core fish stay at reefs');
  assert.deepEqual(sim(...tier.spots.core,30).map(s=>s.key+s.id).sort(),fc.map(s=>s.key+s.id).sort(),'the same reef schools every visit');
- console.log(`PASS: coral reefs: sun shafts ${sc.n}, tiers ${tier.t.map(v=>v.toFixed(2)).join('/')} (plain/fringe/reef/core), core forms ${forms} + rocks, hues ${[...bins]}, ${nc} vs ${np} coral quads, low ${lo.length}/${core.length}, fish ${cnt(fc)} (${[...new Set(fc.map(s=>s.id))]}) vs ${cnt(fp)}`)}
+ console.log(`PASS: coral reefs: mounds ${mc.length}, sun shafts ${sc.n}, tiers ${tier.t.map(v=>v.toFixed(2)).join('/')} (plain/fringe/reef/core), core forms ${forms} + rocks, hues ${[...bins]}, ${nc} vs ${np} coral quads, low ${lo.length}/${core.length}, fish ${cnt(fc)} (${[...new Set(fc.map(s=>s.id))]}) vs ${cnt(fp)}`)}
 // ---- v8: river stretches that used to be dry sand beds hold water; v7 worlds keep their exact terrain (recorded before v8).
 {const hashStep=(h,v)=>Math.imul(h^v,16777619);
  const v7=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:7,seed:73219,changes:[],inventory:{}})),r7=c=>run(v7,c);

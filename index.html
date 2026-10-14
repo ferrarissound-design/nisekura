@@ -154,7 +154,7 @@ body:has(#eggs:not(.hidden)) .top,body:has(#eggs:not(.hidden)) #stick,body:has(#
 body:has(#eggs:not(.hidden)) #compass{display:none!important}
 @media(max-height:480px){#eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px)}#eggGrid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))}#eggGrid .egg{min-height:68px}#eggGrid .egg canvas{width:38px;height:38px}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>CORAL REEF · v13.1</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>CORAL REEF · v13.2</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
  <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -174,7 +174,7 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v13.1</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v13.2</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -1737,6 +1737,34 @@ function coralStag(w,X,y,Z,room,c,r2,r3,big,wx,wz){const tw=.13,th=Math.min(room
   emitAquaBox(w,X+(dx?(dx>0?tw/2:-e):-bw/2),yy,Z+(dz?(dz>0?tw/2:-e):-bw/2),dx?L:bw,bw,dz?L:bw,6,c);
   if(tH>.05)emitAquaBox(w,X+dx*(e-bw/2)-bw/2,yy+bw,Z+dz*(e-bw/2)-bw/2,bw,tH,bw,6,c)}
  const cH=Math.min(room-th-.05,(.25+.35*r3)*big);if(cH>.05)emitAquaBox(w,X-bw/2,y+th,Z-bw/2,bw,cH,bw,6,c)}
+// Coral mounds (bommies): big colonies 1-2.4 blocks tall in reef cores, at most one per 5x5 block cell. A mound owns the 3x3 columns
+// around its anchor (no small decorations there); the chunk holding the anchor builds it. Same in every quality (they are the landmarks).
+const aqM=[];
+function coralMounds(x0,z0){aqM.length=0;
+ for(let cz=Math.floor((z0-1)/5);cz<=Math.floor((z0+16)/5);cz++)for(let cx=Math.floor((x0-1)/5);cx<=Math.floor((x0+16)/5);cx++){
+  if(aqh(cx,cz,51)>.85)continue;const ax=cx*5+1+Math.floor(aqh(cx,cz,52)*3),az=cz*5+1+Math.floor(aqh(cx,cz,53)*3),lx=ax-x0,lz=az-z0;if(lx<-1||lx>16||lz<-1||lz>16)continue;
+  const col=(lz+1)*PW+lx+1;if(pad[(SEA+1)*PA+col]!==10)continue;let y=SEA;while(y>1&&pad[(y+1)*PA+col]===10)y--;const ft=pad[(y+1)*PA+col];if(ft!==2&&ft!==3&&ft!==6)continue;
+  const D=SEA-y;if(D<3||D>13||reefZone(ax,az)*smooth(1.2,3,D)*(1-smooth(10,16,D))<.45)continue;aqM.push({ax,az,fy:y+1,room:D-.4})}}
+function moundAt(wx,wz){for(const m of aqM)if(Math.abs(wx-m.ax)<=1&&Math.abs(wz-m.az)<=1)return m;return null}
+function emitMound(w,m){const {ax,az,fy,room}=m,R=k=>aqh(ax,az,54+k),t=R(0),c=coralColor(ax,az,R(1),R(2)),c2=coralColor(ax+5,az-3,.9,R(3)),
+  H=Math.min(2.4,room-.35)*(.7+.3*R(4)),X=ax+.5+(R(5)-.5)*.3,Z=az+.5+(R(6)-.5)*.3,y0=fy-.5; // sunk half a block so floor steps never show a gap
+ let top=fy+H;
+ if(t<.35){// brain bommie: a lumpy dome of slabs with grooves
+  const L=[[2,.22],[2.5,.26],[2.35,.24],[1.9,.16],[1.25,.12]];let y=y0;
+  for(let i=0;i<L.length;i++){const hh=H*L[i][1]+(i?0:.5),sx=L[i][0]*(.88+.2*R(10+i)),sz=L[i][0]*(.88+.2*R(20+i)),ox=(R(30+i)-.5)*.2,oz=(R(40+i)-.5)*.2;
+   emitAquaBox(w,X-sx/2+ox,y,Z-sz/2+oz,sx,hh,sz,0,i===4?c2:c);y+=hh}top=y}
+ else if(t<.6){// table stack: a thick stem with broad plates at three heights
+  const st=.3;emitAquaBox(w,X-st/2,y0,Z-st/2,st,H+.4,st,1,c.map(v=>v*.7));
+  for(let i=0;i<3;i++){const s=2.3-.5*i,yy=fy+H*(.4+.28*i)-.1,ox=(R(10+i)-.5)*.5,oz=(R(20+i)-.5)*.5;emitAquaBox(w,X-s/2+ox,yy,Z-s/2+oz,s,.14,s,3,i===1?c2:c)}}
+ else if(t<.8){// pillar coral: a cluster of tall fingers
+  const n=5+Math.floor(R(7)*4);top=fy;for(let i=0;i<n;i++){const a=i*2.39996+R(8)*6,d=i?.3+.12*i:0,tw=.26+.14*R(10+i),th=H*(.45+.55*R(20+i));
+   emitAquaBox(w,X+Math.cos(a)*Math.min(d,.95)-tw/2,y0,Z+Math.sin(a)*Math.min(d,.95)-tw/2,tw,th+.5,tw,5,i%3===2?c2:c);top=Math.max(top,fy+th)}
+  return}
+ else{// staghorn thicket: three big antler colonies
+  for(let i=0;i<3;i++){const a=i*2.1+R(8)*6,d=i?.6:0;coralStag(w,X+Math.cos(a)*d,fy,Z+Math.sin(a)*d,room,i===2?c2:c,R(10+i),R(20+i),2+.6*R(30+i),ax+i*7,az-i*5)}return}
+ // Smaller colonies and fans settle on top of domes and plates.
+ const rm=fy+room-top;if(rm>.35)for(let i=0;i<3;i++){const dx=i?(R(40+i)<.5?-1:1):0,dz=i===2?(R(50+i)<.5?-1:1):0,k=R(60+i);
+  emitCoral(w,ax,top,az,rm,k<.35?3:k<.65?4:0,coralColor(ax+i*3,az+i*7,R(70+i),R(80+i)),R(90+i),R(100+i),dx*.6,dz*.6,1)}}
 function aquaPebble(w,wx,fy,wz,r2,r3){const n=1+Math.floor(r3*3);for(let i=0;i<n;i++){const a=aqh(wx*7+i,wz*13+i*5,11)*6.283,d=i?.22+.1*i:0,s=.16+.24*aqh(wx*3+i*9,wz*7+2,12)*(i?.7:1),h=s*(.5+.35*r2),c=PEBBLE[Math.floor(aqh(wx+i*3,wz*5+i,13)*4)];
   emitAquaBox(w,wx+.5+Math.cos(a)*d-s/2,fy-.05,wz+.5+Math.sin(a)*d-s/2,s,h,s*(.8+.4*r3),2,c)}}
 const FLOWERS=['#e84837','#f5e4df','#f4d03f','#8a7ee0','#f08bb5'].map(rgb),LEGACY_FLOWERS=[rgb('#e84837'),rgb('#f5e4df')],LEGACY_GRASS=rgb('#609c35');
@@ -1839,7 +1867,9 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
  // Underwater flora: one decoration per open-water floor column (scanned down from the sea surface through the water).
  if(AQUA&&info&&info.wk){const ak=(lvl?.55:1)*(.3+.7*Q.plant);let zones=false;
   for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const k=z*16+x;if(!info.wk[k])continue;const col=(z+1)*PW+x+1;let y=SEA;if(pad[(y+1)*PA+col]!==10)continue;
-   while(y>1&&pad[(y+1)*PA+col]===10)y--;const ft=pad[(y+1)*PA+col];if(ft!==2&&ft!==3&&ft!==6)continue;if(!zones&&info.wk[k]===1){aquaZones(x0,z0);zones=true}emitAqua(opaqueW,x0+x,z0+z,y+1,SEA-y,ft,info.wk[k],ak)}}
+   while(y>1&&pad[(y+1)*PA+col]===10)y--;const ft=pad[(y+1)*PA+col];if(ft!==2&&ft!==3&&ft!==6)continue;if(!zones&&info.wk[k]===1){aquaZones(x0,z0);coralMounds(x0,z0);zones=true}
+   if(aqM.length&&info.wk[k]===1){const m=moundAt(x0+x,z0+z);if(m){if(m.ax===x0+x&&m.az===z0+z)emitMound(opaqueW,m);continue}}
+   emitAqua(opaqueW,x0+x,z0+z,y+1,SEA-y,ft,info.wk[k],ak)}}
  // Sun shafts over reef cores: slanted pale columns from the surface down to the floor (one per 8x8 block cell at most; not on low quality).
  if(AQUA&&info&&info.wk&&Q.water>=1){for(let j=0;j<2;j++)for(let i=0;i<2;i++){const lx=i*8+1+Math.floor(aqh(x0+i*8,z0+j*8,41)*6),lz=j*8+1+Math.floor(aqh(x0+i*8,z0+j*8,42)*6),wx=x0+lx,wz=z0+lz;
    if(info.wk[lz*16+lx]!==1||aqh(wx,wz,43)>.75)continue;const col=(lz+1)*PW+lx+1;if(pad[(SEA+1)*PA+col]!==10)continue;
