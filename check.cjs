@@ -383,3 +383,70 @@ const SEA_=62;
  const env=t=>JSON.parse(R(`JSON.stringify(skyEnv(sunFromTime(${t})))`));const noon=env(.5),dusk=env(.74),night=env(0);
  assert(dusk.dirCol[0]>dusk.dirCol[2]*1.5,'sunset cloud light is warm');assert(noon.amb[1]>night.amb[1]*2.5,'night clouds are dark');
  console.log(`PASS: clouds: cover ${(cl.cover*100).toFixed(0)}%, ${cl.sizes} sizes, 3 kinds, quads ${stat.low.quads}/${stat.standard.quads}/${stat.high.quads} (low/standard/high), hidden faces culled, sky layers + sea reflection wired`)}
+
+// ---- Phase 10: creatures (animals, birds, sea life, monsters), natural spawning, AI, eggs and saves.
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ const want=['cow','pig','sheep','chicken','horse','deer','fox','rabbit','wolf','squirrel','aji','tai','ayu','clown','tang','turtle','dolphin','squid','goat','eagle','songbird','gull','starling','zombie','skeleton','spider','slime','bomb','wisp','crawler'];
+ const sp=J(`LIFE_SPECIES.map(s=>({id:s.id,cat:s.cat,group:s.group,nq:s.nq,nb:s.nb,move:s.move}))`);
+ for(const id of want)assert(sp.some(s=>s.id===id),'species '+id);
+ assert.equal(sp.filter(s=>s.cat==='monster').length,7,'seven monster types');assert(sp.every(s=>s.nb<=16&&s.nq>=12&&s.nq<1200),'model budgets');
+ // Models: finite vertices, valid bones, and no two species share a shape.
+ const m=J(`(()=>{const a=lifeModel.a,out=[];for(const s of LIFE_SPECIES){let h=2166136261,bad=0;for(let i=s.q0*36;i<(s.q0+s.nq)*36;i++){const v=a[i];if(!Number.isFinite(v))bad++;if(i%9<3){h^=Math.round(v*16);h=Math.imul(h,16777619)}}
+   for(let i=s.q0*36+8;i<(s.q0+s.nq)*36;i+=9)if(Math.floor(a[i]/128)>=s.nb)bad++;
+   out.push({id:s.id,h:h>>>0,bad,par:s.par.every((p,i)=>i===0?p===-1:p>=0&&p<i)})}return out})()`);
+ assert(m.every(x=>!x.bad&&x.par),'models are valid');assert.equal(new Set(m.map(x=>x.h)).size,m.length,'every species has its own model');
+ // Poses and bone matrices stay finite in every behaviour; the root maps model +z to the creature's heading.
+ assert(R(`(()=>{const cam={x:0,y:0,z:0};for(const s of LIFE_SPECIES){const c=lifeNew(s,10,70,10,false);for(const mode of ['idle','walk','flee','graze','rear','fuse','freeze','chase']){c.mode=mode;c.speed=s.run;c.air=s.move==='fly';c.ground=mode!=='walk';c.t+=.7;c.ph+=.9;c.swell=.5;c.sq=.2;lifePose(c);lifeMatrices(c,cam);if(!c.M.subarray(0,s.nb*12).every(Number.isFinite))return false}lifeRemove(c)}return true})()`),'poses are finite');
+ const rootT=J(`(()=>{const c=lifeNew(COW,10,70,10,false,1);c.yaw=Math.PI/2;c.pitch=0;c.roll=0;lifePose(c);lifeMatrices(c,{x:0,y:0,z:0});const M=c.M,p=[0,0,16];const r=[0,1,2].map(i=>M[i*4]*p[0]+M[i*4+1]*p[1]+M[i*4+2]*p[2]+M[i*4+3]);lifeRemove(c);return r})()`);
+ assert(Math.abs(rootT[0]-11)<1e-4&&Math.abs(rootT[1]-70)<1e-4&&Math.abs(rootT[2]-10)<1e-4,'yaw PI/2 faces +x');
+ // Shaders: stage-local uniforms, enough bone slots for the biggest rig.
+ const names=src=>new Set([...src.matchAll(/uniform\s+(?:\w+\s+)?(?:vec[234]|float|mat[234])\s+(\w+)/g)].map(x=>x[1]));const lv=R('lifeVertexSource'),lf=R('lifeFragmentSource');
+ for(const n of names(lv))assert(!names(lf).has(n),'life uniform '+n+' declared in both stages');assert(+lv.match(/uniform vec4 B\[(\d+)\]/)[1]>=Math.max(...sp.map(s=>s.nb))*3,'bone uniform array fits');
+ // Natural spawning in daylight around the start: land animals on dry ground, sea life in water, birds above ground, no monsters.
+ const changes0=R('changes.size');R('paused=false;dayTime=.45;timeOverride=.45;life.length=0');for(let i=0;i<120&&R('readyR')<2;i++)R('streamChunks()');
+ const t0=Date.now();R('for(let k=0;k<900;k++)updateLife(.1,player)');const simMs=Date.now()-t0;
+ const check=()=>J(`(()=>{const bad=[],cnt={};for(const c of life){cnt[c.sp.cat]=(cnt[c.sp.cat]||0)+1;const X=Math.floor(c.x),Y=Math.floor(c.y),Z=Math.floor(c.z);if(c.dormant)continue;
+   if(![c.x,c.y,c.z,c.yaw].every(Number.isFinite))bad.push(c.sp.id+' NaN');
+   if(c.sp.cat==='water'&&peek(X,Y,Z)!==10&&!c.leap&&!c.stranded)bad.push(c.sp.id+' dry');
+   if((c.sp.cat==='land'||c.sp.cat==='monster')&&c.sp.move!=='float'){const t=peek(X,Y,Z);if(t===10)bad.push(c.sp.id+' in water');if(t>0&&t!==10)bad.push(c.sp.id+' inside a block');if(c.ground&&!(peek(X,Math.floor(c.y-.05),Z)>0))bad.push(c.sp.id+' floats')}
+   if(c.sp.cat==='bird'&&c.air&&c.y<terrainH(X,Z)-.5)bad.push(c.sp.id+' underground')}return{cnt,bad,n:life.length,nat:life.filter(c=>!c.manual).length,cap:lifeCap(),kinds:[...new Set(life.map(c=>c.sp.id))]}})()`);
+ const day=check();assert.deepEqual(day.bad,[],'creatures stand, swim and fly in the right places: '+day.bad.join(','));
+ assert(day.nat>=10&&day.nat<=day.cap+6,`natural count within cap (${day.nat}/${day.cap})`);assert(!day.cnt.monster,'no monsters by day: '+JSON.stringify(J('life.filter(c=>c.sp.cat==="monster").map(c=>c.sp.id)')));assert(day.cnt.land>=4,'land animals spawn');assert(day.kinds.length>=4,'several species: '+day.kinds.join(','));
+ // Night brings monsters; daybreak sends them away.
+ R('dayTime=.95;timeOverride=.95;for(let k=0;k<900;k++)updateLife(.1,player)');const night=check();assert.deepEqual(night.bad,[],'night placement: '+night.bad.join(','));assert(night.cnt.monster>=1,'monsters appear at night');
+ const mons=J(`life.filter(c=>c.sp.cat==='monster').map(c=>Math.hypot(c.x-player.x,c.z-player.z))`);
+ R('dayTime=.45;timeOverride=.45;for(let k=0;k<300;k++)updateLife(.1,player)');assert(!check().cnt.monster,'monsters leave at daybreak');
+ // A long session flying across the world: the population and the object pool stay bounded, nothing becomes NaN, the world is never edited.
+ let maxN=0,maxPool=0;R('flying=true');for(let s=0;s<60;s++){R(`player.x=Math.min(${2000},player.x+12);player.z=player.z+Math.sin(${s}*.3)*6;player.y=Math.max(player.y,terrainH(Math.floor(player.x),Math.floor(player.z))+3);dayTime=${s%20<10?.45:.95};streamChunks();for(let k=0;k<200;k++)updateLife(.1,player)`);
+  maxN=Math.max(maxN,R('life.filter(c=>!c.manual).length'));maxPool=Math.max(maxPool,R('lifePool.length'))}
+ const after=check();assert.deepEqual(after.bad,[],'after a long flight: '+after.bad.join(','));assert(maxN<=R('LIFE_Q[qualityName].cap')+10,`population bounded (max ${maxN})`);assert(maxPool<120,'object pool bounded');
+ assert.equal(R('changes.size'),changes0,'creatures never edit the world');
+ // Low frame rate thins the herds.
+ R('lifeScale=.45;for(let k=0;k<200;k++)updateLife(.1,player)');assert(R('life.filter(c=>!c.manual).length')<=R('lifeCap()')+6,'surplus leaves when the frame rate drops');R('lifeScale=1');
+ // Natural spawning switch: animals only (no monsters at night), then off (natural creatures leave; placed ones stay).
+ R(`spawn();flying=true;player.y+=2;streamChunks(true);setLifeMode('animals');dayTime=.95;for(let k=0;k<600;k++)updateLife(.1,player)`);assert(!check().cnt.monster,'animals-only mode has no monsters');
+ // Spawn eggs: place a horse by looking at the ground, refuse fish on land, place fish in water, send a creature home, honour the cap.
+ const V=d.api.vista;R(`life.length=0;eggSp=LIFE_BY_ID.horse.i;player.x=${V.x}+.5;player.z=${V.z}+.5;player.y=surface(player.x,player.z)+1.5;yaw=0;pitch=-.7;placeEgg()`);
+ const egg=J(`life.filter(c=>c.manual).map(c=>({id:c.sp.id,x:c.x,y:c.y,z:c.z,below:peek(Math.floor(c.x),Math.floor(c.y)-1,Math.floor(c.z))}))`);
+ assert(egg.length===1&&egg[0].id==='horse'&&egg[0].below>0&&egg[0].below!==10,'egg places a horse on the ground in front');
+ R('eggSp=LIFE_BY_ID.aji.i;placeEgg()');assert.equal(R('life.filter(c=>c.manual).length'),1,'fish cannot be placed on land');
+ const sea=J(`(()=>{for(let r=20;r<400;r+=4)for(let a=0;a<16;a++){const x=Math.floor(player.x+Math.sin(a*.39)*r),z=Math.floor(player.z+Math.cos(a*.39)*r);if(terrainH(x,z)<SEA-4)return[x,z]}return null})()`);
+ R(`player.x=${sea[0]}+.5;player.z=${sea[1]}+.5;player.y=SEA+3;flying=true;streamChunks(true);pitch=-1.2;placeEgg()`);assert.equal(R('life.filter(c=>c.manual&&c.sp.id==="aji").length'),1,'fish can be placed in the sea');
+ R('for(let k=0;k<200;k++)updateLife(.05,player)');assert(R('(()=>{const c=life.find(c=>c.sp.id==="aji");return peek(Math.floor(c.x),Math.floor(c.y),Math.floor(c.z))===10})()'),'placed fish keeps swimming in water');
+ // Tap placement: the centre of the screen is the view direction.
+ const sd=J(`(canvas.getBoundingClientRect=()=>({left:0,top:0,width:800,height:600}),yaw=.4,pitch=-.3,screenDir(400,300))`);assert(Math.hypot(sd[0]-Math.sin(.4)*Math.cos(-.3),sd[1]-Math.sin(-.3),sd[2]-Math.cos(.4)*Math.cos(-.3))<1e-6,'tap ray matches the view');
+ R(`player.x=${V.x}+.5;player.z=${V.z}+.5;player.y=surface(player.x,player.z)+1.5;yaw=0;pitch=0;streamChunks(true);const c=lifeNew(LIFE_BY_ID.sheep,player.x,player.y+1.62-LIFE_BY_ID.sheep.top*.5,player.z+3,true,1);c.dormant=false`);
+ assert(R('shooEgg([0,0,1])')===true&&!R('life.some(c=>c.manual&&c.sp.id==="sheep")'),'pointing 壊す at a creature sends it home');
+ R('eggSp=LIFE_BY_ID.rabbit.i;pitch=-.7;for(let i=0;i<90;i++)placeEgg()');assert.equal(R('life.filter(c=>c.manual).length'),R('MANUAL_MAX'),'placed creatures are capped');
+ // Saved and restored with the world; natural ones are not saved. Natural spawning off removes natural creatures only.
+ R(`setLifeMode('off');life.push(lifeNew(COW,player.x+2,player.y,player.z,false));for(let k=0;k<40;k++)updateLife(.1,player)`);assert.equal(R('life.filter(c=>!c.manual).length'),0,'switching natural spawning off clears natural creatures');
+ assert(d.api.save());const saved=JSON.parse(d.storage['nisekura-v1']);assert.equal(saved.life.mode,'off');assert.equal(saved.life.eggs.length,80,'eggs are saved');
+ const e=boot(d.storage['nisekura-v1']);assert.equal(run(e,'life.filter(c=>c.manual).length'),80,'eggs reload');assert.equal(run(e,'lifeMode'),'off','spawn setting reloads');
+ assert.equal(run(e,'life.filter(c=>c.sp.id==="aji").length'),1,'the fish reloads too');
+ // Old saves without creature data load with natural spawning on and no placed creatures.
+ const old=JSON.parse(d.storage['nisekura-v1']);delete old.life;const f=boot(JSON.stringify(old));assert.equal(run(f,'lifeMode'),'all');assert.equal(run(f,'life.filter(c=>c.manual).length'),0);
+ // UI: egg picker icons, chip, menu label; voices never throw without audio.
+ R('openEggs()');assert(!d.nodes.eggs.classList.contains('hidden'),'egg picker opens');R('play()');assert(d.nodes.eggs.classList.contains('hidden'),'egg picker closes on play');
+ R('eggSp=LIFE_BY_ID.wolf.i;refresh()');assert(!d.nodes.eggChip.classList.contains('hidden'),'egg chip shows');R('selected=2;eggSp=-1;refresh()');assert(d.nodes.eggChip.classList.contains('hidden'));
+ R('for(const s of LIFE_SPECIES)if(s.voice)lifeVoice(life[0]||{x:0,y:0,z:0},s.voice)');
+ console.log(`PASS: creatures: ${sp.length} species (7 monsters), unique models, finite poses, daytime ${day.nat} natural (${day.kinds.length} kinds), night monsters ${night.cnt.monster} (nearest ${Math.min(...mons).toFixed(0)}m), bounded over a long flight (max ${maxN}), eggs place/remove/cap/save/reload, sim ${(simMs/900).toFixed(2)} ms/step`)}
