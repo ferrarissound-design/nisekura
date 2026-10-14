@@ -135,10 +135,25 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
 @media(max-width:374px){#bar{width:calc(100vw - 16px);overflow-x:auto;justify-content:flex-start;touch-action:pan-x}}
 @media(max-height:480px){#compass{top:max(6px,env(safe-area-inset-top));width:min(220px,calc(100vw - 310px));min-width:170px}body.hud-details #compass{top:max(6px,env(safe-area-inset-top))}#stats{max-width:230px}#statsDetails{max-width:200px}.actions,#stick{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 58px)}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>SKY & CLOUDS · v9.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+/* Creatures: spawn-egg picker and the small chip that shows which egg is in hand. */
+.egg-panel{width:min(580px,100%)}
+#eggGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;margin:10px 0 8px}
+.egg-head{grid-column:1/-1;font-size:11px;letter-spacing:2px;color:#b7d987;margin-top:6px;border-bottom:1px solid #ffffff1c;padding-bottom:3px}
+#eggGrid .egg{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding:5px 2px 6px;border-radius:10px;font-size:10px;line-height:1.25;min-height:78px;background:#1b3a34cc;touch-action:manipulation}
+#eggGrid .egg canvas{width:46px;height:46px;image-rendering:auto}
+.egg-row{display:flex;gap:8px;align-items:center;margin:6px 0}.egg-row button{flex:1;padding:9px 6px;font-size:12px;touch-action:manipulation}#eggCount{font-size:11px;color:#cfe3c7;flex:1}
+#eggChip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom)) + 56px);z-index:6;padding:3px 11px 3px 5px;font-size:11px;border-radius:16px;background:#20403acc;border-color:#efffc566;display:flex;align-items:center;gap:6px;text-shadow:0 1px 2px #000;touch-action:manipulation}
+#eggChip canvas{width:26px;height:26px}
+#lifeBtn{font-size:17px}
+body.photo-mode #eggChip,body:has(#menu:not(.hidden)) #eggChip,body:has(#eggs:not(.hidden)) #eggChip,body:has(#craft:not(.hidden)) #eggChip{display:none!important}
+body:has(#eggs:not(.hidden)) .top,body:has(#eggs:not(.hidden)) #stick,body:has(#eggs:not(.hidden)) .actions,body:has(#eggs:not(.hidden)) #bar{visibility:hidden}
+body:has(#eggs:not(.hidden)) #compass{display:none!important}
+@media(max-height:480px){#eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px)}#eggGrid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))}#eggGrid .egg{min-height:68px}#eggGrid .egg canvas{width:38px;height:38px}}
+
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>LIVING WORLD · v10.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"><div id="compassHeading"></div></div>
  <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
-</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
+</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
 <div class="title-stage">
  <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">あの山の向こうへ！</span></div>
  <div class="title-menu">
@@ -147,12 +162,12 @@ body:has(#craft:not(.hidden)) .top,body:has(#craft:not(.hidden)) #stick,body:has
   <div class="title-pair"><button id="home" class="title-button">出発地点へ戻る</button><button id="spots" class="title-button">絶景スポットへ</button></div>
   <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
   <div class="title-pair"><button id="hudMode" class="title-button" aria-pressed="false">HUD：通常</button><button id="hudDetails" class="title-button" aria-pressed="false">詳細情報：OFF</button></div>
-  <button id="photoMenu" class="title-button">スクショモード</button>
+  <div class="title-pair"><button id="lifeMenu" class="title-button">生き物：すべて</button><button id="photoMenu" class="title-button">スクショモード</button></div>
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v9.0</span></div>
-</div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v10.0</span></div>
+</div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world');
@@ -827,7 +842,260 @@ void main(){vec3 d=normalize(cFwd+cRight*vNdc.x*cScale.x+cUp*vNdc.y*cScale.y);ve
   vec4 dk=skyDeck(d,skyP.z);c=mix(c,dk.rgb,dk.a);}
  gl_FragColor=vec4(c,1.);}`;
 
-let mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
+// ---- LIFE (v10): animals, birds, sea life and monsters. Every species is a small voxel model in 1/16-block pixels.
+// Bones [name, parent, pivot x, y, z, rest pitch] carry the animation (names ending in l / starting l<n> get a mirrored r twin).
+// Parts [bone, centre x, bottom y, centre z, width, height, depth, colour, pattern, mirrored] are boxes; the forward axis is +z.
+const LP={fur:0,flat:1,eye:2,glow:3,scale:4,patch:5,jelly:6,shadow:7,wool:8,stripe:9,bone:10,rot:11,feather:12,shell:13,cap:14,dots:15};
+const LIFE_GROUPS=['草原','森','山','空','海・川','モンスター'];
+// move: walk / hop / swim / fly / float. sp, run = blocks/s; h, r = body height and radius in blocks; flee = distance at which it runs away.
+// hab = habitat weights for natural spawning; herd = group size; time: night-only or dark-place monsters.
+const LIFE_SPECIES=[
+{id:'cow',name:'ウシ',group:'草原',cat:'land',move:'walk',rig:'quad',sc:1,sp:.8,run:2.4,h:1.5,r:.55,flee:0,graze:1,herd:[2,4],hab:{meadow:3},voice:'moo',
+ bones:[['body','root',0,14,0],['head','body',0,19,10],['fl','body',-4,11,7],['bl','body',-4,11,-7],['tail','body',0,20,-10]],
+ parts:[['body',0,10,0,12,10,20,'#efe6d4','patch'],['body',0,8.6,-4,5,1.6,5,'#e7a9a0','flat'],
+  ['head',0,15,13,8,8,7,'#efe6d4','patch'],['head',0,15,17.1,7,4,2.6,'#e8b6a6','flat'],['head',-1.6,16.6,18.45,1,1,.3,'#5a3a33','flat',1],
+  ['head',-4.05,19.6,14.6,.4,1.4,1.4,'#1d1712','eye',1],['head',-4.2,20.2,15,.2,.5,.5,'#ffffff','flat',1],
+  ['head',-3.4,23,13.5,1.4,2.2,1.4,'#e9dfc0','flat',1],['head',-3.4,25,13.5,1,1,1,'#6f604c','flat',1],['head',-5.1,20,12.5,2.4,1.4,1.2,'#d9ccb4','fur',1],
+  ['head',0,13.8,11,8.6,1.4,1.6,'#9b2f22','flat'],['head',0,11.8,12.2,2,2,2,'#e6b83c','eye'],
+  ['fl',-4,1.4,7,3.4,9.8,3.4,'#efe6d4','patch',1],['fl',-4,0,7,3.6,1.6,3.6,'#3b2f28','flat',1],['bl',-4,1.4,-7,3.4,9.8,3.4,'#efe6d4','patch',1],['bl',-4,0,-7,3.6,1.6,3.6,'#3b2f28','flat',1],
+  ['tail',0,13,-10.4,1.2,7,1.2,'#e3d7c1','fur'],['tail',0,11.6,-10.4,1.8,2.4,1.8,'#4a3426','fur']]},
+{id:'pig',name:'ブタ',group:'草原',cat:'land',move:'walk',rig:'quad',sc:1,sp:.9,run:2.6,h:.8,r:.45,flee:0,graze:1,herd:[2,3],hab:{meadow:2,forest:.5},voice:'oink',
+ bones:[['body','root',0,8,0],['head','body',0,9,7],['fl','body',-3,5,4.5],['bl','body',-3,5,-4.5],['tail','body',0,10,-7]],
+ parts:[['body',0,4,0,10,8,14,'#eeb4aa','fur'],['body',2,11.9,-2,4,.3,5,'#d6968c','fur'],['body',-5.1,7,-3,.4,3,4,'#d6968c','fur'],
+  ['head',0,5,9.5,8,7,5,'#eeb4aa','fur'],['head',0,6,12.7,4,3,1.6,'#e0968c','flat'],['head',-.9,7.2,13.55,.8,.8,.2,'#7a4540','flat',1],
+  ['head',-2.3,9.2,12.05,1.2,1.2,.3,'#1e1614','eye',1],['head',-2.5,9.7,12.2,.4,.4,.2,'#ffffff','flat',1],['head',-2.9,11.4,10.6,2.4,.8,2.8,'#e4a198','fur',1],
+  ['fl',-3,1.2,4.5,2.6,4,2.6,'#e5a69c','fur',1],['fl',-3,0,4.5,2.8,1.3,2.8,'#7a4c45','flat',1],['bl',-3,1.2,-4.5,2.6,4,2.6,'#e5a69c','fur',1],['bl',-3,0,-4.5,2.8,1.3,2.8,'#7a4c45','flat',1],
+  ['tail',0,9.5,-7.4,1,1,1.2,'#e5a69c','fur'],['tail',0,10.4,-7.9,1,1,1,'#e5a69c','fur']]},
+{id:'sheep',name:'ヒツジ',group:'草原',cat:'land',move:'walk',rig:'quad',sc:1,sp:.8,run:2.4,h:1.2,r:.5,flee:3,graze:1,herd:[3,5],hab:{meadow:3,mountain:.6},voice:'baa',
+ bones:[['body','root',0,10,0],['head','body',0,13,7.5],['fl','body',-3.5,7,5],['bl','body',-3.5,7,-5]],
+ parts:[['body',0,7,0,12,10,15,'#f1ebdc','wool'],['body',0,16.8,.5,9,1.6,10,'#f7f2e8','wool'],
+  ['head',0,10,9.8,5.4,6,5,'#34302c','fur'],['head',0,15.4,9.3,6.4,2.2,4.6,'#f1ebdc','wool'],['head',-2.75,13,11,.3,1.2,1.4,'#d4a84a','eye',1],['head',-2.85,13.4,11,.2,.4,1.2,'#141210','flat',1],
+  ['head',0,10.6,12.35,2,1,.2,'#1a1715','flat'],['head',-3.9,13.5,9.6,2.6,1.1,1.6,'#34302c','fur',1],
+  ['fl',-3.5,0,5,2.2,7.5,2.2,'#34302c','fur',1],['bl',-3.5,0,-5,2.2,7.5,2.2,'#34302c','fur',1]]},
+{id:'chicken',name:'ニワトリ',group:'草原',cat:'land',move:'walk',rig:'bird',sc:1,sp:.9,run:2.6,h:.8,r:.3,flee:3.5,herd:[2,4],hab:{meadow:2},voice:'cluck',
+ bones:[['body','root',0,5,0],['head','body',0,8,3],['wl','body',-3,7,0],['tail','body',0,7,-3],['legl','root',-1.3,4,.5]],
+ parts:[['body',0,3.5,0,6,5,7,'#f7f3ea','feather'],['tail',0,6,-4.2,4,5,2,'#efe8da','feather'],['tail',0,10.6,-4.6,3,1.4,1.4,'#3f5a3a','feather'],
+  ['head',0,8,3.6,4,5,4,'#f7f3ea','feather'],['head',0,10,6.4,2,1.4,1.6,'#e9b23a','flat'],['head',0,13,3.6,1.2,2,3,'#d8322b','flat'],['head',0,14.6,3.4,1.2,.8,1.6,'#d8322b','flat'],
+  ['head',0,8.4,5.9,1.2,1.8,.8,'#d8322b','flat'],['head',-2.05,11,4.4,.3,1,1,'#16110e','eye',1],
+  ['wl',-3.4,4,0,1,3.4,5,'#ebe3d2','feather',1],['legl',-1.3,0,.5,.9,4,.9,'#e0a42d','flat',1],['legl',-1.3,0,1.2,1.8,.4,2.2,'#e0a42d','flat',1]]},
+{id:'horse',name:'ウマ',group:'草原',cat:'land',move:'walk',rig:'quad',sc:.92,sp:1.2,run:4.2,h:1.9,r:.6,flee:0,graze:1,herd:[1,3],hab:{meadow:2},voice:'neigh',
+ bones:[['body','root',0,16,0],['neck','body',0,20,8,.45],['head','neck',0,29,9],['fl','body',-3.5,14,7.5],['bl','body',-3.5,14,-7.5],['tail','body',0,21,-10,.25]],
+ parts:[['body',0,13,0,10,10,20,'#8a5532','fur'],['body',0,12.8,0,7,.4,14,'#7a4a2b','fur'],
+  ['neck',0,19,9,5,11,5,'#8a5532','fur'],['neck',0,20,5.8,1.6,11,1.6,'#2a1a12','fur'],['neck',0,30,7.5,1.6,1.6,3,'#2a1a12','fur'],
+  ['head',0,27,13.5,5,5,9,'#8a5532','fur'],['head',0,26.6,17.2,4.4,4.2,2.4,'#5f3a24','fur'],['head',0,32,14.6,1.6,.3,6,'#f2ece2','flat'],
+  ['head',-1.6,32,10.5,1.2,2.4,1.2,'#8a5532','fur',1],['head',-2.55,29.6,12.5,.3,1.2,1.4,'#140e0b','eye',1],['head',-1.4,27.6,18.45,.9,.9,.2,'#2a1a12','flat',1],
+  ['fl',-3.5,1.6,7.5,2.6,12,2.6,'#8a5532','fur',1],['fl',-3.5,1.2,7.5,2.8,3.4,2.8,'#efe9dd','fur',1],['fl',-3.5,0,7.5,3,1.4,3,'#2d2420','flat',1],
+  ['bl',-3.5,1.6,-7.5,2.6,12,2.6,'#8a5532','fur',1],['bl',-3.5,0,-7.5,3,1.4,3,'#2d2420','flat',1],['tail',0,9,-10.8,2.2,12,2,'#2a1a12','fur']]},
+{id:'deer',name:'シカ',group:'森',cat:'land',move:'walk',rig:'quad',sc:1,sp:1,run:4.6,h:1.8,r:.45,flee:9,graze:1,herd:[2,3],hab:{forest:3,meadow:.5},voice:'',
+ bones:[['body','root',0,13,0],['neck','body',0,17,6,.35],['head','neck',0,25,7.5],['fl','body',-2.6,12,5.5],['bl','body',-2.6,12,-5.5],['tail','body',0,19,-7.5]],
+ parts:[['body',0,11,0,8,8,15,'#a8724a','dots'],['body',0,10.8,0,6,.6,11,'#efe4d0','fur'],['body',0,13,-7.6,5,5.5,.4,'#f4eee2','flat'],
+  ['neck',0,16,6.5,4,10,4,'#a8724a','fur'],['head',0,24,9.5,4,4,7,'#a8724a','fur'],['head',0,24.6,13.1,2.6,2.2,.4,'#1d1612','flat'],['head',-2.05,26.2,9.8,.3,1.1,1.2,'#140e0b','eye',1],
+  ['head',-3.3,27,7.4,3,1.6,1,'#a8724a','fur',1],['head',-3.3,27.2,7.95,2.4,1.1,.2,'#e8c8b0','flat',1],
+  ['head',-1.4,28,7.6,1,5,1,'#d6c6a6','bone',1],['head',-2.6,30.5,7.6,2.2,1,1,'#d6c6a6','bone',1],['head',-1.6,29.5,9.2,1,1,2.4,'#d6c6a6','bone',1],['head',-3.3,31.5,7.6,1,2,1,'#d6c6a6','bone',1],
+  ['fl',-2.6,1.2,5.5,1.8,11,1.8,'#9c6a45','fur',1],['fl',-2.6,0,5.5,2,1.4,2,'#2b211c','flat',1],['bl',-2.6,1.2,-5.5,1.8,11,1.8,'#9c6a45','fur',1],['bl',-2.6,0,-5.5,2,1.4,2,'#2b211c','flat',1],
+  ['tail',0,15.5,-7.9,1.6,3,1,'#f4eee2','fur']]},
+{id:'fox',name:'キツネ',group:'森',cat:'land',move:'walk',rig:'quad',sc:1,sp:1.1,run:4.4,h:.8,r:.35,flee:7,herd:[1,1],hab:{forest:2,meadow:.7},voice:'yip',
+ bones:[['body','root',0,7,0],['head','body',0,9,5.5],['fl','body',-2,6,3.8],['bl','body',-2,6,-3.8],['tail','body',0,9,-5.5,-.45]],
+ parts:[['body',0,5,0,6,5,11,'#d9772e','fur'],['body',0,5,5.6,4,4.4,.4,'#f3ead8','fur'],
+  ['head',0,7,7.5,6,5,4.4,'#d9772e','fur'],['head',0,7,11,3,2.4,3,'#f3ead8','fur'],['head',0,8.4,12.6,1,1,.3,'#1b1410','flat'],
+  ['head',-1.6,10,9.75,1.2,1,.2,'#e1a62e','eye',1],['head',-1.6,10,9.87,.4,1,.1,'#120d0a','flat',1],
+  ['head',-2,12,7.4,2,3,1,'#d9772e','fur',1],['head',-2,14.4,7.4,2.1,.8,1.1,'#2a1c16','fur',1],['head',-2,12.3,7.95,1.2,2,.2,'#f3ead8','flat',1],
+  ['fl',-2,0,3.8,1.6,6,1.6,'#2a1c16','fur',1],['bl',-2,0,-3.8,1.6,6,1.6,'#2a1c16','fur',1],
+  ['tail',0,7.2,-9,3.6,3.6,7,'#d9772e','wool'],['tail',0,7.5,-13.3,3,3,1.8,'#f3ead8','wool']]},
+{id:'rabbit',name:'ウサギ',group:'森',cat:'land',move:'hop',rig:'hop',sc:.95,sp:1.6,run:4.5,h:.7,r:.25,flee:6,herd:[1,3],hab:{meadow:1.4,forest:1.4,beach:.3},voice:'',
+ bones:[['body','root',0,3,0],['head','body',0,5,2.5],['el','head',-.8,8.4,2.8],['fl','body',-1.4,2,2],['bl','body',-1.6,2.5,-2]],
+ parts:[['body',0,1.2,-.3,4.4,4.2,6,'#9a8473','fur'],['body',-1.9,1,-1.6,1.4,3.4,3.4,'#8c7666','fur',1],['body',0,3.6,-3.6,2,2,1.4,'#f3efe8','wool'],
+  ['head',0,4.8,3.6,3.6,3.6,3.6,'#9a8473','fur'],['head',0,6,5.45,1,.8,.2,'#d98c8c','flat'],['head',-1.85,7,4.2,.3,1,1,'#120d0a','eye',1],
+  ['el',-.8,8.4,2.8,1.2,5,.8,'#9a8473','fur',1],['el',-.8,9,3.25,.8,4,.15,'#e5b8b0','flat',1],
+  ['fl',-1.4,0,2.2,1,2.2,1,'#8c7666','fur',1],['bl',-1.6,0,-1.2,1.4,1,3,'#8c7666','fur',1]]},
+{id:'wolf',name:'オオカミ',group:'森',cat:'land',move:'walk',rig:'quad',sc:1,sp:1.3,run:4.6,h:1.1,r:.45,flee:0,herd:[2,4],hab:{forest:1.2,mountain:.6},voice:'howl',
+ bones:[['body','root',0,10,0],['head','body',0,12,7.5],['fl','body',-2.5,9,5.5],['bl','body',-2.5,9,-5.5],['tail','body',0,13,-7.5,-.7]],
+ parts:[['body',0,8,0,8,7,15,'#8e9295','fur'],['body',0,14.9,-1.5,7.4,.6,10,'#55595d','fur'],['body',0,7.8,0,6,.6,11,'#c9cacb','fur'],['body',0,8,6.5,9,8.4,3.4,'#a8acaf','wool'],
+  ['head',0,10.5,10.6,6.4,6,5,'#8e9295','fur'],['head',0,10.5,13.15,4.6,3,.3,'#d6d6d2','fur'],['head',0,10.5,14.8,3,3,3.6,'#cfcfcc','fur'],['head',0,12.6,16.7,1.2,.9,.3,'#141414','flat'],
+  ['head',-1.7,14.1,13.15,1.3,.9,.25,'#e8b83a','eye',1],['head',-1.7,14.1,13.3,.5,.9,.1,'#100c08','flat',1],['head',-1.7,15.1,13.2,1.8,.5,.3,'#5f6366','fur',1],
+  ['head',-2.2,16.5,10,1.8,3,1.2,'#7c8083','fur',1],['head',-2.2,16.8,10.65,1.1,2,.2,'#d9c9c0','flat',1],
+  ['fl',-2.5,0,5.5,2,9,2,'#7c8083','fur',1],['bl',-2.5,0,-5.5,2,9,2,'#7c8083','fur',1],
+  ['tail',0,9,-11.5,3,3.4,8,'#8e9295','wool'],['tail',0,9.2,-15.3,2.4,2.8,1,'#4a4d50','fur']]},
+{id:'squirrel',name:'リス',group:'森',cat:'land',move:'hop',rig:'hop',sc:1,sp:1.6,run:4.2,h:.6,r:.2,flee:5,herd:[1,2],hab:{forest:2.5},voice:'chitter',tree:1,
+ bones:[['body','root',0,3,0],['head','body',0,5,1.5],['tail','body',0,3,-2],['fl','body',-1,2,1.5],['bl','body',-1,2,-1]],
+ parts:[['body',0,1,0,3,4,4,'#a5582c','fur'],['body',0,1.2,2.05,2,3,.2,'#f1e2c8','flat'],
+  ['head',0,4.6,2.4,3.2,3,3,'#a5582c','fur'],['head',-1.65,6.2,3,.3,.9,.9,'#100c08','eye',1],['head',-1,7.6,1.8,.8,1.4,.6,'#8a4522','fur',1],['head',0,5.4,3.95,.8,.6,.2,'#3a2016','flat'],
+  ['tail',0,2,-3.6,3.2,7.5,2.6,'#b3622f','wool'],['tail',0,8,-1.9,3.2,2,2.4,'#b3622f','wool'],
+  ['fl',-1,0,2,.8,1.6,.8,'#8a4522','fur',1],['bl',-1.1,0,-1,1,1.2,1.8,'#8a4522','fur',1]]},
+{id:'goat',name:'ヤギ',group:'山',cat:'land',move:'walk',rig:'quad',sc:1,sp:.9,run:3.4,h:1.3,r:.4,flee:4,graze:1,herd:[2,4],hab:{mountain:4},voice:'bleat',climb:1,
+ bones:[['body','root',0,11,0],['head','body',0,14,7],['fl','body',-2.6,9,5],['bl','body',-2.6,9,-5],['tail','body',0,15,-7]],
+ parts:[['body',0,9,0,8,8,14,'#ebe5d8','wool'],['head',0,13,9.3,4.6,5,6,'#ebe5d8','fur'],['head',0,13,12.5,3.4,3,1,'#d6cfc0','fur'],['head',0,9.6,11.2,2,3.6,1.6,'#d8d0c0','wool'],
+  ['head',-2.35,16,10.2,.3,1.2,1.5,'#d8b34a','eye',1],['head',-2.45,16.4,10.2,.2,.4,1.2,'#141210','flat',1],['head',-3.4,16,8.6,2.6,1,1.4,'#ebe5d8','fur',1],
+  ['head',-1.4,18,8,1.4,3,1.4,'#6f6354','bone',1],['head',-1.6,20.4,6,1.3,1.3,3,'#6f6354','bone',1],['head',-1.8,19,4.8,1.2,2,1.2,'#5d5246','bone',1],
+  ['fl',-2.6,1.2,5,2,9,2,'#d8d0c0','fur',1],['fl',-2.6,0,5,2.2,1.4,2.2,'#3a322b','flat',1],['bl',-2.6,1.2,-5,2,9,2,'#d8d0c0','fur',1],['bl',-2.6,0,-5,2.2,1.4,2.2,'#3a322b','flat',1],
+  ['tail',0,15,-7.6,1.6,2.4,1.2,'#ebe5d8','wool']]},
+{id:'eagle',name:'ワシ',group:'山',cat:'bird',move:'fly',rig:'bird',sc:1,sp:7,run:11,h:.8,r:.6,flee:0,herd:[1,1],hab:{mountain:2},voice:'cry',soar:1,
+ bones:[['body','root',0,5,0],['head','body',0,8,6],['wl','body',-3,8,1],['tail','body',0,6,-6],['legl','body',-1.4,4,1]],
+ parts:[['body',0,3,0,6,6,12,'#5a3b24','feather'],['body',0,8.6,0,6.2,.6,10,'#7a5536','feather'],
+  ['head',0,7,7.6,4.6,4.6,4.6,'#c8a066','feather'],['head',0,7.8,10.8,2,2.2,2,'#e3b232','flat'],['head',0,7.2,11.9,1.4,1.4,.8,'#2a2220','flat'],
+  ['head',-2.35,9.6,8.6,.3,1,1.2,'#e9b23a','eye',1],['head',-2.45,9.8,8.7,.2,.6,.6,'#100c08','flat',1],['head',-2,10.6,8.6,1.4,.6,2,'#4a3020','feather',1],
+  ['wl',-12.5,7.4,0,19,1.2,9,'#4e321e','feather',1],['wl',-24,7.5,-1.5,4,1,6,'#3a2516','feather',1],['wl',-9,8.55,1.5,12,.3,4,'#6b4a2e','feather',1],
+  ['tail',0,6,-9.5,6,1,7,'#5a3b24','feather'],['tail',0,6.05,-7,6.2,1.05,2,'#d9cfbd','feather'],['legl',-1.4,0,1,1.4,4,1.4,'#e3b232','flat',1]]},
+{id:'songbird',name:'小鳥',group:'空',cat:'bird',move:'fly',rig:'bird',sc:1,sp:4.5,run:7,h:.35,r:.15,flee:4,herd:[1,3],hab:{forest:2,meadow:1},voice:'chirp',perch:1,
+ bones:[['body','root',0,2,0],['head','body',0,4,1.6],['wl','body',-1.5,3.4,0],['tail','body',0,3,-2],['legl','body',-.6,2,0]],
+ parts:[['body',0,1.4,0,3,3,4,'#eef0e4','feather'],['body',0,4.25,-.3,3.05,.4,3.8,'#a9b45a','feather'],['body',0,1.4,2.02,.9,2.6,.1,'#1d1d22','flat'],
+  ['head',0,4,2,3,2.8,2.8,'#1d1d22','feather'],['head',-1.52,4.5,2.1,.1,1.4,1.6,'#f4f4ee','flat',1],['head',0,5,3.75,.7,.6,.9,'#2a2a2a','flat'],['head',-1.55,5.7,2.9,.15,.6,.6,'#050505','eye',1],
+  ['wl',-2.6,2.6,-.2,3.2,.5,3.4,'#7f8c96','feather',1],['tail',0,2.8,-3.2,1.6,.4,2.6,'#55606a','feather'],['legl',-.6,0,.4,.4,1.6,.4,'#4a4a4a','flat',1]]},
+{id:'gull',name:'カモメ',group:'空',cat:'bird',move:'fly',rig:'bird',sc:1,sp:5.5,run:8,h:.5,r:.35,flee:5,herd:[2,4],hab:{beach:3,sea:2},voice:'gull',soar:1,perch:1,
+ bones:[['body','root',0,4,0],['head','body',0,7,5],['wl','body',-2.2,7,0],['tail','body',0,6,-5],['legl','body',-.9,3,0]],
+ parts:[['body',0,3,0,4.4,4.4,10,'#f4f4f2','feather'],['body',0,7.2,-1,4.5,.4,7,'#c3cad0','feather'],
+  ['head',0,6.4,6.2,3.8,3.8,4,'#f8f8f6','feather'],['head',0,7,9.5,1.1,1.2,3,'#f0c43a','flat'],['head',0,6.9,10.2,1.15,.5,.6,'#d6402e','flat'],['head',-1.95,8.6,7,.15,.7,.7,'#18120c','eye',1],
+  ['wl',-9.2,6.6,0,14,.9,5.5,'#a2abb3','feather',1],['wl',-17.6,6.65,-.6,2.8,.9,4.6,'#1f2226','flat',1],['wl',-17.9,6.6,-.6,.8,.95,1,'#f4f4f2','flat',1],
+  ['tail',0,5.6,-6.6,3.6,.8,3,'#f4f4f2','feather'],['legl',-.9,0,.6,.6,3,.6,'#e3a27c','flat',1]]},
+{id:'starling',name:'ムクドリの群れ',group:'空',cat:'bird',move:'fly',rig:'bird',sc:1,sp:5.5,run:8,h:.35,r:.15,flee:5,herd:[6,10],hab:{meadow:2.2},voice:'chatter',flock:1,perch:1,
+ bones:[['body','root',0,2,0],['head','body',0,4,1.6],['wl','body',-1.5,3.4,0],['tail','body',0,3,-2],['legl','body',-.6,2,0]],
+ parts:[['body',0,1.4,0,3,3,4.4,'#3b2f2a','dots'],['head',0,4,2.1,2.8,2.6,2.6,'#2c2422','feather'],['head',-1.42,4.4,2.3,.1,1.2,1.4,'#e6e0d6','flat',1],
+  ['head',0,4.8,3.8,.7,.6,1.2,'#f0a32a','flat'],['head',-1.45,5.5,2.8,.12,.6,.6,'#050505','eye',1],
+  ['wl',-2.7,2.6,0,3.4,.5,3.6,'#2c2422','feather',1],['tail',0,2.6,-3.4,1.6,.4,2.4,'#2c2422','feather'],['legl',-.6,0,.4,.4,1.6,.4,'#e09a40','flat',1]]},
+{id:'aji',name:'アジ',group:'海・川',cat:'water',move:'swim',rig:'fish',sc:1,sp:1.4,run:4,h:.3,r:.3,flee:4,herd:[5,9],hab:{sea:3},school:1,
+ bones:[['body','root',0,0,0],['tail','body',0,0,-4.2]],
+ parts:[['body',0,-2,0,2.4,4,9,'#a6bccb','scale'],['body',0,1.5,-.2,2.5,.9,8.4,'#3e5f7a','scale'],['body',0,-1.6,4.6,2,3.2,1.4,'#8fa6b5','scale'],
+  ['body',-1.25,.1,3.4,.2,1.2,1.2,'#f0e8c8','eye',1],['body',-1.35,.4,3.5,.15,.6,.6,'#0a0a0a','flat',1],['body',-1.22,-.3,0,.1,.5,6,'#d9c45a','flat',1],['body',0,2.2,0,.4,1.6,3,'#3e5f7a','flat'],
+  ['tail',0,.2,-5.4,.4,2,2,'#5d7d96','flat'],['tail',0,-2.2,-5.4,.4,2,2,'#5d7d96','flat']]},
+{id:'tai',name:'マダイ',group:'海・川',cat:'water',move:'swim',rig:'fish',sc:1,sp:1.1,run:3.5,h:.4,r:.35,flee:4,herd:[1,3],hab:{sea:2},deep:5,
+ bones:[['body','root',0,0,0],['tail','body',0,0,-4]],
+ parts:[['body',0,-3,0,2.8,6,8,'#e0857c','dots'],['body',0,-2.4,4.6,2.2,4.4,1.4,'#e0857c','scale'],['body',-1.45,.2,3.6,.2,1.3,1.3,'#f6e6c0','eye',1],['body',-1.55,.5,3.7,.15,.7,.7,'#0a0a0a','flat',1],
+  ['body',0,3,-.5,.4,2,5,'#d0605a','flat'],['body',0,-4,-.5,.4,1.2,3,'#d0605a','flat'],['tail',0,-2,-5.2,.4,4,2.4,'#e0857c','flat']]},
+{id:'ayu',name:'アユ',group:'海・川',cat:'water',move:'swim',rig:'fish',sc:1,sp:1.3,run:4,h:.25,r:.25,flee:4,herd:[3,6],hab:{river:4},school:1,
+ bones:[['body','root',0,0,0],['tail','body',0,0,-4]],
+ parts:[['body',0,-1.5,0,2,3,8,'#b4b68a','scale'],['body',0,1.1,0,2.05,.7,7.6,'#5d6440','scale'],['body',-1.02,-.4,2,.1,1,1.4,'#e6c43a','flat',1],
+  ['body',-1.05,.3,3.2,.2,1,1,'#efe8cc','eye',1],['body',-1.15,.4,3.3,.15,.5,.5,'#0a0a0a','flat',1],['body',0,1.8,.5,.3,1.4,2.4,'#5d6440','flat'],
+  ['tail',0,-1.6,-4.9,.4,3.2,1.8,'#7d8460','flat']]},
+{id:'clown',name:'熱帯魚（オレンジ）',group:'海・川',cat:'water',move:'swim',rig:'fish',sc:1,sp:1,run:3,h:.3,r:.2,flee:3,herd:[2,4],hab:{reef:3},
+ bones:[['body','root',0,0,0],['tail','body',0,0,-2.6]],
+ parts:[['body',0,-2,0,2.2,4,5.5,'#ef7a1e','stripe'],['body',-1.15,.4,1.8,.2,1,1,'#f7f0e0','eye',1],['body',-1.25,.6,1.9,.15,.5,.5,'#0a0a0a','flat',1],
+  ['body',0,2,-.2,.4,1.4,3,'#ef7a1e','flat'],['body',0,3.2,-.2,.45,.4,3.05,'#151515','flat'],['body',-1.3,-1.2,.6,.6,1.6,1.6,'#ef7a1e','flat',1],
+  ['tail',0,-1.6,-3.6,.4,3.2,2,'#ef7a1e','flat'],['tail',0,-1.7,-4.7,.45,3.4,.4,'#151515','flat']]},
+{id:'tang',name:'熱帯魚（ブルー）',group:'海・川',cat:'water',move:'swim',rig:'fish',sc:1,sp:1.1,run:3.2,h:.4,r:.25,flee:3,herd:[2,5],hab:{reef:3,sea:.4},
+ bones:[['body','root',0,0,0],['tail','body',0,0,-3]],
+ parts:[['body',0,-3,0,1.8,6,6,'#2a5fd6','fur'],['body',-.92,-.6,-.2,.1,1.2,4.6,'#101820','flat',1],['body',-.92,.6,-1.8,.1,1.6,1.2,'#101820','flat',1],
+  ['body',-.95,.9,2,.2,1.1,1.1,'#f2f2ea','eye',1],['body',-1.05,1.1,2.1,.15,.5,.5,'#0a0a0a','flat',1],['body',0,3,-.4,.4,1,4.6,'#2550b8','flat'],
+  ['tail',0,-2,-3.8,.4,4,2,'#f2d22a','flat']]},
+{id:'turtle',name:'ウミガメ',group:'海・川',cat:'water',move:'swim',rig:'turtle',sc:1,sp:.9,run:2.2,h:.5,r:.6,flee:0,herd:[1,1],hab:{sea:1,reef:.8},
+ bones:[['body','root',0,0,0],['head','body',0,0,6],['fl','body',-5,0,3],['bl','body',-4,0,-4]],
+ parts:[['body',0,-1,0,12,4,13,'#6b6a3a','shell'],['body',0,3,0,9,1.6,10,'#7a7843','shell'],['body',0,-1.8,0,10,1,11,'#d9c98a','flat'],
+  ['head',0,-1,8,4,3.4,4,'#8d9a6a','scale'],['head',0,-.6,10.1,2.4,2,.4,'#5b6440','flat'],['head',-2.05,.9,8.8,.2,.9,.9,'#0d0d0d','eye',1],
+  ['fl',-9,-.6,3,8,1,3.4,'#7f8d5c','scale',1],['bl',-6,-.6,-5.5,4,1,2.6,'#7f8d5c','scale',1]]},
+{id:'dolphin',name:'イルカ',group:'海・川',cat:'water',move:'swim',rig:'dolphin',sc:1,sp:3.2,run:6.5,h:.5,r:.8,flee:0,herd:[2,4],hab:{sea:1.2},deep:6,voice:'click',leap:1,
+ bones:[['body','root',0,0,0],['head','body',0,0,8],['tail','body',0,0,-8],['fl','body',-3,-2,3]],
+ parts:[['body',0,-3.5,0,7,7,16,'#7d93a6','flat'],['body',0,-3.6,1,5,1,13,'#e6ebee','flat'],['head',0,-3,10,6,6,4,'#7d93a6','flat'],['head',0,-2.8,13.5,3,2.4,3,'#8aa0b2','flat'],
+  ['head',-3.05,-.5,10.5,.2,.9,.9,'#101418','eye',1],['body',0,3.4,-2,1,4,4,'#6a8296','flat'],['body',0,6.4,-3.4,1,1.6,2,'#6a8296','flat'],
+  ['tail',0,-1.8,-11,4,3.6,6,'#7d93a6','flat'],['tail',0,-.6,-15.5,11,1,3,'#6a8296','flat'],['fl',-5,-3,3,4,1,2.4,'#6a8296','flat',1]]},
+{id:'squid',name:'イカ',group:'海・川',cat:'water',move:'swim',rig:'squid',sc:1,sp:.9,run:3.5,h:.4,r:.5,flee:5,herd:[1,3],hab:{sea:1.5},deep:8,
+ bones:[['body','root',0,0,0],['tent','body',0,0,-7],['fins','body',0,0,6]],
+ parts:[['body',0,-2.5,1,5,5,12,'#e9d6d8','flat'],['body',0,-1.5,8,3,3,2.4,'#e9d6d8','flat'],['fins',0,-.5,6.5,11,1,4,'#e2c4c8','flat'],['body',0,-2.2,-6,4.4,4.4,2.2,'#e9d6d8','flat'],
+  ['body',-2.25,-1.4,-5.8,.3,2,2,'#1a1418','eye',1],['body',-2.55,.5,0,.1,.8,.8,'#7fd8ff','glow',1],['body',-2.55,-1.2,3,.1,.8,.8,'#7fd8ff','glow',1],['body',0,2.5,2,.8,.1,.8,'#7fd8ff','glow'],
+  ['tent',-1.2,-1.8,-10,.8,.8,6,'#e2c4c8','flat',1],['tent',-1.2,.4,-10,.8,.8,6,'#e2c4c8','flat',1],['tent',-.4,-.7,-12,.6,.6,10,'#e2c4c8','flat',1]]},
+{id:'zombie',name:'コケゾンビ',group:'モンスター',cat:'monster',move:'walk',rig:'biped',sc:1,sp:.8,run:1.6,h:1.95,r:.35,flee:0,herd:[1,2],hab:{night:3},voice:'groan',chase:1,
+ bones:[['body','root',0,13,0],['head','body',0,24,0],['al','body',-5,23.5,0],['ll','root',-2,13,0]],
+ parts:[['body',0,13,0,8,11,4,'#5b6440','fur'],['body',2,13.4,2.05,2.6,3,.2,'#8fa38a','rot'],['body',0,14,0,8.4,1.2,4.4,'#3b2e22','flat'],['body',-3,23.6,0,3,1,4.4,'#4d7a34','wool'],
+  ['head',0,24,.6,7,7,7,'#8fa38a','rot'],['head',-1,30.8,0,5,1.2,5,'#4d7a34','wool'],['head',2.6,29,1,2,2.2,3,'#4d7a34','wool'],
+  ['head',-1.8,27.4,4.15,1.8,1.5,.25,'#e8f0a0','glow'],['head',1.9,27.7,4.15,1.2,1,.25,'#e8f0a0','glow'],['head',0,29.2,4.2,6,.6,.3,'#6c7d68','rot'],
+  ['head',0,25.4,4.15,3.2,1.2,.25,'#241b16','flat'],['head',.6,26,4.25,.6,.6,.2,'#d8d0b0','flat'],
+  ['al',-5.4,14.5,0,2.6,10,2.6,'#8fa38a','rot',1],['al',-5.4,19.5,0,3,4.4,3,'#5b6440','fur',1],
+  ['ll',-2,1,0,3,12,3,'#4a3f30','fur',1],['ll',-2,0,.6,3.2,1.4,4,'#2c2620','flat',1]]},
+{id:'skeleton',name:'スケルトン',group:'モンスター',cat:'monster',move:'walk',rig:'biped',sc:1,sp:1,run:2.2,h:1.95,r:.3,flee:0,herd:[1,1],hab:{night:2},voice:'rattle',keep:1,
+ bones:[['body','root',0,13,0],['head','body',0,25,0],['jaw','head',0,25.5,-1],['al','body',-4.5,23.5,0],['ll','root',-1.6,13,0]],
+ parts:[['body',0,12,0,6,2,3,'#e6e0cc','bone'],['body',0,13.5,-1,1.4,10,1.4,'#e6e0cc','bone'],['body',0,16,0,7,1.1,3.6,'#e9e3cf','bone'],['body',0,18.2,0,7.4,1.1,3.8,'#e9e3cf','bone'],
+  ['body',0,20.4,0,7.4,1.1,3.8,'#e9e3cf','bone'],['body',0,22.6,0,7,1.1,3.6,'#e9e3cf','bone'],['body',0,23.6,0,8,1,3,'#e6e0cc','bone'],
+  ['head',0,25.6,.4,6.6,5.6,6.4,'#efe9d6','bone'],['head',-1.6,28.2,3.65,2,1.9,.2,'#15110e','flat',1],['head',-1.6,28.6,3.78,.8,.8,.12,'#7ff0e0','glow',1],['head',0,27.2,3.65,.8,.8,.2,'#15110e','flat'],
+  ['jaw',0,24,1,5,1.6,4.8,'#e6e0cc','bone'],['jaw',0,25.5,3.3,4,.5,.2,'#f6f2e2','flat'],
+  ['al',-4.6,14,0,1.4,9.6,1.4,'#e6e0cc','bone',1],['al',-4.6,13,0,1.8,1.4,1.8,'#e6e0cc','bone',1],
+  ['ar',4.6,10.4,1,2.2,2.6,2.2,'#ffb85a','glow'],['ar',4.6,13,1,2.6,.5,2.6,'#3a3024','flat'],['ar',4.6,9.9,1,2.6,.5,2.6,'#3a3024','flat'],
+  ['ll',-1.6,1,0,1.6,12,1.6,'#e6e0cc','bone',1],['ll',-1.6,0,.6,2,1.2,3,'#e6e0cc','bone',1]]},
+{id:'spider',name:'オオグモ',group:'モンスター',cat:'monster',move:'walk',rig:'spider',sc:1,sp:1.4,run:3.6,h:.8,r:.55,flee:0,herd:[1,2],hab:{night:2},voice:'hiss',chase:1,
+ bones:[['body','root',0,5,0],['abd','body',0,6,-2],['l1','body',-2.5,5,3],['l2','body',-2.8,5,1],['l3','body',-2.8,5,-1],['l4','body',-2.5,5,-2.6]],
+ parts:[['body',0,3.6,1.5,6,4,6,'#2b2333','fur'],['abd',0,3.4,-6,9,7,9,'#2b2333','fur'],['abd',0,10.4,-4,6,.3,1.4,'#e07a28','flat'],['abd',0,10.4,-7,6.6,.3,1.4,'#e07a28','flat'],['abd',0,8,-10.55,4,1.4,.3,'#e07a28','flat'],
+  ['body',-1.4,6,4.55,1,1,.2,'#c58cff','glow',1],['body',-.5,6.9,4.55,.7,.7,.2,'#c58cff','glow',1],['body',-2.3,5.1,4.55,.6,.6,.2,'#c58cff','glow',1],['body',-.8,2.6,4.2,.8,1.6,.8,'#1a141c','flat',1],
+  ['l1',-5.4,5.4,3.6,5.6,1.2,1.2,'#231c2a','fur',1],['l1',-8.6,0,4.8,1.1,6.6,1.1,'#231c2a','fur',1],['l2',-5.6,5.4,1,5.6,1.2,1.2,'#231c2a','fur',1],['l2',-9,0,1.4,1.1,6.6,1.1,'#231c2a','fur',1],
+  ['l3',-5.6,5.4,-1,5.6,1.2,1.2,'#231c2a','fur',1],['l3',-9,0,-1.4,1.1,6.6,1.1,'#231c2a','fur',1],['l4',-5.4,5.4,-3.2,5.6,1.2,1.2,'#231c2a','fur',1],['l4',-8.6,0,-4.6,1.1,6.6,1.1,'#231c2a','fur',1]]},
+{id:'slime',name:'コハクスライム',group:'モンスター',cat:'monster',move:'hop',rig:'slime',sc:1,sp:1.2,run:2.2,h:.7,r:.35,flee:0,herd:[1,2],hab:{night:1.5},voice:'squish',chase:1,size:[.7,1.5],
+ bones:[['body','root',0,0,0]],
+ parts:[['body',0,0,0,10,10,10,'#e8a93a','jelly'],['body',-2.2,5.4,5.05,1.8,2.4,.25,'#2a1a0a','flat',1],['body',-2.6,6.6,5.2,.7,.7,.15,'#fff6dc','flat',1],
+  ['body',0,3.2,5.05,2,.7,.25,'#2a1a0a','flat'],['body',3.2,7.6,5.05,1,1,.2,'#ffd88a','flat'],['body',-3.4,2.2,5.05,.8,.8,.2,'#ffd88a','flat'],['body',-2,10,-1,3,1,3,'#f0b850','jelly']]},
+{id:'bomb',name:'ボムタケ',group:'モンスター',cat:'monster',move:'walk',rig:'bomb',sc:1,sp:.9,run:1.8,h:1.2,r:.45,flee:0,herd:[1,1],hab:{night:1.4},voice:'fuse',chase:1,
+ bones:[['body','root',0,4,0],['cap','body',0,10,0],['ll','root',-1.6,3,0]],
+ parts:[['body',0,2.5,0,6,8,6,'#efe4c8','fur'],['cap',0,9.5,0,13,5,13,'#d8442c','cap'],['cap',0,14.5,0,9,2.4,9,'#d8442c','cap'],['cap',0,9.2,0,12,.3,12,'#c9b48c','flat'],
+  ['body',-1.4,6.5,3.05,1.3,1.6,.2,'#1a1210','flat',1],['body',-1.6,7.4,3.18,.5,.5,.1,'#ffffff','flat',1],['body',-1.5,8.3,3.1,1.8,.5,.2,'#5a2a1a','flat',1],['body',0,4.6,3.05,1.6,.6,.2,'#1a1210','flat'],
+  ['cap',0,16.9,0,.8,3,.8,'#3a3028','flat'],['cap',0,19.9,0,1.2,1.2,1.2,'#ffd040','glow'],['ll',-1.6,0,.4,2.2,2.6,3,'#c9b48c','fur',1]]},
+{id:'wisp',name:'ヨイトモシ',group:'モンスター',cat:'monster',move:'float',rig:'wisp',sc:1,sp:.9,run:2,h:1.4,r:.35,flee:0,herd:[1,1],hab:{night:1.1},voice:'chime',
+ bones:[['body','root',0,0,0],['head','body',0,13,0],['al','body',-4,11,0]],
+ parts:[['body',0,0,0,4,3,4,'#28244a','fur'],['body',0,3,0,6,4,6,'#2f2a58','fur'],['body',0,7,0,7,6,6.4,'#36306a','fur'],
+  ['head',0,13,0,7.6,7,7.6,'#3b3474','fur'],['head',0,14,3.85,5.4,4.4,.2,'#05040a','flat'],['head',-1.3,15.6,3.98,1.1,1.4,.12,'#9ff7ff','glow',1],['head',0,20,-1.5,3,2,3,'#3b3474','fur'],
+  ['al',-4.4,6.5,0,1.4,5,1.4,'#2f2a58','fur',1],['al',-4.4,5.6,0,1.2,1.2,1.2,'#bfc6ff','glow',1],
+  ['ar',4.4,1.6,1,2.6,3.2,2.6,'#ffb347','glow'],['ar',4.4,4.8,1,3,.6,3,'#2a2030','flat'],['ar',4.4,5.4,1,.4,1.2,.4,'#2a2030','flat']]},
+{id:'crawler',name:'クラヤミ',group:'モンスター',cat:'monster',move:'walk',rig:'spider',sc:1,sp:1.6,run:3,h:.6,r:.5,flee:0,herd:[1,2],hab:{dark:1},voice:'click2',stalk:1,
+ bones:[['body','root',0,3,0],['head','body',0,3.5,6],['fe','head',0,5,9,-.3],['l1','body',-2.5,3,4],['l2','body',-2.8,3,0],['l3','body',-2.5,3,-4]],
+ parts:[['body',0,1.6,0,6,3.6,11,'#b9b4ac','bone'],['body',0,1.8,-7,4.6,3,4,'#a9a49c','bone'],['body',0,5.2,1,4,.6,1.4,'#8f8a83','flat'],['body',0,5.2,-2,4,.6,1.4,'#8f8a83','flat'],
+  ['head',0,1.6,8,5,3.4,4,'#c4bfb7','bone'],['head',0,1.9,10.05,3,1.4,.2,'#3a0e14','flat'],['head',0,2.1,10.15,1.6,.6,.1,'#ff6a5a','glow'],
+  ['fe',-1.4,4.8,13,.4,.4,8,'#d8d2c8','flat',1],
+  ['l1',-4.8,2.8,4,4.6,.9,.9,'#a9a49c','bone',1],['l1',-7,0,4.8,.9,3.6,.9,'#a9a49c','bone',1],['l2',-5,2.8,0,4.6,.9,.9,'#a9a49c','bone',1],['l2',-7.3,0,0,.9,3.6,.9,'#a9a49c','bone',1],
+  ['l3',-4.8,2.8,-4,4.6,.9,.9,'#a9a49c','bone',1],['l3',-7,0,-4.8,.9,3.6,.9,'#a9a49c','bone',1]]}];
+const LIFE_BY_ID={};LIFE_SPECIES.forEach((s,i)=>{s.i=i;LIFE_BY_ID[s.id]=s});
+const lifeMirror=n=>/^[a-z]l$|^legl$/.test(n)?n.slice(0,-1)+'r':/^l\d$/.test(n)?'r'+n.slice(1):n;
+// Build all species into one static vertex array (shared by every individual). Vertex material = face + 8*pattern + 128*bone;
+// uv carries the model-space position along the face, so fur and scale patterns run on across neighbouring faces.
+function buildLifeModels(){const w=writer(1<<15);
+ for(const sp of LIFE_SPECIES){const names=['root'],par=[-1],piv=[0,0,0],rest=[0];
+  const add=(n,p,x,y,z,rx)=>{names.push(n);par.push(names.indexOf(p));piv.push(x,y,z);rest.push(rx||0)};
+  for(const b of sp.bones){add(...b);const m=lifeMirror(b[0]);if(m!==b[0])add(m,lifeMirror(b[1]),-b[2],b[3],b[4],b[5])}
+  sp.nb=names.length;sp.B={};names.forEach((n,i)=>sp.B[n]=i);sp.par=par;sp.piv=new Float32Array(piv);sp.rest=rest;
+  const parts=[];for(const p of sp.parts){parts.push(p);if(p[9])parts.push([lifeMirror(p[0]),-p[1],...p.slice(2,9)])}
+  let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,y1=0;for(const p of parts){x0=Math.min(x0,p[1]-p[4]/2);x1=Math.max(x1,p[1]+p[4]/2);z0=Math.min(z0,p[3]-p[6]/2);z1=Math.max(z1,p[3]+p[6]/2);y1=Math.max(y1,p[2]+p[5])}
+  // A soft contact shadow under everything that stands on the ground (the root bone never moves, so it stays flat on the floor).
+  if(sp.move==='walk'||sp.move==='hop'){const hw=Math.max(x1-x0,4)*.5*.9,hd=Math.max(z1-z0,4)*.5*.9;parts.unshift(['root',0,.5,(z0+z1)/2,hw*2,.1,hd*2,[hw,hd,(z0+z1)/2/hd],'shadow'])}
+  sp.rad=Math.hypot(Math.max(-x0,x1),y1,Math.max(-z0,z1))/16*sp.sc*(sp.size?sp.size[1]:1);sp.top=y1/16*sp.sc;
+  sp.q0=w.n/36;
+  for(const p of parts){const bi=sp.B[p[0]],c=typeof p[7]==='string'?rgb(p[7]):p[7],pt=LP[p[8]],bx=p[1]-p[4]/2,bz=p[3]-p[6]/2;
+   faces.forEach((f,fi)=>{grow(w,36);for(const v of f.v){const x=bx+v[0]*p[4],y=p[2]+v[1]*p[5],z=bz+v[2]*p[6],u=f.n[0]?[z,y]:f.n[1]?[x,z]:[x,y];
+    vert(w,x,y,z,c[0],c[1],c[2],u[0],u[1],fi+8*pt+128*bi)}})}
+  sp.nq=w.n/36-sp.q0;sp.main=parts.find(p=>p[8]!=='shadow')[7]}
+ return w}
+const lifeModel=buildLifeModels();
+const lifeVertexSource=`
+attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
+uniform vec4 B[48]; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj;
+varying vec3 col; varying vec3 vN; varying vec3 rel; varying vec3 mp; varying float pat;
+vec3 fN(float f){return f<.5?vec3(1.,0.,0.):f<1.5?vec3(-1.,0.,0.):f<2.5?vec3(0.,1.,0.):f<3.5?vec3(0.,-1.,0.):f<4.5?vec3(0.,0.,1.):vec3(0.,0.,-1.);}
+void main(){float code=aMat+.5;float bone=floor(code/128.);code-=bone*128.;float pt=floor(code/8.);float face=floor(code-pt*8.);
+ int i=int(bone)*3;vec4 r0=B[i],r1=B[i+1],r2=B[i+2],p4=vec4(aPos,1.);vec3 p=vec3(dot(r0,p4),dot(r1,p4),dot(r2,p4));
+ vec3 n=fN(face);vN=vec3(dot(r0.xyz,n),dot(r1.xyz,n),dot(r2.xyz,n));
+ float xx=cos(yaw)*p.x-sin(yaw)*p.z;float zz=sin(yaw)*p.x+cos(yaw)*p.z;float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
+ gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);col=aColor;rel=p;mp=vec3(aUV,aPos.y+aPos.x*.37+aPos.z*.61);pat=pt;}`;
+// cL: x = open sky above (1) or under a roof/canopy (0), y = white flash, z = night glow boost.
+const lifeFragmentSource=PRECISION+`
+varying vec3 col; varying vec3 vN; varying vec3 rel; varying vec3 mp; varying float pat;
+uniform vec3 eyeF; uniform vec4 cL;`+SKY_GLSL+`
+void main(){vec2 q=floor(mp.xy+.001);float n=hash(q+floor(mp.z)*.13);vec3 c=col;float alpha=1.,lit=1.;vec3 w=rel+eyeF;vec3 N=normalize(vN);vec3 v=normalize(rel);
+ if(pat<.5)c=col*(.86+n*.22);
+ else if(pat<1.5)c=col*(.95+n*.08);
+ else if(pat<2.5)c=col;
+ else if(pat<3.5){c=col*(1.+cL.z*.7);lit=0.;}
+ else if(pat<4.5){float s=step(.5,fract((q.x+step(.5,fract(q.y*.5)))*.5));c=col*(.86+s*.13+n*.07);}
+ else if(pat<5.5){float p=step(.62,hash(floor(q/3.)+7.));c=mix(col*(.9+n*.12),vec3(.24,.15,.1),p);}
+ else if(pat<6.5){c=col*(.72+.3*n);}
+ else if(pat<7.5){if(N.y<.5)discard;vec2 d=mp.xy/max(col.xy,vec2(.1));d.y-=col.z;alpha=.34*(1.-smoothstep(.35,1.,length(d)));if(alpha<.02)discard;c=vec3(0.);lit=0.;}
+ else if(pat<8.5)c=col*(.78+.3*hash(floor(q/2.)+3.)+n*.06);
+ else if(pat<9.5){float b=mod(floor(mp.y*0.+mp.x+40.),5.);c=b<1.3?vec3(.96,.95,.92):b<1.8||b>4.6?vec3(.08):col*(.9+n*.12);}
+ else if(pat<10.5){c=col*(.88+n*.14);if(hash(q*.5+9.)>.93)c*=.72;}
+ else if(pat<11.5){c=mix(col,col*vec3(.72,.9,.66),step(.58,hash(floor(q/2.)+1.)))*(.84+n*.2);}
+ else if(pat<12.5){c=col*(.84+.17*step(.5,fract((q.x+floor(q.y*.5))*.34))+n*.07);}
+ else if(pat<13.5){vec2 g=mp.xy/3.4;float e=step(.8,max(fract(g.x),fract(g.y)));c=col*(.8+.32*hash(floor(g)))*(1.-.4*e);}
+ else if(pat<14.5){vec2 g=mp.xy/4.;float s=step(length(fract(g)-.5),.24)*step(.45,hash(floor(g)+5.));c=mix(col*(.9+n*.12),vec3(.97,.94,.86),s);}
+ else{float s=step(.86,n);c=mix(col*(.88+n*.16),vec3(.96,.93,.86),s*.85);}
+ if(lit>.5){float nd=max(dot(N,dirLight),0.)*.82+.18*max(dirLight.y,0.);
+  vec3 L=ambCol*(.82+.18*N.y)*(.7+.3*cL.x)+dirCol*nd*(.12+.88*cL.x);c*=L;
+  if(pat>1.5&&pat<2.5)c+=dirCol*pow(max(dot(reflect(v,N),dirLight),0.),20.)*.7+ambCol*.05;
+  if(pat>5.5&&pat<6.5){float fr=pow(1.-abs(dot(N,v)),2.);c+=col*(fr*.45+.18)*(ambCol+dirCol*.4)+dirCol*pow(max(dot(reflect(v,N),dirLight),0.),28.)*.9;}}
+ c=mix(c,vec3(1.,.98,.92),cL.y);
+ if(w.y<${SEA}.88){float ds=${SEA}.88-w.y;c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-v.y,.1):0.)));}
+ gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
+let lifeProg=null,lifeU=null,lifeBuffer=null,mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
 function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
 function buildProgram(vsrc,fsrc,attribs){
  const p=gl.createProgram();gl.attachShader(p,shader(gl.VERTEX_SHADER,vsrc));gl.attachShader(p,shader(gl.FRAGMENT_SHADER,fsrc));
@@ -850,6 +1118,10 @@ function initRenderer(){
  try{lodProg=buildProgram(lodVertexSource,lodFragmentSource,['lPos','lCol']);skyProg=buildProgram(skyVertexSource,skyFragmentSource,['sPos']);
   lodU=uniformsOf(lodProg,['org','yaw','pitch','aspect','proj','clock','hole','eyeF','wq',...SKY_UNIFORMS]);skyU=uniformsOf(skyProg,['cFwd','cRight','cUp','cScale',...SKY_UNIFORMS]);lodOK=true}
  catch(farError){console.warn('Far terrain disabled:',farError);lodOK=false}
+ // Creatures: one static model buffer for every species; if the program fails, the world simply has no visible creatures.
+ try{lifeProg=buildProgram(lifeVertexSource,lifeFragmentSource,['aPos','aColor','aUV','aMat']);lifeU=uniformsOf(lifeProg,['B','yaw','pitch','aspect','proj','clock','eyeF','cL',...SKY_UNIFORMS]);
+  lifeBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,lifeBuffer);gl.bufferData(gl.ARRAY_BUFFER,lifeModel.a.subarray(0,lifeModel.n),gl.STATIC_DRAW)}
+ catch(lifeError){console.warn('Creatures hidden:',lifeError);lifeProg=null}
  // Every mesh is made of quads; one shared index buffer serves them all.
  const ind=new Uint16Array(MAXQ*6);for(let i=0;i<MAXQ;i++)ind.set([i*4,i*4+1,i*4+2,i*4,i*4+2,i*4+3],i*6);
  quadIndex=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,quadIndex);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,ind,gl.STATIC_DRAW);
@@ -1125,15 +1397,15 @@ streamChunks(true);
 function edit(x,y,z,t){set(x,y,z,t);dirty=true;const near=new Set();for(const dx of[-1,0,1])for(const dz of[-1,0,1])near.add(chunkKey(x+dx,z+dz));for(const c of near)if(chunks.has(c))rebuild(...c.split(',').map(Number))}
 function collides(p){if(p.x<.3||p.z<.3||p.x>W-.3||p.z>W-.3||p.y<1||p.y+1.8>=H)return true;for(let x=Math.floor(p.x-.29);x<=Math.floor(p.x+.29);x++)for(let y=Math.floor(p.y+.001);y<=Math.floor(p.y+1.79);y++)for(let z=Math.floor(p.z-.29);z<=Math.floor(p.z+.29);z++)if(solid(x,y,z))return true;return false}
 if(collides(player))spawn();
-function ray(){const d=[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<6){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
+function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
-function refresh(){const bar=$('bar');bar.innerHTML='';slots.forEach((t,i)=>{const b=document.createElement('button');b.className=i===selected?'selected':'';b.innerHTML=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;b.onclick=()=>{selected=i;refresh()};bar.appendChild(b)});$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
+function refresh(){const bar=$('bar');bar.innerHTML='';slots.forEach((t,i)=>{const b=document.createElement('button');b.className=i===selected&&eggSp<0?'selected':'';b.innerHTML=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
-function mine(){if(paused||photoMode)return;swing=1;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
-function place(){if(paused||photoMode)return;swing=1;hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
+function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
+function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
 function jump(){if(flying||photoMode)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
 function toggleFlight(){if(paused||suspended||photoMode)return;flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
-function save(){if(resettingWorld||benchLock)return false;try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player,yaw,pitch,dayTime}));dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true}catch(e){$('saveInfo').textContent='保存できません。ブラウザの保存容量・設定を確認してください';return false}}
+function save(){if(resettingWorld||benchLock)return false;try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player,yaw,pitch,dayTime,life:lifeSave()}));dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true}catch(e){$('saveInfo').textContent='保存できません。ブラウザの保存容量・設定を確認してください';return false}}
 function clearInput(){for(const k in keys)delete keys[k];joy.x=joy.y=0;$('knob').style.transform='';mineHeld=placeHeld=riseHeld=descendHeld=false;lookId=stickId=null}
 function applyHUD(){
  document.body.classList.toggle('hud-minimal',hudMinimal);document.body.classList.toggle('hud-details',hudDetails);
@@ -1152,9 +1424,9 @@ function setPhotoMode(on){
 $('hudMode').onclick=toggleHUD;$('hudDetails').onclick=toggleDetails;
 $('photoBtn').onclick=$('photoMenu').onclick=()=>setPhotoMode(true);$('photoExit').onclick=()=>setPhotoMode(false);
 applyHUD();
-function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInput();document.exitPointerLock?.();$('menu').classList.remove('hidden');save()}
+function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInput();document.exitPointerLock?.();$('eggs').classList.add('hidden');$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
-function play(){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
+function play(){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
 function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
 $('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(!confirm('今の世界を消して新しく作りますか？'))return;
  // Prevent blur/visibilitychange/pagehide from restoring the deleted world while navigating.
@@ -1167,7 +1439,11 @@ $('craftBtn').onclick=()=>{if(photoMode)return;paused=true;rememberPlaying(false
 let mineHeld=false,placeHeld=false,actionClock=0,lookId=null,stickId=null,lx=0,ly=0;
 function hold(id,fn,flag){$(id).addEventListener('pointerdown',e=>{e.preventDefault();if(paused||photoMode)return;$(id).setPointerCapture(e.pointerId);fn();if(flag==='mine')mineHeld=true;if(flag==='place')placeHeld=true;if(flag==='rise')riseHeld=true;if(flag==='down')descendHeld=true;actionClock=.3});for(const ev of ['pointerup','pointercancel','lostpointercapture'])$(id).addEventListener(ev,()=>{if(flag==='mine')mineHeld=false;if(flag==='place')placeHeld=false;if(flag==='rise')riseHeld=false;if(flag==='down')descendHeld=false})}hold('mine',mine,'mine');hold('place',place,'place');hold('jump',jump,'rise');hold('down',()=>{},'down');$('fly').onclick=toggleFlight;
 $('stick').onpointerdown=e=>{if(paused||photoMode)return;stickId=e.pointerId;$('stick').setPointerCapture(e.pointerId);moveStick(e)};function moveStick(e){if(e.pointerId!==stickId)return;const r=$('stick').getBoundingClientRect();let x=(e.clientX-r.left-r.width/2)/40,y=(e.clientY-r.top-r.height/2)/40,n=Math.max(1,Math.hypot(x,y));joy.x=x/n;joy.y=y/n;$('knob').style.transform=`translate(${joy.x*30}px,${joy.y*30}px)`}$('stick').onpointermove=moveStick;for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('stick').addEventListener(ev,()=>{stickId=null;joy.x=joy.y=0;$('knob').style.transform='' });
-canvas.onpointerdown=e=>{if(paused)return;if(!photoMode&&e.pointerType==='mouse'&&document.pointerLockElement===canvas){if(e.button===0)mine();if(e.button===2)place();return}lookId=e.pointerId;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId)};canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(e.code==='KeyP'&&!e.repeat&&!paused){e.preventDefault();setPhotoMode(!photoMode);return}if(photoMode){if(e.code==='Escape'){e.preventDefault();setPhotoMode(false)}return}if(e.code==='KeyH'&&!e.repeat){toggleHUD();return}if(e.code==='F3'){e.preventDefault();if(!e.repeat)toggleDetails();return}if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;refresh()}};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
+let tapX=0,tapY=0,tapT=0,tapId=null;
+canvas.onpointerdown=e=>{if(paused)return;if(!photoMode&&e.pointerType==='mouse'&&document.pointerLockElement===canvas){if(e.button===0)mine();if(e.button===2)place();return}lookId=e.pointerId;lx=tapX=e.clientX;ly=tapY=e.clientY;tapT=performance.now();tapId=e.pointerId;canvas.setPointerCapture(e.pointerId)};
+// With a spawn egg in hand, a quick tap (not a look-around drag) places the creature where the finger touched.
+canvas.addEventListener('pointerup',e=>{if(e.pointerId===tapId&&eggSp>=0&&!paused&&!photoMode&&Math.hypot(e.clientX-tapX,e.clientY-tapY)<12&&performance.now()-tapT<400)placeEgg(screenDir(e.clientX,e.clientY));tapId=null});
+canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(e.code==='KeyP'&&!e.repeat&&!paused){e.preventDefault();setPhotoMode(!photoMode);return}if(photoMode){if(e.code==='Escape'){e.preventDefault();setPhotoMode(false)}return}if(e.code==='KeyH'&&!e.repeat){toggleHUD();return}if(e.code==='F3'){e.preventDefault();if(!e.repeat)toggleDetails();return}if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;eggSp=-1;refresh()}if(e.code==='KeyG'&&!e.repeat&&!paused)openEggs();};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
 // Suspend simulation on actual backgrounding, then resume the same play state.
 window.onblur=()=>{clearInput();save()};
 window.onfocus=()=>{clearInput();last=performance.now()};
@@ -1175,7 +1451,7 @@ document.addEventListener('visibilitychange',()=>{suspended=!!document.hidden;cl
 window.addEventListener('pagehide',()=>{clearInput();save()});
 window.addEventListener('pageshow',()=>{suspended=false;clearInput();last=performance.now()});
 // Dynamic geometry uses the same pixel materials as the terrain.
-let swing=0,walkPhase=0;const particles=[],cows=[];
+let swing=0,walkPhase=0;const particles=[];
 // "絶景スポットへ": the title button cycles through the best cliffs, summits, valleys and river plains of this world.
 let spotList=null,spotIdx=-1,spotBusy=false;
 // Stand on open ground: the nearest point (within ~20 blocks) with no trunk or leaf block above it, at the spot's height.
@@ -1198,25 +1474,358 @@ function nextSpot(){
  toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${SPOT_KINDS[s.kind]}（標高${s.h-SEA}m）`)}
 function surface(x,z,from=H-3){for(let y=Math.min(H-3,Math.floor(from));y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
-{const cx0=vista?vista.x-10:ORIGIN-7,cz0=vista?vista.z-10:ORIGIN-3;for(let i=0;i<300&&cows.length<7;i++){let x=cx0+rand(i,321)*22,z=cz0+rand(i,632)*21,y=surface(x,z);if(Math.hypot(x-player.x,z-player.z)>3&&cows.every(c=>Math.hypot(c.x-x,c.z-z)>2)&&y>SEA+1&&y<H-5&&get(Math.floor(x),y-1,Math.floor(z))===1&&cowFits(x,y,z))cows.push({x,y,z,angle:rand(i,13)*6.28,phase:i,wait:0})}}
 function cuboid(w,x,y,z,sx,sy,sz,color,mat=0,transform=null){const c=typeof color==='string'?rgb(color):color;faces.forEach((f,fi)=>{grow(w,36);const code=mat+32*fi;for(const v of f.v){const p=[x+v[0]*sx,y+v[1]*sy,z+v[2]*sz],q=transform?transform(p):p,uv=faceUV(v,f);vert(w,q[0],q[1],q[2],c[0],c[1],c[2],uv[0],uv[1],code)}})}
 function burst(x,y,z,color){for(let i=0;i<12;i++)particles.push({x,y,z,vx:(Math.random()-.5)*3,vy:1+Math.random()*2,vz:(Math.random()-.5)*3,life:.7,color})}
 function drawData(buffer,w){if(!w.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,w.a.subarray(0,w.n),gl.DYNAMIC_DRAW);drawQuads(buffer,w.n/36,bind,36)}
 function animateWorld(dt){swing=Math.max(0,swing-dt*3.5);const moving=Math.hypot(joy.x,joy.y)> .1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD;if(moving&&ground)walkPhase+=dt*9;
 for(const p of particles){p.life-=dt;p.vy-=dt*8;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt}for(let i=particles.length-1;i>=0;i--)if(particles[i].life<=0)particles.splice(i,1);
-// Cows far from the player rest, so their chunks need not stay generated.
-for(const c of cows){if(Math.hypot(c.x-player.x,c.z-player.z)>80)continue;c.wait-=dt;if(c.wait<0){c.angle+=(rand(Math.floor(time)+c.phase,43)-.5)*1.8;c.wait=2+rand(c.phase,Math.floor(time))*4}const nx=c.x+Math.sin(c.angle)*dt*.45,nz=c.z+Math.cos(c.angle)*dt*.45,ny=surface(nx,nz,c.y+2);if((Math.hypot(nx-player.x,nz-player.z)>1.1||Math.abs(ny-player.y)>2)&&cows.every(other=>other===c||Math.hypot(nx-other.x,nz-other.z)>.9)&&nx>2&&nz>2&&nx<W-2&&nz<W-2&&ny>SEA+1&&Math.abs(ny-c.y)<1.1&&cowFits(nx,ny,nz)){c.x=nx;c.z=nz;c.y+=(ny-c.y)*Math.min(1,dt*10);c.phase+=dt*4}else c.angle+=dt*2;const below=surface(c.x,c.z,c.y+2);if(below<c.y-.1)c.y=Math.max(below,c.y-dt*5)}
+updateLife(dt,player);
 }
 function drawWorldDetails(){const a=dyn;a.n=0;
-for(const c of cows){const rot=p=>[c.x+Math.cos(c.angle)*p[0]+Math.sin(c.angle)*p[2],c.y+p[1],c.z-Math.sin(c.angle)*p[0]+Math.cos(c.angle)*p[2]];
-cuboid(a,-.40,.65,-.64,.80,.73,1.22,[1,1,1],16,rot);
-for(const x of [-.32,.14])for(const z of [-.47,.33]){const ang=Math.sin(c.phase+(x*z>0?0:Math.PI))*.35,leg=p=>{let yy=p[1]-.7,zz=p[2]-z;return rot([p[0],.7+Math.cos(ang)*yy-Math.sin(ang)*zz,z+Math.sin(ang)*yy+Math.cos(ang)*zz])};cuboid(a,x,.08,z,.20,.64,.22,'#573c29',0,leg);cuboid(a,x,.04,z,.20,.16,.22,'#e1d8c6',0,leg)}
-cuboid(a,-.32,1.03,.45,.64,.60,.53,'#68513b',0,rot);cuboid(a,-.34,.98,.87,.68,.26,.21,'#b39983',0,rot);
-for(const x of [-.24,.14]){cuboid(a,x,1.35,.976,.12,.12,.018,'#f1ece0',0,rot);cuboid(a,x+.035,1.36,.999,.06,.07,.018,'#1b1e1c',0,rot);cuboid(a,x,1.61,.56,.10,.19,.11,'#ddd7bc',0,rot);cuboid(a,x,1.07,1.083,.08,.05,.015,'#48382f',0,rot)}
-cuboid(a,-.48,1.40,.52,.17,.12,.21,'#73543c',0,rot);cuboid(a,.31,1.40,.52,.17,.12,.21,'#73543c',0,rot);cuboid(a,-.06,.74,-.75,.10,.46,.10,'#4b382a',0,rot);
-}
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
 drawData(dynamicBuffer,a)}
+// ---- LIFE runtime. Natural creatures appear around the player in loaded terrain and leave when it unloads; egg-placed ones are saved.
+// Creatures never edit the world and never hurt the player: monsters only watch, follow, stalk or puff harmless spores.
+const life=[],lifePool=[],COW=LIFE_BY_ID.cow;
+const LIFE_Q={low:{cap:20,draw:56},standard:{cap:34,draw:84},high:{cap:50,draw:112}};
+const LIFE_SHARE={land:.42,water:.3,bird:.22,monster:.24},MANUAL_MAX=80,VOICE_KEY='jocraft2-voices';
+let lifeMode=['all','animals','off'].includes(saved?.life?.mode)?saved.life.mode:'all',lifeScale=1,lifeSpawnT=.5,lifeCullT=0,lifeVoiceT=0,lifeVoices=true,eggSp=-1,lifeSeq=1,lifeF=null,lifeDrawn=0;
+try{lifeVoices=localStorage.getItem(VOICE_KEY)!=='0'}catch(e){}
+const terrainH=(x,z)=>GRAND?height4(x,z):height(x,z);
+const isNight=()=>sunFromTime(dayTime)[1]<-.06;
+// Voxel lookup that never generates terrain: -1 where the chunk is not loaded.
+let pkX=1e9,pkZ=1e9,pkData=null;
+function peek(x,y,z){if(x<0||z<0||x>=W||z>=W)return -1;if(y<0)return 11;if(y>=H)return 0;const cx=x>>4,cz=z>>4;if(cx!==pkX||cz!==pkZ){pkX=cx;pkZ=cz;pkData=blocks.get(cx+','+cz)||null}return pkData?pkData[localIdx(x,y,z)]:-1}
+const LEAFY=t=>t===5||t===14||t===15||t===16;
+// Top of the ground below (top) within depth blocks: -1e9 when not loaded, -1e8 when there is no floor in range.
+function groundAt(x,z,top,depth){const X=Math.floor(x),Z=Math.floor(z),y0=Math.floor(top);for(let y=y0;y>=y0-depth;y--){const t=peek(X,y,Z);if(t<0)return -1e9;if(t&&t!==10)return y+1}return -1e8}
+function lifeColumn(X,Z){let canopy=0;for(let y=Math.min(H-2,terrainH(X,Z)+28);y>0;y--){const t=peek(X,y,Z);if(t<0)return null;if(!t)continue;
+  if(LEAFY(t)||t===4||t===13){canopy++;continue}
+  if(t===10){let d=0;while(peek(X,y-d,Z)===10)d++;return{g:y-d+1,water:d,surf:peek(X,y-d,Z),canopy}}
+  return{g:y+1,water:0,surf:t,canopy}}return null}
+function lifeHabitat(X,Z,col){
+ if(col.water){terrainH(X,Z);if(GRAND&&gLand>0)return col.water>=2?'river':'shallow';if(col.water<2)return'shallow';return col.surf===6&&col.water<=9?'reef':'sea'}
+ const alt=col.g-1-SEA;let dens=0,slope=0;if(GRAND){const ci=columns.get((X>>4)+','+(Z>>4));if(ci){const k=(Z&15)*16+(X&15);dens=ci.dens?ci.dens[k]:0;slope=ci.slope[k]}}
+ if(col.surf===12||alt>60||(slope>=3&&col.surf===3))return'mountain';
+ if(dens>.3||(col.canopy&&dens>.15))return'forest';
+ if(col.surf===6)return alt<6?'beach':'meadow';
+ return'meadow'}
+// Open sky above a creature (1) or a roof / canopy (0).
+function skyOpen(x,y,z){const X=Math.floor(x),Z=Math.floor(z);let s=0;for(let k=2;k<14;k++){const t=peek(X,Math.floor(y)+k,Z);if(t>0&&t!==10){s+=LEAFY(t)?.25:1;if(s>=1)return 0}}return 1-s}
+// A real roof (rock, earth or a building, not a tree): where cave creatures may appear, now or in future caves.
+function covered(X,y,Z){for(let k=1;k<10;k++){const t=peek(X,y+k,Z);if(t>0&&t!==10&&!LEAFY(t)&&t!==4&&t!==13)return true}return false}
+function lifeNew(sp,x,y,z,manual,size){const c=lifePool.pop()||{R:new Float32Array(48),O:new Float32Array(48),S:new Float32Array(48),M:new Float32Array(192)};
+ Object.assign(c,{id:lifeSeq++,sp,x,y,z,yaw:Math.random()*6.283,want:0,pitch:0,roll:0,vx:0,vy:0,vz:0,manual:!!manual,mode:'idle',timer:.5+Math.random()*2,speed:0,ph:Math.random()*6,t:Math.random()*20,
+  hy:0,hp:0,stuck:0,acc:0,size:size||(sp.size?sp.size[0]+Math.random()*(sp.size[1]-sp.size[0]):.9+Math.random()*.2),leader:null,ox:0,oy:0,oz:0,tx:x,ty:y,tz:z,hx:x,hz:z,
+  flash:0,swell:0,cool:0,peck:0,sq:0,hopT:0,hopV:0,pa:Math.random()*6,orb:0,lt:false,stranded:0,talk:0,flap:1,air:sp.move==='fly',voiceT:4+Math.random()*16,vanish:-1,dormant:false,sky:1,skyT:0,chaseT:0,detour:0,alt:0,leap:false,ground:true,dist:0});
+ c.want=c.yaw;c.Mv=c.M.subarray(0,sp.nb*12);life.push(c);return c}
+function lifeRemove(c,puff){const i=life.indexOf(c);if(i<0)return;life.splice(i,1);for(const o of life)if(o.leader===c)o.leader=null;
+ if(puff){const h=c.sp.top*c.size;for(let k=0;k<(c.sp.cat==='monster'?3:2);k++)burst(c.x,c.y+h*.5,c.z,c.sp.cat==='monster'?'#3b3550':'#e9efe9')}
+ c.leader=null;lifePool.push(c)}
+const lifeAround=(c,r)=>life.filter(o=>o!==c&&o.sp===c.sp&&Math.abs(o.x-c.x)<r&&Math.abs(o.z-c.z)<r);
+// ---- Natural spawning: a few tries every 0.35 s at points 24-90 blocks away in the loaded square, out of sight where possible.
+function lifeCap(){return LIFE_Q[qualityName].cap*lifeScale}
+function lifePick(cat,hab,night,dark){let tot=0;const ok=[];
+ for(const sp of LIFE_SPECIES){if(sp.cat!==cat)continue;let w=0;
+  if(cat==='monster'){if(lifeMode!=='all')continue;w=dark?(sp.hab.dark||0)+(night?sp.hab.night||0:0)*.3:night&&hab!=='sea'&&hab!=='river'&&hab!=='shallow'&&hab!=='reef'?sp.hab.night||0:0}
+  else w=sp.hab[hab]||0;if(sp.deep&&cat==='water')w=w;if(w>0){ok.push([sp,w]);tot+=w}}
+ let r=Math.random()*tot;for(const [sp,w] of ok)if((r-=w)<=0)return sp;return null}
+function lifeSpawnTick(focus,night){
+ if(lifeMode==='off'||readyR<1)return;
+ const cap=lifeCap(),cnt={land:0,water:0,bird:0,monster:0};let total=0;for(const c of life)if(!c.manual){cnt[c.sp.cat]++;total++}
+ if(total>=cap)return;
+ const cats=['land','water','bird','monster'].filter(k=>cnt[k]<cap*LIFE_SHARE[k]&&(k!=='monster'||lifeMode==='all'));if(!cats.length)return;
+ const cat=cats[Math.floor(Math.random()*cats.length)],R=Math.min(90,Math.max(30,readyR*CHUNK));
+ for(let a=0;a<4;a++){const ang=Math.random()*6.283,d=24+Math.random()*(R-24),X=Math.floor(focus.x+Math.sin(ang)*d),Z=Math.floor(focus.z+Math.cos(ang)*d);
+  if(X<4||Z<4||X>W-5||Z>W-5)continue;const cx=X>>4,cz=Z>>4;if(Math.max(Math.abs(cx-centerCX),Math.abs(cz-centerCZ))>readyR||!chunks.has(cx+','+cz))continue;
+  const col=lifeColumn(X,Z);if(!col)continue;const hab=lifeHabitat(X,Z,col);
+  const dark=cat==='monster'&&!col.water&&covered(X,col.g,Z);
+  if(cat==='monster'&&(d<26||col.water||(!night&&!dark)))continue;
+  if((cat==='land')&&(col.water||col.g<=SEA))continue;if(cat==='water'&&!col.water)continue;
+  const sp=lifePick(cat,cat==='bird'&&col.water?'sea':hab,night,dark);if(!sp)continue;
+  if(sp.deep&&col.water<sp.deep)continue;if(sp.tree&&!col.canopy)continue;
+  const y=cat==='water'?col.g+.6+Math.random()*Math.max(0,col.water-1.6):cat==='bird'?Math.max(col.g,SEA+1)+(sp.soar?26+Math.random()*24:sp.perch&&!sp.flock?0:10+Math.random()*8):sp.move==='float'?col.g+1.5:col.g;
+  if(lifeF&&d<48&&sphereVisible(lifeF,X+.5,y+1,Z+.5,3))continue;
+  const n=sp.herd[0]+Math.floor(Math.random()*(sp.herd[1]-sp.herd[0]+1));let lead=null;
+  for(let i=0;i<n&&total<cap+4;i++){let x=X+.5,z=Z+.5,yy=y;
+   if(i){x+=(Math.random()-.5)*(cat==='water'?4:6);z+=(Math.random()-.5)*(cat==='water'?4:6);
+    if(cat==='water'){if(peek(Math.floor(x),Math.floor(yy),Math.floor(z))!==10)continue}
+    else if(cat!=='bird'){const g=groundAt(x,z,yy+2,4);if(g<-1e7||peek(Math.floor(x),g,Math.floor(z))===10||Math.abs(g-yy)>2)continue;yy=sp.move==='float'?g+1.5:g}}
+   const c=lifeNew(sp,x,yy,z,false);c.hx=X+.5;c.hz=Z+.5;c.alt=yy-Math.max(col.g,SEA+1);if(lead)c.leader=lead;else lead=c;
+   c.ox=(Math.random()-.5)*(sp.flock?7:3);c.oy=(Math.random()-.5)*(sp.flock?3:1.5);c.oz=-1-Math.random()*(sp.flock?6:3);
+   if(cat==='bird'){c.air=!(sp.perch&&!sp.flock&&!sp.soar);c.mode=c.air?(sp.soar?'soar':'flock'):'perch';c.vx=Math.sin(c.yaw)*sp.sp*.5;c.vz=Math.cos(c.yaw)*sp.sp*.5}
+   if(cat==='water')c.mode='swim';total++}
+  return}}
+// Leave: unloaded or far away (natural only), monsters at daybreak, and surplus when the frame rate drops.
+function lifeCull(focus,night){const cap=lifeCap(),far=Math.max(80,readyR*CHUNK+40);let nat=0;
+ for(let i=life.length-1;i>=0;i--){const c=life[i];if(c.manual)continue;nat++;
+  const loaded=peek(Math.floor(c.x),1,Math.floor(c.z))>=0,d=Math.hypot(c.x-focus.x,c.z-focus.z);
+  if(!loaded||d>far){lifeRemove(c,false);nat--;continue}
+  if(c.vanish<0&&(lifeMode==='off'||(c.sp.cat==='monster'&&(lifeMode!=='all'||(!night&&!(c.sp.hab.dark&&covered(Math.floor(c.x),Math.floor(c.y),Math.floor(c.z))))))))c.vanish=Math.random()*(lifeMode==='off'?2:14)}
+ if(nat>cap+6){let worst=null,wd=0;for(const c of life)if(!c.manual&&!c.seen){const d=Math.hypot(c.x-focus.x,c.z-focus.z);if(d>wd){wd=d;worst=c}}if(worst)lifeRemove(worst,false)}}
+// ---- Behaviour. Each step gets the time since its last update; distant creatures update less often.
+const angTo=(a,b)=>{let d=b-a;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;return d};
+function standAt(c,x,z){const sp=c.sp,g=groundAt(x,z,c.y+1.1,sp.climb?3.2:2.2);if(g<-1e7||g>c.y+1.05)return null;const X=Math.floor(x),Z=Math.floor(z);
+ if(sp.cat!=='bird'&&peek(X,g,Z)===10)return null;const hh=Math.max(1,Math.ceil(sp.h*c.size-.05));for(let k=0;k<hh;k++){const t=peek(X,g+k,Z);if(t<0||(t&&t!==10))return null}return g}
+function lifeWalk(c,dt){const sp=c.sp;c.yaw+=angTo(c.yaw,c.want)*Math.min(1,dt*(c.mode==='flee'?6:3.5));if(c.speed<.02){c.speed=0;return}
+ const s=c.speed*dt,sx=Math.sin(c.yaw),sz=Math.cos(c.yaw),nx=c.x+sx*s,nz=c.z+sz*s,pr=sp.r*c.size+.12;
+ const ga=standAt(c,c.x+sx*(pr+s),c.z+sz*(pr+s)),gn=ga===null?null:standAt(c,nx,nz);
+ if(ga===null||gn===null){c.speed=0;c.stuck+=1;c.want=c.yaw+(Math.random()<.5?-1:1)*(1+Math.random()*1.6);c.detour=1+Math.random();
+  if(c.stuck>5){c.stuck=0;c.mode='idle';c.timer=.8+Math.random()*1.5}return}
+ c.x=nx;c.z=nz;c.stuck=Math.max(0,c.stuck-dt*2);c.ph+=s*6.2832/(sp.stride||(.9*sp.sc*c.size*(sp.h>1.2?1.4:1)));
+ if(gn>c.y)c.y=Math.min(gn,c.y+dt*7)}
+function lifeGravity(c,dt){const g=groundAt(c.x,c.z,c.y+.6,8);if(g<-1e8)return;if(g<-1e7){c.vy-=22*dt;c.y=Math.max(1,c.y+c.vy*dt);c.ground=false;return}
+ if(c.y<g-.001){if(g-c.y<1.7)c.y=g;else{let y=Math.floor(c.y);while(y<H-2&&peek(Math.floor(c.x),y,Math.floor(c.z))>0)y++;c.y=y}c.vy=0;c.ground=true;return}
+ if(c.y>g+.001||c.vy>0){c.vy-=22*dt;c.y+=c.vy*dt;c.ground=false;if(c.y<=g){c.y=g;c.ground=true;if(c.vy<-4)c.sq=.35;c.vy=0}}else c.ground=true}
+// Look toward the player when close, otherwise glance around now and then.
+function lifeLook(c,dt,dx,dy,dz,dist){let ty=0,tp=0;if(dist<11){ty=Math.max(-1.1,Math.min(1.1,angTo(c.yaw,Math.atan2(dx,dz))));tp=-Math.max(-.5,Math.min(.5,Math.atan2(dy+1.4-c.sp.top,dist)))}
+ else if(c.mode==='idle'){ty=Math.sin(c.t*.7+c.id)*.7*Math.max(0,Math.sin(c.t*.31+c.id*2))}
+ c.hy+=(ty-c.hy)*Math.min(1,dt*4);c.hp+=(tp-c.hp)*Math.min(1,dt*4)}
+function lifeLand(c,dt,dx,dy,dz,dist,looked){const sp=c.sp,run=sp.run*(.9+c.size*.1),walk=sp.sp;c.timer-=dt;if(c.detour>0)c.detour-=dt;
+ const near=Math.abs(dy)<6,plMoving=Math.hypot(joy.x,joy.y)>.1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD||flying;
+ let target=0;
+ // Animals that startle easily run off; grazers just step aside.
+ if(sp.flee&&dist<sp.flee&&near&&(plMoving||dist<sp.flee*.55)&&c.mode!=='flee'){c.mode='flee';c.timer=2.2+Math.random()*1.8;c.want=Math.atan2(-dx,-dz)+(Math.random()-.5)*.8;if(c.sp.move==='hop')c.hopT=0}
+ if(!sp.flee&&sp.cat==='land'&&dist<2.2&&near&&c.mode!=='flee'){c.mode='flee';c.timer=1.2;c.want=Math.atan2(-dx,-dz)}
+ // Monsters.
+ if(sp.cat==='monster'&&c.cool<=0&&near){
+  if(sp.chase&&dist<16&&c.mode!=='back'&&c.mode!=='fuse'&&c.mode!=='rear'){if(c.mode!=='chase'){c.mode='chase';c.chaseT=0}}
+  if(sp.keep&&dist<18&&c.mode!=='back'){c.mode=dist<6.5?'back':'stare';if(c.mode==='back')c.timer=2}
+  if(sp.stalk&&dist<22)c.mode=looked?'freeze':'chase'}
+ if(c.cool>0)c.cool-=dt;
+ switch(c.mode){
+  case'flee':c.speed=run;if(c.timer<=0){c.mode='idle';c.timer=1+Math.random()*2}break;
+  case'walk':{const tx=c.tx-c.x,tz=c.tz-c.z;if(c.detour<=0)c.want=Math.atan2(tx,tz);c.speed=walk;if(Math.hypot(tx,tz)<.8||c.timer<=0){c.mode='idle';c.timer=1+Math.random()*3}break}
+  case'chase':{c.chaseT+=dt;const stop=sp.id==='bomb'?2.6:sp.id==='spider'?4.2:sp.stalk?2.6:2.3;if(c.detour<=0)c.want=Math.atan2(dx,dz);
+   c.speed=dist>stop?(dist>8?run:walk):0;if(dist<=stop+.2){if(sp.id==='bomb'){c.mode='fuse';c.timer=1.7;lifeVoice(c,'fuse')}else if(sp.id==='spider'){c.mode='rear';c.timer=1.6}}
+   if(c.chaseT>14||dist>24||!near){c.mode='walk';c.timer=6;c.cool=10;const a=Math.atan2(-dx,-dz);c.tx=c.x+Math.sin(a)*12;c.tz=c.z+Math.cos(a)*12}break}
+  case'stare':c.speed=0;c.want=Math.atan2(dx,dz);if(dist>18){c.mode='idle';c.timer=2}break;
+  case'back':c.speed=walk;c.want=Math.atan2(-dx,-dz);if(c.timer<=0||dist>9){c.mode='stare'}break;
+  case'freeze':c.speed=0;break;
+  case'rear':c.speed=0;c.want=Math.atan2(dx,dz);if(c.timer<=0){c.mode='walk';c.timer=3;c.cool=8;const a=Math.atan2(-dx,-dz);c.tx=c.x+Math.sin(a)*8;c.tz=c.z+Math.cos(a)*8}break;
+  case'fuse':c.speed=0;c.swell=Math.min(1,c.swell+dt*.7);c.flash=Math.max(0,Math.sin(c.timer*14))*(.3+.5*c.swell);
+   if(c.timer<=0){c.flash=0;for(let k=0;k<4;k++)burst(c.x,c.y+.8,c.z,k%2?'#e8d9a8':'#c9a65a');lifeVoice(c,'pop');c.mode='walk';c.timer=4;c.cool=18;const a=Math.atan2(-dx,-dz);c.tx=c.x+Math.sin(a)*10;c.tz=c.z+Math.cos(a)*10}break;
+  default:{c.speed=0;if(c.timer<=0)target=1}}
+ if(c.mode!=='fuse'){c.swell=Math.max(0,c.swell-dt);c.flash=Math.max(0,c.flash-dt*3)}
+ if(target){const r=Math.random();
+  if(r<.5){// Wander, keeping near the herd (wolves follow their leader on patrol).
+   let ax=c.x,az=c.z;const L=c.leader&&life.includes(c.leader)?c.leader:null;
+   if(L){ax=L.x+(Math.random()-.5)*5;az=L.z+(Math.random()-.5)*5}
+   else if(sp.id==='wolf'){c.pa=(c.pa||0)+1.1;ax=c.hx+Math.sin(c.pa)*14;az=c.hz+Math.cos(c.pa)*14}
+   else{const h=lifeAround(c,16);if(h.length){let mx=0,mz=0;for(const o of h){mx+=o.x;mz+=o.z}mx/=h.length;mz/=h.length;if(Math.hypot(mx-c.x,mz-c.z)>6){ax=mx;az=mz}}}
+   const a=Math.random()*6.283,d=(ax===c.x?4+Math.random()*8:Math.random()*3);c.tx=ax+Math.sin(a)*d;c.tz=az+Math.cos(a)*d;c.mode='walk';c.timer=8}
+  else if(r<.78&&sp.graze){c.mode='graze';c.timer=3+Math.random()*4}
+  else{c.mode='idle';c.timer=1.5+Math.random()*3}}
+ if(c.mode==='graze'){c.speed=0;if(c.timer<=0){c.mode='idle';c.timer=.5}}
+ // Hoppers move in bounds: a short jump, then a pause.
+ if(sp.move==='hop'){c.hopT=(c.hopT||0)-dt;const want=c.speed;c.speed=c.ground?0:c.hopV||0;
+  if(want>0&&c.ground&&c.hopT<=0){c.vy=sp.id==='slime'?5.2+c.size:4.2;c.hopV=want*1.2;c.ground=false;c.hopT=sp.id==='slime'?.6+Math.random()*.9:.12+Math.random()*.25;c.sq=-.25;if(sp.id==='slime')lifeVoice(c,'squish',.5)}}
+ lifeWalk(c,dt);lifeGravity(c,dt)}
+function lifeSwim(c,dt,dx,dy,dz,dist){const sp=c.sp,X=Math.floor(c.x),Y=Math.floor(c.y),Z=Math.floor(c.z),wet=peek(X,Y,Z)===10;c.timer-=dt;
+ if(c.leap){c.vy-=14*dt;c.x+=c.vx*dt;c.z+=c.vz*dt;c.y+=c.vy*dt;c.pitch=Math.atan2(c.vy,Math.hypot(c.vx,c.vz));
+  if(c.vy<0&&c.y<SEA+.3&&wet){c.leap=false;c.vy=0;for(let k=0;k<2;k++)burst(c.x,SEA+1,c.z,'#dff4ff');lifeVoice(c,'splash',.6)}return}
+ if(!wet){// Out of water (the water was removed): flop, fall, and leave if stranded.
+  c.pitch=0;c.roll=Math.sin(c.t*14)*.9;lifeGravity(c,dt);c.stranded=(c.stranded||0)+dt;if(c.stranded>5&&!c.manual)c.vanish=0;return}
+ c.stranded=0;c.roll*=.9;
+ const bed=groundAt(c.x,c.z,c.y,40),lo=(bed<-1e7?c.y-2:bed)+.5,hi=SEA+.35;
+ let fast=false;if(sp.flee&&dist<sp.flee&&Math.abs(dy)<4&&c.mode!=='flee'){c.mode='flee';c.timer=1.6;const a=Math.atan2(-dx,-dz);c.tx=c.x+Math.sin(a)*8;c.tz=c.z+Math.cos(a)*8;c.ty=c.y}
+ const L=sp.school&&c.leader&&life.includes(c.leader)?c.leader:null;
+ if(c.mode==='flee'){fast=true;if(c.timer<=0)c.mode='swim'}
+ else if(L){const cy=Math.cos(L.yaw),sy=Math.sin(L.yaw);c.tx=L.x+cy*c.ox+sy*c.oz;c.tz=L.z-sy*c.ox+cy*c.oz;c.ty=L.y+c.oy*.5}
+ else if(c.timer<=0||Math.hypot(c.tx-c.x,c.tz-c.z)<1){const a=c.yaw+(Math.random()-.5)*2.4,d=5+Math.random()*10;c.tx=c.x+Math.sin(a)*d;c.tz=c.z+Math.cos(a)*d;
+  c.ty=sp.id==='dolphin'?SEA-.6-Math.random()*2:sp.id==='squid'?lo+Math.random()*Math.max(.5,(hi-lo)*.5):sp.id==='turtle'&&Math.random()<.3?SEA:lo+Math.random()*(hi-lo);c.timer=4+Math.random()*5}
+ const tx=c.tx-c.x,tz=c.tz-c.z,ty=Math.max(lo,Math.min(hi-.2,c.ty))-c.y,hd=Math.hypot(tx,tz);
+ c.want=Math.atan2(tx,tz);c.yaw+=angTo(c.yaw,c.want)*Math.min(1,dt*(fast?5:2));
+ let spd=(fast?sp.run:L?Math.min(sp.run,sp.sp*(.6+hd*.35)):sp.sp)*(sp.id==='squid'?.25+1.2*Math.max(0,Math.sin(c.t*2.2)):1);c.speed+=(spd-c.speed)*Math.min(1,dt*3);
+ const pt=Math.max(-.6,Math.min(.6,Math.atan2(ty,Math.max(hd,1))));c.pitch+=(pt-c.pitch)*Math.min(1,dt*3);
+ const s=c.speed*dt,nx=c.x+Math.sin(c.yaw)*Math.cos(c.pitch)*s,nz=c.z+Math.cos(c.yaw)*Math.cos(c.pitch)*s,ny=Math.min(hi,c.y+Math.sin(c.pitch)*s);
+ const fx=Math.floor(nx+Math.sin(c.yaw)*sp.r),fz=Math.floor(nz+Math.cos(c.yaw)*sp.r);
+ if(peek(Math.floor(nx),Math.floor(ny),Math.floor(nz))===10&&peek(fx,Math.floor(ny),fz)===10){c.x=nx;c.z=nz;c.y=Math.max(ny,Math.min(c.y,lo))}
+ else{c.speed*=.3;c.timer=0;c.yaw+=(Math.random()<.5?-1:1)*1.2;c.ty=c.y}
+ // Dolphins break the surface now and then in a leap.
+ if(sp.leap&&!c.leap&&c.y>SEA-2.8&&c.speed>sp.sp*.8&&Math.random()<dt*.06){const ax=Math.floor(c.x+Math.sin(c.yaw)*7),az=Math.floor(c.z+Math.cos(c.yaw)*7);
+  if(peek(ax,SEA,az)===10&&peek(ax,SEA-3,az)===10){c.leap=true;c.vy=6.8;c.vx=Math.sin(c.yaw)*Math.max(c.speed,4);c.vz=Math.cos(c.yaw)*Math.max(c.speed,4);burst(c.x,SEA+1,c.z,'#dff4ff');lifeVoice(c,'splash',.5)}}}
+function perchSpot(x,z,r){for(let k=0;k<6;k++){const a=Math.random()*6.283,d=r*(.4+Math.random()*.6),X=Math.floor(x+Math.sin(a)*d),Z=Math.floor(z+Math.cos(a)*d);
+  for(let y=Math.min(H-2,terrainH(X,Z)+26);y>1;y--){const t=peek(X,y,Z);if(t<0)break;if(!t)continue;if(t===10)break;if(peek(X,y+1,Z)===0&&peek(X,y+2,Z)===0)return{x:X+.5,y:y+1,z:Z+.5};break}}return null}
+function lifeFly(c,dt,dx,dy,dz,dist){const sp=c.sp;c.timer-=dt;
+ if(!c.air){// Perched or on the ground: peck, glance, hop; take off when startled or bored.
+  lifeGravity(c,dt);c.pitch*=.8;c.roll*=.8;c.speed=0;if(c.peck>0)c.peck-=dt;else if(Math.random()<dt*.5)c.peck=.5;
+  if(c.ground&&Math.random()<dt*.15)c.want=c.yaw+(Math.random()-.5)*2;c.yaw+=angTo(c.yaw,c.want)*Math.min(1,dt*6);
+  const L=sp.flock&&c.leader&&life.includes(c.leader)?c.leader:null;
+  if((sp.flee&&dist<sp.flee&&Math.abs(dy)<5)||(!L&&c.timer<=0)||(L&&L.air&&L.mode!=='land')){c.air=true;c.vy=3;c.mode=sp.flock?'flock':sp.soar?'soar':'glide';c.timer=6+Math.random()*10;
+   const a=dist<8?Math.atan2(-dx,-dz):c.yaw;c.vx=Math.sin(a)*sp.sp*.7;c.vz=Math.cos(a)*sp.sp*.7;c.yaw=a;c.tx=c.x+Math.sin(a)*14;c.tz=c.z+Math.cos(a)*14;c.ty=c.y+6}
+  return}
+ const L=sp.flock&&c.leader&&life.includes(c.leader)?c.leader:null,floor=Math.max(terrainH(Math.floor(c.x),Math.floor(c.z)),SEA)+(sp.soar?14:7);
+ let tx,ty,tz,spd=sp.sp;
+ if(c.mode==='land'){tx=c.tx;ty=c.ty;tz=c.tz;spd=sp.sp*.7;const d=Math.hypot(tx-c.x,ty-c.y,tz-c.z);
+  if(d<1.2){if(peek(Math.floor(tx),Math.floor(ty-.5),Math.floor(tz))>0){c.air=false;c.x=tx;c.y=ty;c.z=tz;c.vx=c.vy=c.vz=0;c.mode='perch';c.timer=5+Math.random()*14;return}c.mode='glide';c.timer=2}}
+ else if(L){const cy=Math.cos(L.yaw),sy=Math.sin(L.yaw);tx=L.x+cy*c.ox+sy*c.oz+Math.sin(c.t*.9+c.id)*1.2;tz=L.z-sy*c.ox+cy*c.oz+Math.cos(c.t*.7+c.id)*1.2;ty=L.y+c.oy;spd=sp.run;
+  if(L.mode==='land'&&!c.lt){const p=perchSpot(L.tx,L.tz,4);if(p){c.mode='land';c.tx=p.x;c.ty=p.y;c.tz=p.z}}c.lt=L.mode==='land'}
+ else if(c.mode==='soar'){c.pa=(c.pa||Math.random()*6)+dt*spd/(sp.id==='eagle'?34:18);const rr=sp.id==='eagle'?34:18;
+  tx=c.hx+Math.sin(c.pa)*rr;tz=c.hz+Math.cos(c.pa)*rr;ty=Math.max(floor,terrainH(Math.floor(c.hx),Math.floor(c.hz))+c.alt+Math.sin(c.t*.13)*4);
+  if(c.timer<=0){c.timer=10+Math.random()*14;const a=Math.random()*6.283;c.hx+=Math.sin(a)*20;c.hz+=Math.cos(a)*20;
+   if(sp.perch&&Math.random()<.35){const p=perchSpot(c.x,c.z,16);if(p){c.mode='land';c.tx=p.x;c.ty=p.y;c.tz=p.z}}}}
+ else{// glide / flock leader: wander between points, then land.
+  if(c.timer<=0||Math.hypot(c.tx-c.x,c.tz-c.z)<3){c.timer=5+Math.random()*7;
+   if(sp.perch&&Math.random()<(sp.flock?.3:.55)){const p=perchSpot(c.x,c.z,sp.flock?14:18);if(p){c.mode='land';c.tx=p.x;c.ty=p.y;c.tz=p.z}}
+   if(c.mode!=='land'){const a=c.manual&&Math.hypot(c.hx-c.x,c.hz-c.z)>36?Math.atan2(c.hx-c.x,c.hz-c.z):c.yaw+(Math.random()-.5)*2.5,d=12+Math.random()*16;c.tx=c.x+Math.sin(a)*d;c.tz=c.z+Math.cos(a)*d;c.ty=Math.max(terrainH(Math.floor(c.tx),Math.floor(c.tz)),SEA)+(sp.flock?10:6)+Math.random()*8}}
+  tx=c.tx;ty=Math.max(c.ty,c.mode==='land'?c.ty:floor-3);tz=c.tz}
+ if(c.mode!=='land')ty=Math.max(ty,floor-(sp.soar?6:3));
+ // Steer the velocity toward the target; bank into turns.
+ let ex=tx-c.x,ey=ty-c.y,ez=tz-c.z;const el=Math.hypot(ex,ey,ez)||1,k=Math.min(1,dt*(L?2.2:1.3));
+ c.vx+=(ex/el*spd-c.vx)*k;c.vy+=(ey/el*spd*.6-c.vy)*k;c.vz+=(ez/el*spd-c.vz)*k;
+ if(c.y<floor-4&&c.mode!=='land')c.vy=Math.max(c.vy,2.5);
+ const ny=c.y+c.vy*dt;if(peek(Math.floor(c.x+c.vx*dt),Math.floor(ny),Math.floor(c.z+c.vz*dt))>0&&c.mode!=='land'){c.vy=3;c.vx*=-.3;c.vz*=-.3}else{c.x+=c.vx*dt;c.y=ny;c.z+=c.vz*dt}
+ c.x=Math.max(3,Math.min(W-3,c.x));c.z=Math.max(3,Math.min(W-3,c.z));c.y=Math.min(H-4,c.y);
+ const h=Math.hypot(c.vx,c.vz),ny2=Math.atan2(c.vx,c.vz),turn=angTo(c.yaw,ny2);if(h>.2)c.yaw+=turn*Math.min(1,dt*4);
+ c.roll+=(Math.max(-.7,Math.min(.7,-turn*2.2))-c.roll)*Math.min(1,dt*3);c.pitch+=(Math.atan2(c.vy,Math.max(h,.5))*.7-c.pitch)*Math.min(1,dt*3);
+ c.speed=Math.hypot(h,c.vy);c.flap=c.vy>.4||c.mode==='land'||sp.flock||!sp.soar?1:Math.max(0,Math.sin(c.t*.4+c.id))>.85?1:0}
+function lifeFloat(c,dt,dx,dy,dz,dist){c.timer-=dt;const g=groundAt(c.x,c.z,c.y+1,12);const base=g<-1e7?c.y:g+1.4+Math.sin(c.t*1.1)*.35;
+ if(dist<12&&Math.abs(dy)<6){c.orb=(c.orb||Math.atan2(-dx,-dz))+dt*.35;c.tx=c.x+dx+Math.sin(c.orb)*5;c.tz=c.z+dz+Math.cos(c.orb)*5;c.want=Math.atan2(dx,dz)}
+ else if(c.timer<=0){const a=Math.random()*6.283;c.tx=c.x+Math.sin(a)*8;c.tz=c.z+Math.cos(a)*8;c.timer=5+Math.random()*5}
+ const tx=c.tx-c.x,tz=c.tz-c.z,d=Math.hypot(tx,tz);if(dist>=12)c.want=Math.atan2(tx,tz);c.yaw+=angTo(c.yaw,c.want)*Math.min(1,dt*2);
+ if(d>.3){const s=Math.min(d,c.sp.sp*dt),nx=c.x+tx/d*s,nz=c.z+tz/d*s;if(peek(Math.floor(nx),Math.floor(c.y+.5),Math.floor(nz))===0&&peek(Math.floor(nx),Math.floor(c.y+1.4),Math.floor(nz))===0){c.x=nx;c.z=nz}else c.timer=0}
+ c.speed=d>.3?c.sp.sp:0;c.y+=(base-c.y)*Math.min(1,dt*2)}
+function updateLife(dt,focus){
+ pkX=1e9;const night=isNight();
+ if((lifeSpawnT-=dt)<=0){lifeSpawnT=.35;lifeSpawnTick(focus,night)}
+ if((lifeCullT-=dt)<=0){lifeCullT=.5;lifeCull(focus,night)}
+ const vx=Math.sin(yaw)*Math.cos(pitch),vy=Math.sin(pitch),vz=Math.cos(yaw)*Math.cos(pitch);
+ for(let i=life.length-1;i>=0;i--){const c=life[i];if(!c)continue;const sp=c.sp;
+  if(peek(Math.floor(c.x),1,Math.floor(c.z))<0){c.dormant=true;continue}c.dormant=false;
+  if(c.vanish>=0&&(c.vanish-=dt)<0){lifeRemove(c,true);continue}
+  c.t+=dt;if(c.sq)c.sq*=Math.max(0,1-dt*7);
+  const dx=focus.x-c.x,dy=focus.y-c.y,dz=focus.z-c.z,dist=Math.hypot(dx,dz);c.dist=dist;
+  const interval=dist<30?0:dist<60?.05:dist<100?.12:.3;c.acc+=dt;if(c.acc<interval)continue;const sdt=Math.min(.3,c.acc);c.acc=0;
+  if((c.skyT-=sdt)<=0){c.skyT=1+Math.random();c.sky=skyOpen(c.x,c.y+sp.top*c.size,c.z)}
+  const ex=c.x-focus.x,ey=c.y+sp.top*.5-focus.y-1.62,ez=c.z-focus.z,el=Math.hypot(ex,ey,ez)||1,looked=(ex*vx+ey*vy+ez*vz)/el>.6&&!paused;
+  if(sp.move==='swim')lifeSwim(c,sdt,dx,dy,dz,dist);else if(sp.move==='fly')lifeFly(c,sdt,dx,dy,dz,dist);else if(sp.move==='float')lifeFloat(c,sdt,dx,dy,dz,dist);else lifeLand(c,sdt,dx,dy,dz,dist,looked);
+  if(sp.move!=='fly'&&sp.move!=='swim')lifeLook(c,sdt,dx,dy,dz,dist);else if(sp.move==='swim')c.hy=0;
+  if(sp.voice&&(c.voiceT-=sdt)<=0){c.voiceT=(sp.cat==='monster'?7:10)+Math.random()*(sp.flock?8:22);if(dist<26)lifeVoice(c,sp.voice)}}}
+// ---- Animation: per-bone rotations (x pitch, y yaw, z roll), offsets (px) and per-axis scale, then 3x4 matrices for the shader.
+// The bone helpers write into the creature being posed (module-level, so posing allocates nothing per frame).
+let pB=null,pR=null,pO=null,pS=null;
+const bRX=(n,v)=>{const i=pB[n];if(i!==undefined)pR[i*3]+=v},bRY=(n,v)=>{const i=pB[n];if(i!==undefined)pR[i*3+1]+=v},bRZ=(n,v)=>{const i=pB[n];if(i!==undefined)pR[i*3+2]+=v},
+ bOY=(n,v)=>{const i=pB[n];if(i!==undefined)pO[i*3+1]+=v},bSC=(n,x,y,z)=>{const i=pB[n];if(i!==undefined){pS[i*3]*=x;pS[i*3+1]*=y;pS[i*3+2]*=z}};
+function lifePose(c){const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=sp.nb;for(let i=0;i<nb*3;i++){R[i]=0;O[i]=0;S[i]=1}for(let i=0;i<nb;i++)R[i*3]=sp.rest[i];pB=B;pR=R;pO=O;pS=S;
+ const t=c.t,g=Math.min(2,c.speed/Math.max(.1,sp.sp)),gw=Math.min(1,g),ph=c.ph,s=Math.sin(ph);
+ switch(sp.rig){
+  case'quad':{const run=g>1.3,a=s*gw*(run?.8:.5),b=run?Math.sin(ph+.9)*.8:-a;bRX('fl',a);bRX('br',run?Math.sin(ph+2.2)*.8:a);bRX('fr',b);bRX('bl',run?Math.sin(ph+3.1)*.8:-a);
+   bOY('body',Math.abs(Math.cos(ph))*.5*gw+(run?Math.abs(s)*.8:0)+Math.sin(t*1.6)*.12);bRX('body',run?Math.sin(ph*1)*.05:0);
+   const graze=c.mode==='graze'?.95+Math.sin(t*3)*.06:0;bRX(B.neck!==undefined?'neck':'head',graze*(B.neck!==undefined?1.1:1));bRX('head',c.hp-graze*.15);bRY('head',c.hy);if(B.neck!==undefined)bRY('neck',c.hy*.4);
+   bRY('tail',Math.sin(t*2.3+c.id)*.35*(run?.4:1));bRX('tail',run?-.4:Math.sin(t*1.7)*.05);bRZ('head',Math.sin(t*.9+c.id)*.03);break}
+  case'hop':{const air=!c.ground;bRX('fl',air?-.9:0);bRX('fr',air?-.9:0);bRX('bl',air?.9:0);bRX('br',air?.9:0);bRX('body',air?-.25:0);bRX('head',c.hp+(air?.2:0));bRY('head',c.hy);
+   bRX('el',Math.sin(t*1.3+c.id)>.92?.5:-.1);bRX('er',Math.sin(t*1.1+c.id*3)>.92?.5:-.1);bRX('tail',Math.sin(t*3)*.12+(air?-.4:0));if(!air)bOY('body',Math.sin(t*9)*.08);break}
+  case'biped':{const z=sp.id==='zombie',a=s*.55*gw;bRX('ll',a);bRX('lr',-a);bRZ('body',s*.04*gw);
+   if(z){bRX('al',-1.35+Math.sin(t*1.7)*.08+a*.2);bRX('ar',-1.25+Math.sin(t*1.9+1)*.08-a*.2);bRZ('al',-.08);bRZ('ar',.1);bRX('body',.13);bRZ('head',Math.sin(t*.6)*.16);bRZ('body',Math.sin(t*.8)*.04)}
+   else{bRX('al',-a*.9);bRX('ar',-.55+Math.sin(t*2)*.05);bRX('jaw',c.talk>0?.25+Math.sin(t*28)*.25:.04);if(c.talk>0)c.talk-=1/60}
+   bRX('head',c.hp);bRY('head',c.hy);break}
+  case'bird':{if(c.air){const f=c.flap?Math.sin(t*(sp.soar?7:sp.id==='chicken'?20:22))*(sp.soar?.75:.95):-.08+Math.sin(t*1.3)*.04;bRZ('wl',f);bRZ('wr',-f);bRX('legl',1.1);bRX('legr',1.1);bRX('tail',-c.pitch*.4)}
+   else if(sp.move==='fly'){bRY('wl',-1.45);bRY('wr',1.45);bRZ('wl',-.25);bRZ('wr',.25);bOY('wl',-1);bOY('wr',-1);bRX('head',c.peck>0?.8*Math.abs(Math.sin(c.peck*12)):0);bRY('head',Math.sin(t*1.7+c.id)*.6)}
+   else{const a=s*.7*gw;bRX('legl',a);bRX('legr',-a);bRX('head',c.hp+(c.mode==='graze'?.9:0)+Math.sin(ph*2)*.15*gw);bRY('head',c.hy);bRZ('wl',Math.sin(t*2)>.95?.6:0);bRZ('wr',Math.sin(t*2)>.95?-.6:0);bOY('body',Math.abs(Math.cos(ph))*.4*gw);bRX('tail',Math.sin(t*3)*.08)}
+   break}
+  case'fish':{const w=Math.sin(t*(5+g*6))*(.35+.3*g);bRY('tail',w);bRY('body',-w*.15);break}
+  case'dolphin':{const w=Math.sin(t*(3+g*1.5));bRX('tail',w*.35);bRX('head',-w*.05);bRZ('fl',Math.sin(t*2)*.2);bRZ('fr',-Math.sin(t*2)*.2);break}
+  case'squid':{const p=Math.max(0,Math.sin(t*2.2));bSC('body',1-p*.12,1-p*.12,1+p*.1);bSC('tent',1,1,1-p*.35);bRX('tent',Math.sin(t*1.6)*.12);bRZ('fins',Math.sin(t*5)*.15);break}
+  case'turtle':{const p=Math.sin(t*1.8);bRY('fl',p*.55);bRZ('fl',-Math.cos(t*1.8)*.3);bRY('fr',-p*.55);bRZ('fr',Math.cos(t*1.8)*.3);bRY('bl',-p*.3);bRY('br',p*.3);bRY('head',Math.sin(t*.5)*.3);break}
+  case'spider':{const rear=c.mode==='rear'||c.mode==='freeze'&&sp.stalk;
+   for(let k=1;k<=4;k++){const q=ph+(k%2?0:Math.PI),lift=Math.max(0,Math.cos(q))*.35*gw;bRY('l'+k,Math.sin(q)*.3*gw);bRZ('l'+k,-lift);bRY('r'+k,-Math.sin(q+Math.PI)*.3*gw);bRZ('r'+k,Math.max(0,Math.cos(q+Math.PI))*.35*gw)}
+   if(c.mode==='rear'){bRZ('l1',-1);bRZ('r1',1);bRX('body',-.3);bRY('l1',Math.sin(t*9)*.2);bRY('r1',-Math.sin(t*9)*.2)}
+   bRY('fe',Math.sin(t*4.3)*.25);bRX('fe',Math.sin(t*3.1)*.12);bRY('head',c.hy*.6);bRX('abd',Math.sin(t*2)*.04);bOY('body',Math.sin(t*1.5)*.1+(rear?0:Math.abs(s)*.3*gw));break}
+  case'slime':{const q=c.sq+(c.ground?Math.sin(t*3.2)*.05:-.12);bSC('body',1+q*.6,1-q,1+q*.6);break}
+  case'bomb':{const a=s*.6*gw;bRX('ll',a);bRX('lr',-a);const sw=1+c.swell*.35+Math.sin(t*40)*.04*c.swell;bSC('body',sw,sw,sw);bRZ('cap',Math.sin(t*2.5)*.06+Math.sin(ph)*.05*gw);bOY('body',Math.abs(Math.cos(ph))*.4*gw);break}
+  case'wisp':{bOY('body',Math.sin(t*1.8)*1.2);bRX('al',-.4+Math.sin(t*1.3)*.2);bRX('ar',-.9+Math.sin(t*1.1)*.12);bRZ('body',Math.sin(t*.9)*.06);bRY('head',c.hy);bRX('head',c.hp);break}}}
+// Root = position (relative to the camera) * yaw * pitch * roll * scale; each bone = parent * T(pivot+offset) * R * S * T(-pivot).
+function lifeMatrices(c,cam){const sp=c.sp,M=c.M,R=c.R,O=c.O,S=c.S,P=sp.piv,k=sp.sc*c.size/16;
+ const cy=Math.cos(c.yaw),sy=Math.sin(c.yaw),cx=Math.cos(-c.pitch),sx=Math.sin(-c.pitch),cz=Math.cos(c.roll),sz=Math.sin(c.roll);
+ M[0]=(cy*cz+sy*sx*sz)*k;M[1]=(-cy*sz+sy*sx*cz)*k;M[2]=sy*cx*k;M[3]=c.x-cam.x;M[4]=cx*sz*k;M[5]=cx*cz*k;M[6]=-sx*k;M[7]=c.y-cam.y;M[8]=(-sy*cz+cy*sx*sz)*k;M[9]=(sy*sz+cy*sx*cz)*k;M[10]=cy*cx*k;M[11]=c.z-cam.z;
+ for(let b=1;b<sp.nb;b++){const p=sp.par[b]*12,o=b*12,r=b*3,X=R[r],Y=R[r+1],Z=R[r+2],a=Math.cos(Y),e=Math.sin(Y),f=Math.cos(X),h=Math.sin(X),u=Math.cos(Z),w=Math.sin(Z);
+  const l00=(a*u+e*h*w)*S[r],l01=(-a*w+e*h*u)*S[r+1],l02=e*f*S[r+2],l10=f*w*S[r],l11=f*u*S[r+1],l12=-h*S[r+2],l20=(-e*u+a*h*w)*S[r],l21=(e*w+a*h*u)*S[r+1],l22=a*f*S[r+2];
+  const px=P[r],py=P[r+1],pz=P[r+2],tx=px+O[r]-(l00*px+l01*py+l02*pz),ty=py+O[r+1]-(l10*px+l11*py+l12*pz),tz=pz+O[r+2]-(l20*px+l21*py+l22*pz);
+  for(let i=0;i<3;i++){const q0=M[p+i*4],q1=M[p+i*4+1],q2=M[p+i*4+2];M[o+i*4]=q0*l00+q1*l10+q2*l20;M[o+i*4+1]=q0*l01+q1*l11+q2*l21;M[o+i*4+2]=q0*l02+q1*l12+q2*l22;M[o+i*4+3]=q0*tx+q1*ty+q2*tz+M[p+i*4+3]}}}
+function drawLife(cam,F,env,fog,aspect,near,far){lifeF=F;lifeDrawn=0;if(!lifeProg||!life.length)return;
+ const R=Math.min(LIFE_Q[qualityName].draw,Math.max(24,(readyR+.5)*CHUNK)),glow=env.night;let bound=-1;
+ useProgram(lifeProg,4);setEnv(lifeU,env,fog);setView(lifeU,cam,aspect,near,far);gl.uniform3f(lifeU.eyeF,cam.x,cam.y,cam.z);
+ gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+ for(const c of life){c.seen=false;if(c.dormant)continue;const sp=c.sp,d=Math.hypot(c.x-cam.x,c.y-cam.y,c.z-cam.z);if(d>R)continue;const rr=sp.rad*c.size+.3;
+  if(!sphereVisible(F,c.x,c.y+sp.top*c.size*.5,c.z,rr))continue;c.seen=true;lifeDrawn++;
+  lifePose(c);lifeMatrices(c,cam);gl.uniform4fv(lifeU.B,c.Mv);gl.uniform4f(lifeU.cL,c.sky,c.flash,glow,0);
+  if(bound!==sp.i){bind(lifeBuffer,sp.q0*144);bound=sp.i}gl.drawElements(gl.TRIANGLES,sp.nq*6,gl.UNSIGNED_SHORT,0)}
+ gl.disable(gl.BLEND)}
+// ---- Voices: tiny synthesised calls (no recorded audio), quiet, rare, and fading with distance.
+let lifeNoise=null;
+function lifeVoice(c,v,gm=1){if(!lifeVoices||!sound||sound.state!=='running'||paused&&!isTitleOpen())return;const now=performance.now();if(now<lifeVoiceT&&v!=='pop')return;lifeVoiceT=now+900;
+ try{const d=Math.hypot(c.x-player.x,c.y-player.y,c.z-player.z),vol=Math.max(0,1-d/26)**1.5*gm;if(vol<.03)return;const ac=sound,t0=ac.currentTime,out=ac.createGain();out.gain.value=vol*.55;
+  let dest=out;if(ac.createStereoPanner){const pn=ac.createStereoPanner(),a=Math.atan2(c.x-player.x,c.z-player.z)-yaw;pn.pan.value=Math.max(-.8,Math.min(.8,Math.sin(a)));out.connect(pn);pn.connect(ac.destination)}else out.connect(ac.destination);
+  const tone=(type,f0,f1,dur,g,dl=0,lp=3000,vib=0)=>{const t=t0+dl,o=ac.createOscillator(),a=ac.createGain(),f=ac.createBiquadFilter();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
+    f.type='lowpass';f.frequency.value=lp;a.gain.setValueAtTime(.0001,t);a.gain.exponentialRampToValueAtTime(g,t+Math.min(.06,dur*.25));a.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    if(vib){const l=ac.createOscillator(),lg=ac.createGain();l.frequency.value=vib;lg.gain.value=f0*.05;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+dur)}o.connect(f);f.connect(a);a.connect(dest);o.start(t);o.stop(t+dur+.02)};
+  const noise=(dur,g,type,fq,dl=0)=>{if(!lifeNoise){lifeNoise=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);const d=lifeNoise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
+    const t=t0+dl,s=ac.createBufferSource(),f=ac.createBiquadFilter(),a=ac.createGain();s.buffer=lifeNoise;f.type=type;f.frequency.value=fq;a.gain.setValueAtTime(g,t);a.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(f);f.connect(a);a.connect(dest);s.start(t,Math.random()*.5);s.stop(t+dur+.02)};
+  const p=c.size?1/Math.sqrt(c.size):1;
+  switch(v){case'moo':tone('sawtooth',118*p,88*p,1.1,.5,0,620,5);break;case'oink':tone('square',230*p,170*p,.16,.25,0,900);tone('square',210*p,160*p,.14,.22,.2,900);break;
+   case'baa':tone('sawtooth',360*p,320*p,.7,.35,0,1400,7);break;case'bleat':tone('sawtooth',520,430,.5,.3,0,1800,9);break;
+   case'cluck':for(let i=0;i<3;i++)tone('triangle',700,420,.07,.3,i*.11,2400);break;case'neigh':tone('sawtooth',620,900,.35,.25,0,2200,11);tone('sawtooth',900,420,.7,.22,.33,2000,13);break;
+   case'yip':tone('square',980,700,.09,.18,0,2600);tone('square',1050,760,.09,.15,.16,2600);break;case'howl':if(isNight())tone('sine',380,520,1.1,.3,0,1500,4),tone('sine',520,330,1.3,.26,1.05,1500,4);else tone('triangle',160,120,.2,.2,0,600);break;
+   case'chitter':for(let i=0;i<5;i++)tone('square',2200,1800,.035,.08,i*.06,4200);break;case'cry':tone('sine',2100,1500,.9,.18,0,5000,14);break;
+   case'chirp':for(let i=0;i<3;i++)tone('sine',3000+i*400,4400,.07,.12,i*.1,8000);break;case'gull':tone('triangle',1350,760,.32,.2,0,3200);tone('triangle',1280,700,.3,.17,.36,3200);break;
+   case'chatter':for(let i=0;i<4;i++)tone('square',2600+Math.random()*900,2000,.04,.05,i*.08,5000);break;case'click':for(let i=0;i<6;i++)noise(.015,.25,'bandpass',3000,i*.05);tone('sine',2400,3600,.3,.08,.35,6000);break;
+   case'groan':tone('sawtooth',92,72,1.3,.42,0,420,3);break;case'rattle':c.talk=.5;for(let i=0;i<8;i++)noise(.02,.3,'bandpass',2400,i*.055);break;case'hiss':noise(.5,.25,'highpass',3500);break;
+   case'squish':tone('sine',220,70,.18,.35,0,900);noise(.12,.12,'lowpass',700);break;case'fuse':noise(1.5,.12,'highpass',4200);break;case'pop':noise(.35,.5,'lowpass',380);tone('sine',140,50,.3,.4,0,600);break;
+   case'chime':tone('sine',660,660,1.2,.12,0,4000,2);tone('sine',990,990,1.4,.08,.15,4000,3);break;case'click2':for(let i=0;i<4;i++)noise(.02,.2,'bandpass',1200,i*.13);break;
+   case'splash':noise(.4,.3,'lowpass',1600);break}}catch(e){}}
+// ---- Spawn eggs: pick a creature, then tap the ground (or press 置く) to place it; 壊す on a creature sends it home.
+function screenDir(px,py){const r=canvas.getBoundingClientRect?canvas.getBoundingClientRect():{left:0,top:0,width:innerWidth,height:innerHeight},sx=((px-r.left)/(r.width||1))*2-1,sy=1-((py-r.top)/(r.height||1))*2,a=(r.width||1)/(r.height||1);
+ const xx=sx*a/1.35,yy=sy/1.35,dd=1,Y=Math.cos(pitch)*yy+Math.sin(pitch)*dd,zz=-Math.sin(pitch)*yy+Math.cos(pitch)*dd,X=Math.cos(yaw)*xx+Math.sin(yaw)*zz,Z=-Math.sin(yaw)*xx+Math.cos(yaw)*zz,l=Math.hypot(X,Y,Z);return[X/l,Y/l,Z/l]}
+function pickLife(d,maxD){const o=[player.x,player.y+1.62,player.z];let best=null,bt=maxD;
+ for(const c of life){if(c.dormant)continue;const r=c.sp.rad*c.size*.7+.15,cx=c.x-o[0],cy=c.y+c.sp.top*c.size*.5-o[1],cz=c.z-o[2],t=cx*d[0]+cy*d[1]+cz*d[2];if(t<0||t>bt)continue;
+  const q=cx*cx+cy*cy+cz*cz-t*t;if(q<r*r){bt=t;best=c}}return best}
+function placeEgg(dir){if(eggSp<0)return;const sp=LIFE_SPECIES[eggSp],d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)];
+ if(life.filter(c=>c.manual).length>=MANUAL_MAX){toast(`置ける生き物は${MANUAL_MAX}匹まで。🐾メニューで帰せるよ`);return}
+ const h=ray(d,24),o=[player.x,player.y+1.62,player.z],end=h?h.dist:16;let pos=null;
+ if(sp.cat==='water'){for(let t=.5;t<=end+.01&&!pos;t+=.25){const x=o[0]+d[0]*t,y=o[1]+d[1]*t,z=o[2]+d[2]*t;if(peek(Math.floor(x),Math.floor(y),Math.floor(z))===10)pos=[x,Math.min(y,SEA+.2),z]}
+  if(!pos){toast(`${sp.name}は水の中に置いてね`);return}}
+ else if(h){const [x,y,z]=h.prev;let g=groundAt(x+.5,z+.5,y+.5,6);if(g<-1e7)g=y;if(peek(x,g,z)===10&&sp.cat!=='bird'){toast(`${sp.name}は陸に置いてね`);return}pos=[x+.5,sp.move==='float'?g+1.4:g,z+.5]}
+ else if(sp.cat==='bird'){pos=[o[0]+d[0]*8,o[1]+d[1]*8,o[2]+d[2]*8]}
+ else{toast('地面をタップしてね');return}
+ const c=lifeNew(sp,pos[0],pos[1],pos[2],true);c.yaw=c.want=Math.atan2(player.x-pos[0],player.z-pos[2]);c.hx=pos[0];c.hz=pos[2];
+ if(sp.cat==='bird'){c.air=!h;c.mode=c.air?(sp.soar?'soar':'glide'):'perch';c.alt=sp.soar?24:8;c.timer=c.air?4:3+Math.random()*4}if(sp.cat==='water')c.mode='swim';
+ for(let k=0;k<2;k++)burst(pos[0],pos[1]+.4,pos[2],k?'#fff4d6':sp.main);clickSound();dirty=true;lifeVoice(c,sp.voice||'chirp',.8);toast(`${sp.name}を置いた`)}
+function shooEgg(d){const h=ray(d),c=pickLife(d,h?h.dist:10);if(!c)return false;lifeRemove(c,true);dirty=true;toast(`${c.sp.name}が帰っていった`);return true}
+function lifeSave(){return{mode:lifeMode,eggs:life.filter(c=>c.manual).slice(0,MANUAL_MAX).map(c=>[c.sp.id,+c.x.toFixed(2),+c.y.toFixed(2),+c.z.toFixed(2),+c.yaw.toFixed(2),+c.size.toFixed(2)])}}
+if(Array.isArray(saved?.life?.eggs))for(const e of saved.life.eggs.slice(0,MANUAL_MAX)){const sp=Array.isArray(e)&&LIFE_BY_ID[e[0]];
+ if(sp&&e.slice(1,6).every(Number.isFinite)&&inside(Math.floor(e[1]),Math.floor(e[2]),Math.floor(e[3]))){const c=lifeNew(sp,e[1],e[2],e[3],true,Math.max(.5,Math.min(2,e[5])));c.yaw=c.want=e[4];c.hx=e[1];c.hz=e[3];if(sp.cat==='water')c.mode='swim';if(sp.cat==='bird'){c.air=false;c.mode='perch'}}}
+// A small herd waits near the start of a new world (as the original cows did).
+if(lifeMode!=='off'){const cx0=vista?vista.x-10:ORIGIN-7,cz0=vista?vista.z-10:ORIGIN-3;let n=0;
+ for(let i=0;i<300&&n<7;i++){const x=cx0+rand(i,321)*22,z=cz0+rand(i,632)*21,y=surface(x,z);
+  if(Math.hypot(x-player.x,z-player.z)>3&&life.every(c=>Math.hypot(c.x-x,c.z-z)>2)&&y>SEA+1&&y<H-5&&get(Math.floor(x),y-1,Math.floor(z))===1&&cowFits(x,y,z)){const c=lifeNew(COW,x,y,z,false);c.yaw=c.want=rand(i,13)*6.28;n++}}}
+// Icons for the egg picker: the model drawn in a 3/4 view on a 2D canvas, rest pose.
+function lifeIcon(sp,size){const cv=document.createElement('canvas');cv.width=cv.height=size;const ctx=cv.getContext('2d');if(!ctx||!ctx.fillRect)return cv;
+ const a=.75,el=.42,ca=Math.cos(a),sa=Math.sin(a),ce=Math.cos(el),se=Math.sin(el),polys=[],a8=lifeModel.a;
+ const P=(x,y,z)=>{const X=x*ca-z*sa,Z=x*sa+z*ca;return[X,-(y*ce-Z*se),y*se+Z*ce]};
+ for(let q=sp.q0;q<sp.q0+sp.nq;q++){const o=q*36,code=a8[o+8],pt=Math.floor((code%128)/8),fi=code%8;if(pt===7)continue;const fn=faces[fi].n;if(fn[1]*se+(fn[0]*sa+fn[2]*ca)*ce<=.01)continue;
+  const pts=[];let zs=0;for(let v=0;v<4;v++){const p=P(a8[o+v*9],a8[o+v*9+1],a8[o+v*9+2]);pts.push(p);zs+=p[2]}
+  const light=fn[1]>0?1.08:fn[1]<0?.5:fn[0]<0?.92:fn[2]>0?.78:.66;polys.push({pts,z:zs/4,c:[a8[o+3],a8[o+4],a8[o+5]].map(v=>Math.min(255,Math.round(v*255*light))),glow:pt===3})}
+ let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const p of polys)for(const q of p.pts){x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);y0=Math.min(y0,q[1]);y1=Math.max(y1,q[1])}
+ const k=size*.86/Math.max(x1-x0,y1-y0,1),ox=size/2-(x0+x1)/2*k,oy=size/2-(y0+y1)/2*k;polys.sort((p,q)=>p.z-q.z);
+ for(const p of polys){ctx.fillStyle=`rgb(${p.c.join(',')})`;ctx.beginPath();p.pts.forEach((q,i)=>i?ctx.lineTo(q[0]*k+ox,q[1]*k+oy):ctx.moveTo(q[0]*k+ox,q[1]*k+oy));ctx.closePath();ctx.fill();if(!p.glow){ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=.6;ctx.stroke()}}
+ return cv}
+let eggBuilt=false;
+function buildEggPanel(){if(eggBuilt)return;eggBuilt=true;const grid=$('eggGrid');
+ for(const g of LIFE_GROUPS){const hd=document.createElement('div');hd.className='egg-head';hd.textContent=g;grid.appendChild(hd);
+  for(const sp of LIFE_SPECIES.filter(s=>s.group===g)){const b=document.createElement('button');b.className='egg';b.setAttribute('data-sp',sp.i);b.appendChild(lifeIcon(sp,48));const s=document.createElement('span');s.textContent=sp.name;b.appendChild(s);
+   b.onclick=()=>{eggSp=sp.i;refresh();play();toast(`${sp.name}：置きたい場所をタップ（または「置く」）`)};grid.appendChild(b)}}}
+function lifeModeText(){return'生き物：'+(lifeMode==='all'?'すべて':lifeMode==='animals'?'動物だけ':'自然発生OFF')}
+function setLifeMode(m){lifeMode=m;dirty=true;$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText()}
+function openEggs(){if(photoMode)return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();buildEggPanel();
+ $('lifeMode').textContent=lifeModeText();$('voices').textContent='鳴き声：'+(lifeVoices?'ON':'OFF');$('eggCount').textContent=`置いた生き物 ${life.filter(c=>c.manual).length} / ${MANUAL_MAX}`;$('eggs').classList.remove('hidden')}
+const eggIcons=new Map();
+function eggChip(){const chip=$('eggChip');chip.classList.toggle('hidden',eggSp<0);if(eggSp<0)return;const sp=LIFE_SPECIES[eggSp];
+ if(!eggIcons.has(sp.i))eggIcons.set(sp.i,lifeIcon(sp,40));chip.innerHTML='';chip.appendChild(eggIcons.get(sp.i));const t=document.createElement('span');t.textContent=sp.name+'を置く · 変更';chip.appendChild(t)}
+const cycleLife=()=>setLifeMode(lifeMode==='all'?'animals':lifeMode==='animals'?'off':'all');
+$('lifeBtn').onclick=openEggs;$('eggChip').onclick=openEggs;$('closeEggs').onclick=play;$('lifeMenu').onclick=cycleLife;$('lifeMode').onclick=cycleLife;$('lifeMenu').textContent=lifeModeText();
+$('voices').onclick=()=>{lifeVoices=!lifeVoices;try{localStorage.setItem(VOICE_KEY,lifeVoices?'1':'0')}catch(e){}$('voices').textContent='鳴き声：'+(lifeVoices?'ON':'OFF')};
+$('clearEggs').onclick=()=>{const m=life.filter(c=>c.manual);if(!m.length){toast('置いた生き物はいないよ');return}if(!confirm(`置いた生き物${m.length}匹を帰しますか？`))return;for(const c of m)lifeRemove(c,true);dirty=true;$('eggCount').textContent=`置いた生き物 0 / ${MANUAL_MAX}`};
 // Clouds are blocky like the rest of the world but have real volume: each is a small voxel body (towering cumulus with a flat base,
 // thin stratus sheets, little puffs) built from the exposed faces only. The mesh is static and drifts by offset; the shader lights
 // the faces from the sun and the vertex colour carries (height in the cloud, tint, depth inside the cloud).
@@ -1260,8 +1869,10 @@ function updateClouds(cx,cz){
 function drawTool(){if(paused)return;const a=dyn,bob=Math.sin(walkPhase)*.025,kick=Math.sin(swing*Math.PI),aspect=canvas.width/canvas.height;a.n=0;
 const transform=p=>{let x=p[0],y=p[1],z=p[2];const angle=-.40-kick*.65,xx=x*Math.cos(angle)-y*Math.sin(angle),yy=x*Math.sin(angle)+y*Math.cos(angle);x=xx+Math.min(.70,aspect*.42)-kick*.15;y=yy-.51+bob+kick*.06;z+=1.12;const py=Math.cos(pitch)*y+Math.sin(pitch)*z,pz=-Math.sin(pitch)*y+Math.cos(pitch)*z;return[player.x+Math.cos(yaw)*x+Math.sin(yaw)*pz,player.y+1.62+py,player.z-Math.sin(yaw)*x+Math.cos(yaw)*pz]};
 cuboid(a,-.08,-.48,-.02,.16,.35,.20,'#b6835d',0,transform);cuboid(a,-.095,-.60,-.025,.19,.20,.22,'#467e83',0,transform);
-cuboid(a,-.045,-.30,.02,.09,.66,.09,'#93612e',4,transform);
-cuboid(a,-.20,.28,-.02,.40,.09,.14,'#48545a',0,transform);cuboid(a,-.16,.37,-.02,.32,.19,.14,'#9aa8aa',3,transform);cuboid(a,-.10,.56,-.02,.20,.07,.14,'#79888d',0,transform);
+if(eggSp>=0){const m=LIFE_SPECIES[eggSp].main;cuboid(a,-.11,-.16,-.04,.22,.07,.2,'#efe6d0',0,transform);cuboid(a,-.13,-.09,-.06,.26,.2,.24,'#f4ecd8',0,transform);cuboid(a,-.1,.11,-.04,.2,.09,.2,'#f4ecd8',0,transform);cuboid(a,-.065,.2,-.02,.13,.05,.14,'#efe6d0',0,transform);
+ for(const [x,y,z] of [[-.137,-.04,.03],[.117,.0,-.02],[-.03,.05,-.065],[-.06,-.07,.181]])cuboid(a,x,y,z,.02,.06,.06,m,0,transform)}
+else{cuboid(a,-.045,-.30,.02,.09,.66,.09,'#93612e',4,transform);
+cuboid(a,-.20,.28,-.02,.40,.09,.14,'#48545a',0,transform);cuboid(a,-.16,.37,-.02,.32,.19,.14,'#9aa8aa',3,transform);cuboid(a,-.10,.56,-.02,.20,.07,.14,'#79888d',0,transform)}
 gl.clear(gl.DEPTH_BUFFER_BIT);drawData(toolBuffer,a)}
 function drawOutline(){if(!hit)return;let a=[],c=[.10,.14,.10];for(const f of faces)for(let i=0;i<4;i++)for(const k of [i,(i+1)%4]){const v=f.v[k];a.push(hit.x+(v[0]-.5)*1.007+.5,hit.y+(v[1]-.5)*1.007+.5,hit.z+(v[2]-.5)*1.007+.5,...c,0,0,224)}bind(outline);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.DYNAMIC_DRAW);gl.drawArrays(gl.LINES,0,a.length/9)}
 function moveAxis(axis,d){
@@ -1331,7 +1942,7 @@ function render(cam,titleOpen,w,h){
  useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,.1,(Q.near+3)*CHUNK*1.5+H);gl.uniform3f(mainU.eye,cam.x,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x,cam.y,cam.z);
  const visible=[];
  for(const ch of chunks.values()){if(Math.max(Math.abs(ch.cx-centerCX),Math.abs(ch.cz-centerCZ))>readyR)continue;const yr=(ch.ymax-ch.ymin)/2;if(!sphereVisible(F,ch.cx*CHUNK+8,ch.ymin+yr,ch.cz*CHUNK+8,Math.sqrt(128+yr*yr)))continue;visible.push(ch);if(ch.quads)drawQuads(ch.buffer,ch.quads,bind,36)}
- drawWorldDetails();
+ drawWorldDetails();drawLife(cam,F,env,fog,aspect,.1,(Q.near+3)*CHUNK*1.5+H);useProgram(mainProg,4);
  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
  visible.sort((a,b)=>((b.cx*CHUNK+8-cam.x)**2+(b.cz*CHUNK+8-cam.z)**2)-((a.cx*CHUNK+8-cam.x)**2+(a.cz*CHUNK+8-cam.z)**2));
  if(waterProg){useProgram(waterProg,4);setEnv(waterU,env,fog);setView(waterU,cam,aspect,.1,(Q.near+3)*CHUNK*1.5+H);gl.uniform3f(waterU.eye,cam.x,cam.y,cam.z);gl.uniform3f(waterU.eyeF,cam.x,cam.y,cam.z)}
@@ -1384,7 +1995,7 @@ function frame(now){
  if(now-lastCompassUpdate>=100||paused){updateCompass();lastCompassUpdate=now}
  if(bench)benchStep(raw,dt);
  if(!paused){time+=dt;update(dt);animateWorld(dt);advanceDay(dt)}
- else if(titleOpen)time+=dt*.65; // Keep the background grass, water, and clouds alive.
+ else if(titleOpen){time+=dt*.65;updateLife(dt*.65,titleCamera())} // Keep the background grass, water, clouds and creatures alive.
  // Wind alternates between calm spells and gusty periods; grass, leaves and clouds share it.
  windStr=Math.min(1,Math.max(0,.45+.55*Math.sin(time*.07)*Math.sin(time*.031+1.7)+.25*Math.sin(time*.19)));cloudDrift+=dt*(.5+windStr*1.6);
  streamChunks();
@@ -1392,6 +2003,8 @@ function frame(now){
  perfFrames++;perfTime+=raw;if(perfTime>2){const f=perfFrames/perfTime;if(f<44&&renderScale>.6)renderScale=Math.max(.6,renderScale-.1);else if(f>57&&renderScale<1)renderScale=Math.min(1,renderScale+.05);
   // Under load, terrain building yields more of each frame to rendering.
   loadScale=f<40?.5:f>52?1:loadScale;
+  // Fewer natural creatures while the frame rate is low; back to the full count when there is headroom.
+  lifeScale=f<34?Math.max(.45,lifeScale-.2):f<45?Math.max(.6,lifeScale-.1):f>55?Math.min(1,lifeScale+.1):lifeScale;
   slowWindows=!paused&&f<28&&renderScale<=.6?slowWindows+1:0;
   if(slowWindows>=3&&!slowWarned&&qualityName!=='low'&&!bench){slowWarned=true;toast('動作が重いようです。メニューの「画質」を下げると快適になります')}
   perfFrames=0;perfTime=0}
@@ -1403,7 +2016,7 @@ function frame(now){
  lodWork(Q.budget*.6*loadScale,64);
  if(!titleOpen)$('target').textContent=hit?defs[hit.t][0]:'';
  frames++;fpsTime+=raw;
- if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''}`}
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}
  $('hint').style.opacity=now>toastUntil?'0':'1';
  if(now-lastSave>15000&&!paused){save();lastSave=now}
  requestAnimationFrame(frame)
@@ -1426,10 +2039,10 @@ function finishBench(){const f=bench.frames.slice().sort((a,b)=>a-b),n=f.length|
  let near=0,far=0;for(const ch of chunks.values())near+=(ch.quads+ch.waterQuads)*144;for(const t of lodTiles.values())far+=t.bytes||0;
  const heap=performance.memory?.usedJSHeapSize;
  benchReport={quality:Q.label+(qualityAuto?'（自動）':''),frames:f.length,avgFps:+(1000/mean).toFixed(1),low1Fps:+(1000/p99).toFixed(1),worstMs:+(f[f.length-1]||0).toFixed(1),over33:+(f.filter(x=>x>33.4).length/n*100).toFixed(1),
-  resolution:canvas.width+'×'+canvas.height,renderScale:Math.round(renderScale*100),nearChunks:chunks.size,lodTiles:[...lodTiles.values()].filter(t=>t.ready).length,gpuMB:+((near+far)/1048576).toFixed(1),heapMB:heap?+(heap/1048576).toFixed(1):null,worker:!!lodWorker,
+  resolution:canvas.width+'×'+canvas.height,renderScale:Math.round(renderScale*100),nearChunks:chunks.size,lodTiles:[...lodTiles.values()].filter(t=>t.ready).length,gpuMB:+((near+far)/1048576).toFixed(1),heapMB:heap?+(heap/1048576).toFixed(1):null,worker:!!lodWorker,life:life.length,
   device:(typeof navigator!=='undefined'?navigator.userAgent:'').slice(0,120)};
  bench=null;paused=true;console.log('JOCRAFT2 BENCH',JSON.stringify(benchReport));window.__bench=benchReport;
- const r=benchReport,text=`JOCRAFT2 性能計測（v5.2）\n画質：${r.quality} / 描画 ${r.resolution}（${r.renderScale}%）\n平均 ${r.avgFps} FPS / 1%低下 ${r.low1Fps} FPS\n最悪フレーム ${r.worstMs} ms / 33ms超え ${r.over33}%\n近景 ${r.nearChunks}チャンク / 遠景 ${r.lodTiles}タイル\nGPU推定 ${r.gpuMB} MB${r.heapMB?` / JS ${r.heapMB} MB`:''} / ワーカー ${r.worker?'有効':'無効'}\n${r.device}`;
+ const r=benchReport,text=`JOCRAFT2 性能計測（v5.2）\n画質：${r.quality} / 描画 ${r.resolution}（${r.renderScale}%）\n平均 ${r.avgFps} FPS / 1%低下 ${r.low1Fps} FPS\n最悪フレーム ${r.worstMs} ms / 33ms超え ${r.over33}%\n近景 ${r.nearChunks}チャンク / 遠景 ${r.lodTiles}タイル\nGPU推定 ${r.gpuMB} MB${r.heapMB?` / JS ${r.heapMB} MB`:''} / ワーカー ${r.worker?'有効':'無効'} / 生き物 ${r.life}体\n${r.device}`;
  const wrap=document.createElement('div'),panel=document.createElement('div'),pre=document.createElement('pre'),copy=document.createElement('button'),close=document.createElement('button');
  wrap.className='overlay';panel.className='panel';pre.textContent=text;pre.style.cssText='white-space:pre-wrap;font:12px/1.7 monospace;user-select:text;-webkit-user-select:text';
  copy.className=close.className='primary';copy.textContent='結果をコピー';close.textContent='閉じる（通常プレイへ）';
@@ -1437,5 +2050,5 @@ function finishBench(){const f=bench.frames.slice().sort((a,b)=>a-b),n=f.length|
  panel.appendChild(pre);panel.appendChild(copy);panel.appendChild(close);wrap.appendChild(panel);(document.body||{appendChild(){}}).appendChild(wrap)}
 if(BENCH)startBench();
 requestAnimationFrame(frame);
-window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,cows,animateWorld,vertexSource,fragmentSource,waterFragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
+window.Nisekura={get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,get cows(){return life.filter(c=>c.sp===COW)},life,LIFE_SPECIES,animateWorld,vertexSource,fragmentSource,waterFragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
 </script></html>
