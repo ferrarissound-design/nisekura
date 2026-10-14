@@ -461,9 +461,80 @@ const SEA_=62;
  const e=boot(d.storage['nisekura-v1']);assert.equal(run(e,'life.filter(c=>c.manual).length'),80,'eggs reload');assert.equal(run(e,'lifeMode'),'off','spawn setting reloads');
  assert.equal(run(e,'life.filter(c=>c.sp.id==="aji").length'),1,'the fish reloads too');
  // Old saves without creature data load with natural spawning on and no placed creatures.
- const old=JSON.parse(d.storage['nisekura-v1']);delete old.life;const f=boot(JSON.stringify(old));assert.equal(run(f,'lifeMode'),'all');assert.equal(run(f,'life.filter(c=>c.manual).length'),0);
+ const old=JSON.parse(d.storage['nisekura-v1']);delete old.life;delete old.integrity;delete old.settings;const f=boot(JSON.stringify(old));assert.equal(run(f,'lifeMode'),'all');assert.equal(run(f,'life.filter(c=>c.manual).length'),0);
  // UI: egg picker icons, chip, menu label; voices never throw without audio.
  R('openEggs()');assert(!d.nodes.eggs.classList.contains('hidden'),'egg picker opens');R('play()');assert(d.nodes.eggs.classList.contains('hidden'),'egg picker closes on play');
  R('eggSp=LIFE_BY_ID.wolf.i;refresh()');assert(!d.nodes.eggChip.classList.contains('hidden'),'egg chip shows');R('selected=2;eggSp=-1;refresh()');assert(d.nodes.eggChip.classList.contains('hidden'));
  R('for(const s of LIFE_SPECIES)if(s.voice)lifeVoice(life[0]||{x:0,y:0,z:0},s.voice)');
  console.log(`PASS: creatures: ${sp.length} species (7 monsters), unique models, finite poses, daytime ${day.nat} natural (${day.kinds.length} kinds), night monsters ${night.cnt.monster} (nearest ${Math.min(...mons).toFixed(0)}m), bounded over a long flight (max ${maxN}), eggs place/remove/cap/save/reload, sim ${(simMs/900).toFixed(2)} ms/step`)}
+
+// ---- Save protection: exercise real storage failures and transactional UI paths.
+{
+ const d=boot(legacy),K='nisekura-v1',B=K+'-backup',A=K+'-protected';
+ assert.equal(d.storage[K],legacy,'opening a legacy world never migrates storage');
+ assert(d.api.save());const first=d.storage[K];assert.equal(d.storage[B],legacy,'first migration retains exact legacy bytes');
+ let writes=0;const setItem=d.c.localStorage.setItem;d.c.localStorage.setItem=(k,v)=>{writes++;setItem(k,v)};
+ assert(d.api.save());assert.equal(writes,0,'identical snapshots skip writes');
+ run(d,'player.x+=1;flying=true;dayTime=.72;inventory[7]=123');assert(d.api.save());assert.equal(d.storage[B],first);
+ const current=d.storage[K],round=boot(current);assert.equal(round.api.player.x,d.api.player.x);assert(run(round,'flying'));assert.equal(round.api.inventory[7],123);assert.equal(run(round,'dayTime'),.72);
+ for(const failingKey of [B,K]){d.c.localStorage.setItem=(k,v)=>{if(k===failingKey)throw Error('QuotaExceededError');setItem(k,v)};run(d,'dayTime+=.001');assert.equal(d.api.save(),false);assert.equal(d.storage[K],current,'quota failure preserves primary');assert.equal(d.storage[B],failingKey===B?first:current,'backup stays valid');assert.match(d.nodes.saveInfo.textContent,/保存失敗/)}
+ d.c.localStorage.setItem=setItem;assert(d.api.save());
+ const before=JSON.stringify(d.storage);d.c.confirm=()=>false;assert.equal(run(d,'importWorld(encodeSave(snapshot()))'),false);assert.equal(JSON.stringify(d.storage),before,'cancel import touches nothing');d.nodes.reset.onclick();assert.equal(JSON.stringify(d.storage),before,'cancel reset touches nothing');
+ d.c.confirm=()=>true;d.c.localStorage.setItem=(k,v)=>{if(k===K)throw Error('QuotaExceededError');setItem(k,v)};
+ assert.equal(run(d,'importWorld(encodeSave({...snapshot(),seed:123}))'),false);assert.equal(run(d,'resettingWorld'),false);assert.equal(d.storage[K],JSON.parse(before)[K]);assert(d.storage[A],'failed import has recoverable checkpoint');
+ d.c.localStorage.setItem=setItem;assert(run(d,'importWorld(encodeSave({...snapshot(),seed:123}))'));assert.equal(JSON.parse(d.storage[K]).seed,123);const replaced=d.storage[K];d.windowEvents.pagehide();d.c.onblur();assert.equal(d.storage[K],replaced,'old callbacks cannot overwrite import');
+ const restored=boot(replaced,{}, {[A]:d.storage[A]});restored.nodes.restoreProtected.onclick();assert.equal(JSON.parse(restored.storage[K]).seed,73219,'protected world is restorable');
+ console.log('PASS: legacy migration, unchanged-save elision, movement/time/inventory/flight, quota failures, import rollback and cancellation');
+}
+{
+ const K='nisekura-v1',B=K+'-backup',A=K+'-protected',bad='{broken',d=boot(bad,{}, {[B]:legacy});
+ assert(run(d,'storageBlocked'));assert.equal(d.api.save(),false);d.events.visibilitychange();d.windowEvents.pagehide();assert.equal(d.storage[K],bad);
+ d.c.confirm=()=>false;assert.equal(run(d,'recoverWorld()'),false);assert.equal(d.storage[K],bad);
+ d.c.confirm=()=>true;assert(run(d,'recoverWorld()'));assert.equal(d.storage[K],legacy);assert.equal(d.storage[A],bad,'corrupt original retained verbatim for export');
+ const noBackup=boot(bad);assert.equal(run(noBackup,'recoverWorld()'),false);assert.equal(noBackup.storage[K],bad);noBackup.nodes.reset.onclick();assert.equal(noBackup.storage[K],bad);
+ const valid=boot(legacy);valid.api.save();let altered=JSON.parse(valid.storage[K]);altered.seed++;const damaged=boot(JSON.stringify(altered));assert(run(damaged,'storageBlocked'));assert.equal(damaged.api.save(),false);
+ for(const patch of [{terrainVersion:7},{changes:[[1,999]]},{changes:[[1]]},{inventory:{'__proto__':1,'999':1}},{life:{mode:'all',eggs:[['unknown',1,1,1,0,1]]}},{player:{x:NaN,y:20,z:30}}]){valid.c.patch=patch;assert.throws(()=>run(valid,'encodeSave({...snapshot(),...patch})'))}
+ valid.storage[K]=legacy;assert.equal(valid.api.save(),false,'different tab must not be overwritten');assert.equal(valid.storage[K],legacy);
+ console.log('PASS: corruption, checksum mismatch, missing backup, rejected schema, explicit recovery and other-tab protection');
+}
+{
+ // Exact baseline from the same generator, including vegetation, water and cross-chunk leaves.
+ for(const version of [1,2,3,4,5,6]){
+  const d=boot(JSON.stringify({version:1,terrainVersion:version,seed:73219,changes:[],inventory:{}}));
+  run(d,`for(const [cx,cz]of [[2,2],[63,46]]){const base=generateChunk(cx,cz),types=new Set();for(let y=0;y<H;y++)for(let z=cz*16;z<cz*16+16;z++)for(let x=cx*16;x<cx*16+16;x++){const t=base[localIdx(x,y,z)];if(types.has(t))continue;types.add(t);edit(x,y,z,t===8?7:8);edit(x,y,z,t);if(changes.has(idx(x,y,z)))throw Error('redundant edit retained: '+t);if(get(x,y,z)!==t)throw Error('baseline changed')}}`);
+  assert.equal(run(d,'changes.size'),0);d.api.edit(40,30,40,8);d.api.edit(40,30,40,8);assert.equal(run(d,'changes.size'),1);assert.equal(run(d,'changeIndex.get(chunkKey(40,40)).length'),1);assert(d.api.save());const reload=boot(d.storage['nisekura-v1']);assert.equal(reload.api.get(40,30,40),8);assert.equal(run(reload,'terrainVersion'),version);
+ }
+ console.log('PASS: v1–v6 exact terrain/vegetation/water edit undo, unique indices, building roundtrips');
+}
+{
+ const K='nisekura-v1',A=K+'-protected',d=boot(legacy);d.api.edit(30,30,30,9);d.nodes.reset.onclick();assert.equal(d.storage[K],undefined);assert.equal(JSON.parse(d.storage[A]).changes.find(e=>e[0]===30+2048*(30+2048*30))[1],9,'reset checkpoints unsaved construction');
+ const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),6,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
+ const failed=boot(legacy);failed.c.localStorage.setItem=()=>{throw Error('QuotaExceededError')};failed.nodes.reset.onclick();assert.equal(failed.storage[K],legacy);assert.equal(run(failed,'resettingWorld'),false);
+ const auto=boot(legacy);run(auto,'paused=false;frame(16001)');assert(auto.storage[K]);assert(JSON.parse(auto.storage[K]).integrity);run(auto,'dayTime=.64');auto.c.document.hidden=true;auto.events.visibilitychange();assert.equal(JSON.parse(auto.storage[K]).dayTime,.64);
+ run(auto,'dayTime=.65');auto.windowEvents.pagehide();assert.equal(JSON.parse(auto.storage[K]).dayTime,.65);
+ let idle;auto.c.requestIdleCallback=cb=>{idle=cb};run(auto,'queueSave();queueSave()');assert(run(auto,'saveQueued'));idle();assert.equal(run(auto,'saveQueued'),false);
+ console.log('PASS: reset checkpoint, no resurrection, failed reset, 15-second autosave, background flush, idle coalescing');
+}
+{
+ const d=boot(legacy);let downloaded,clicked=false,removed=false,revoked=false,delay;
+ d.c.Blob=class{constructor(parts,options){downloaded=parts.join('');assert.equal(options.type,'application/json')}};
+ d.c.URL={createObjectURL:()=> 'blob:test',revokeObjectURL:()=>{revoked=true}};d.c.setTimeout=(cb,ms)=>{delay=ms;return 1};
+ const create=d.c.document.createElement;d.c.document.createElement=tag=>tag==='a'?{click(){clicked=true},remove(){removed=true}}:create(tag);
+ run(d,'exportWorld()');assert(clicked&&removed);assert.equal(delay,60000);assert(!revoked,'Safari download URL is not revoked immediately');assert.equal(JSON.parse(downloaded).seed,73219);d.c.downloaded=downloaded;assert(run(d,'decodeSave(downloaded)'));
+ assert.match(fs.readFileSync(__dirname+'/index.html','utf8'),/type="file" accept=".json,application\/json"/);
+ console.log('PASS: JSON export roundtrip, Blob download and file-input compatibility structure (real Safari unverified)');
+}
+{
+ const d=boot(legacy);run(d,"life.length=0;lifeNew(LIFE_BY_ID.zombie,35,35,35,true,1);lifeNew(LIFE_BY_ID.cow,36,35,35,true,1);selected=4;eggSp=LIFE_BY_ID.zombie.i;qualityName='low';hudMinimal=true;hudDetails=true;lifeVoices=false;yaw=.42;pitch=-.31");assert(d.api.save());
+ const r=boot(d.storage['nisekura-v1']);assert.equal(run(r,'life.filter(c=>c.manual).length'),2);assert(run(r,'life.some(c=>c.manual&&c.sp.id==="zombie")'));assert.equal(run(r,'selected'),4);assert.equal(run(r,'eggSp'),run(d,'eggSp'));assert.equal(run(r,'qualityName'),'low');assert(run(r,'hudMinimal&&hudDetails&&!lifeVoices'));assert.equal(run(r,'yaw'),.42);assert.equal(run(r,'pitch'),-.31);
+ const K='nisekura-v1',B=K+'-backup',A=K+'-protected',arch=legacy,primary=d.storage[K],t=boot(primary,{}, {[A]:arch});const set=t.c.localStorage.setItem;t.c.localStorage.setItem=(k,v)=>{if(k===K)throw Error('QuotaExceededError');set(k,v)};t.nodes.restoreProtected.onclick();assert.equal(t.storage[K],primary);assert.equal(t.storage[B],arch,'failed protected-world swap keeps the restore target');assert(t.storage[A]);
+ console.log('PASS: placed monsters/animals, selected egg, view and settings, failed protected checkpoint swap');
+}
+(async()=>{
+ const d=boot(legacy),before=JSON.stringify(d.storage);d.c.confirm=()=>false;
+ for(const file of [undefined,{size:100,text:async()=>legacy}]){const target={files:file?[file]:[],value:'chosen'};await d.nodes.importFile.onchange({target});assert.equal(target.value,'');assert.equal(JSON.stringify(d.storage),before)}
+ d.c.confirm=()=>true;
+ for(const file of [{size:20*1024*1024,text:async()=>{throw Error('must not read oversized file')}},{size:10,text:async()=>'{broken'},{size:10,text:async()=>{throw Error('read failed')}}]){await d.nodes.importFile.onchange({target:{files:[file],value:'chosen'}});assert.equal(JSON.stringify(d.storage),before)}
+ await d.nodes.importFile.onchange({target:{files:[{size:legacy.length,text:async()=>legacy}],value:'chosen'}});assert(run(d,'resettingWorld'));assert(d.storage['nisekura-v1-protected']);
+ console.log('PASS: asynchronous file selection, cancellation, size/parse/read failures and successful import');
+})().catch(e=>{console.error(e);process.exitCode=1});
