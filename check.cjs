@@ -351,11 +351,12 @@ const SEA_=62;
  const d=boot(),R=c=>run(d,c);R('paused=true');
  const first=R('(()=>{nextSpot();return JSON.stringify({x:player.x,y:player.y,z:player.z,yaw,n:spotList.length,i:spotIdx,paused})})()');const f=JSON.parse(first);
  assert(f.n>=8&&f.i===0&&f.paused===false,'first press searches and jumps to the first spot');
- const seen=new Set();let clear=0;for(let i=0;i<f.n+2;i++){const s=JSON.parse(R('(()=>{const p=spotList[spotIdx];return JSON.stringify({kind:p.kind,x:p.x,z:p.z,px:player.x,py:player.y,pz:player.z,col:collides(player),flying})})()'));
+ const seen=new Set();let clear=0;for(let i=0;i<f.n+2;i++){const s=JSON.parse(R('(()=>{const p=spotList[spotIdx];return JSON.stringify({kind:p.kind,w:!!p.w,x:p.x,z:p.z,px:player.x,py:player.y,pz:player.z,col:collides(player),flying})})()'));
+  if(s.w){assert(!s.col,'v9 wonder visits land in open space');R('nextSpot()');continue} // wonders pick their own viewpoints (tested in the v9 block)
   assert(!s.col&&!s.flying&&Math.hypot(s.px-s.x-.5,s.pz-s.z-.5)<=21,'player stands near the spot without colliding');seen.add(s.kind);
   let wood=0;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++)for(let dy=1;dy<=8;dy++){const t=d.api.get(Math.floor(s.px)+dx,Math.floor(s.py)+dy,Math.floor(s.pz)+dz);if([4,5,13,14,15,16].includes(t))wood++}
   if(!s.fallback)clear+=wood===0?1:0;R('nextSpot()')}
- assert(clear>=f.n-2,`spots land in the open (${clear}/${f.n})`);
+ const classic=JSON.parse(R('spotList.filter(s=>!s.w).length'));assert(clear>=classic-2,`spots land in the open (${clear}/${classic})`);
  assert.equal(seen.size,4,'all four kinds of spot are visited');assert.equal(R('spotIdx'),(f.n+2)%f.n,'spots cycle');
  // Mined or placed blocks near a spot survive; the player's edits are not touched by the search.
  d.api.edit(Math.floor(f.x),Math.floor(f.y)+3,Math.floor(f.z),8);assert.equal(d.api.get(Math.floor(f.x),Math.floor(f.y)+3,Math.floor(f.z)),8);
