@@ -866,7 +866,7 @@ function faceUV(v,f){return f.n[1]?[v[0],v[2]]:f.n[0]?[v[2],v[1]]:[v[0],v[1]]}
 // ---- Shaders. No uniform is shared between a vertex and fragment stage, so mixed precision cannot break linking on iOS.
 const SKY_GLSL=`
 uniform vec3 sunDir; uniform vec3 zenithCol; uniform vec3 horizonCol; uniform vec3 sunCol; uniform vec4 fogP;
-uniform vec3 dirLight; uniform vec3 dirCol; uniform vec3 ambCol; uniform vec4 misc; uniform vec4 skyP; // skyP: x cloud drift (blocks), y cloud cover 0..1, z sky quality 0..2
+uniform vec3 dirLight; uniform vec3 dirCol; uniform vec3 ambCol; uniform vec4 misc; uniform vec4 skyP; uniform vec3 deckEye; // skyP: x cloud drift (blocks), y cloud cover 0..1, z sky quality 0..2
 float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
 vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,sqrt(clamp(y,0.,1.)));float s=max(dot(d,sunDir),0.);
@@ -882,11 +882,22 @@ vec3 fogMix(vec3 c,vec3 rel,float wy){float d=length(rel);vec3 dir=rel/max(d,.00
  float f=1.-exp(-pow(d/fogP.x,1.6));f*=1.-.45*clamp((wy-${SEA+25}.)/140.,0.,1.);f=max(f,smoothstep(fogP.y,fogP.z,d));
  return mix(c,mix(skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),vec3(.022,.03,.056),misc.w),clamp(f,0.,1.));}
 vec3 faceNormal(float f){return f<.5?vec3(1.,0.,0.):f<1.5?vec3(-1.,0.,0.):f<2.5?vec3(0.,1.,0.):f<3.5?vec3(0.,-1.,0.):f<4.5?vec3(0.,0.,1.):f<5.5?vec3(0.,0.,-1.):vec3(0.,1.,0.);}
+// Shared broad cloud field: two noise octaves, world anchored, same wind as the visible deck.
+// Detail octaves remain sky-only; ground penumbrae deliberately use the broad silhouette.
+float deckBroad(vec2 p){vec2 q=p/820.+vec2(3.1,1.7);return .5*vnoise(q)+.25*vnoise(q*2.07+vec2(11.3,7.9));}
+float cloudSun(vec3 w){
+ if(skyP.z<.5||sunDir.y<=0.)return 1.;
+ float dy=max(0.,520.-w.y);
+ vec2 p=w.xz+sunDir.xz*(dy/max(sunDir.y,.18))-vec2(skyP.x,0.);
+ float th=.67-skyP.y*.27;
+ float cover=smoothstep(th-.055,th+.16,deckBroad(p));
+ return 1.-cover*.46*smoothstep(.015,.28,sunDir.y)*smoothstep(0.,50.,dy);
+}
 // Sun (or moon) direct light plus a sky/ground ambient. Faces under a roof keep only drifting canopy gaps.
 vec3 lighting(vec3 n,float shade,vec3 w,float soft){
  float nd=mix(max(dot(n,dirLight),0.),.3+.45*max(dirLight.y,0.),soft);vec3 amb=ambCol*(.8+.2*n.y);
  if(shade>.5){vec2 p=floor(w.xz*8.)/8.*.42+misc.y*vec2(.11,.06)*(.4+misc.z);float g=vnoise(p)*.65+vnoise(p*2.7+5.3)*.35;nd*=smoothstep(.56,.66,g)*step(.5,n.y)*.95;amb*=.76;}
- return amb+dirCol*nd;}
+ return amb+dirCol*nd*cloudSun(w);}
 float caustic(vec2 p,float t){p=floor(p*16.)/16.;vec2 q=p*.62+vec2(sin(p.y*.37+t*.4),cos(p.x*.41-t*.33))*.35;
  float a=vnoise(q+vec2(t*.23,t*.13)),b=vnoise(q*1.31+vec2(-t*.17,t*.21)+5.3);return pow(clamp(1.-abs(a-b)*3.2,0.,1.),5.);}
 // ---- Sky cloud layers (also used for reflections). Both are flat layers seen in perspective; the lower one is a patchy deck lit from the sun's side.
@@ -895,7 +906,7 @@ float cfbm(vec2 p,float oct){float s=0.,a=.5;for(int i=0;i<4;i++){if(float(i)>=o
 vec4 skyDeck(vec3 d,float q){
  if(d.y<.02)return vec4(0.);
  float hz=smoothstep(.02,.24,d.y),oct=q>1.5?4.:q>.5?3.:q<-.5?1.:2.;
- vec2 p=d.xz/(d.y+.085)*520.-vec2(skyP.x,0.),pn=p/820.+vec2(3.1,1.7);
+ vec2 p=deckEye.xz+d.xz/max(d.y,.02)*max(0.,520.-deckEye.y)-vec2(skyP.x,0.),pn=p/820.+vec2(3.1,1.7);
  float n=cfbm(pn,oct),th=.67-skyP.y*.27;
  if(q>.5)n-=.07*(1.-vnoise(p/175.));
  float dens=smoothstep(th,th+.26,n);
@@ -1399,7 +1410,7 @@ function buildProgram(vsrc,fsrc,attribs){
  try{vs=shader(gl.VERTEX_SHADER,vsrc);fs=shader(gl.FRAGMENT_SHADER,fsrc);gl.attachShader(p,vs);gl.attachShader(p,fs);attribs.forEach((a,i)=>gl.bindAttribLocation(p,i,a));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));linked=true;return p}
  catch(e){gl.deleteProgram(p);throw e}finally{if(vs){if(linked)gl.detachShader(p,vs);gl.deleteShader(vs)}if(fs){if(linked)gl.detachShader(p,fs);gl.deleteShader(fs)}}
 }
-const SKY_UNIFORMS=['sunDir','zenithCol','horizonCol','sunCol','fogP','dirLight','dirCol','ambCol','misc','skyP'];
+const SKY_UNIFORMS=['sunDir','zenithCol','horizonCol','sunCol','fogP','dirLight','dirCol','ambCol','misc','skyP','deckEye'];
 function uniformsOf(p,names){const u={};for(const n of names)u[n]=gl.getUniformLocation(p,n);return u}
 const MAXQ=16384;
 function initRenderer(){
@@ -2291,13 +2302,15 @@ function skyEnv(sun){const e=sun[1];let i=0;while(i<SKY_KEYS.length-2&&e>SKY_KEY
  const [e0,k0]=SKY_KEYS[i],[e1,k1]=SKY_KEYS[i+1],t=Math.max(0,Math.min(1,(e-e0)/(e1-e0))),m=key=>mix3(k0[key],k1[key],t);
  // Below the horizon the moon (opposite the sun) becomes the directional light.
  const dir=e>-.1?norm([sun[0],Math.max(sun[1],.04),sun[2]]):norm([-sun[0],-sun[1],-sun[2]]);
- return{sun,zenith:m('z'),horizon:m('h'),sunCol:m('g'),amb:m('a'),dirCol:m('d'),dir,night:smooth(-.02,-.2,e)}}
+ const amb=m('a'),gold=Q.sky>.5?smooth(-.04,.10,e)*(1-smooth(.10,.45,e)):0;
+ amb[0]-=.06*gold;amb[1]+=.01*gold;amb[2]+=.07*gold;
+ return{sun,zenith:m('z'),horizon:m('h'),sunCol:m('g'),amb,dirCol:m('d'),dir,night:smooth(-.02,-.2,e)}}
 // dayTime 0.25 = sunrise in the east, 0.5 = noon, 0.75 = sunset in the west.
 function sunFromTime(t){const a=(t-.25)*Math.PI*2;return norm([Math.cos(a),Math.sin(a)*.72,.42])}
 function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayTime));
  // The title keeps a low golden sun beside the scenic view.
  const a=cam.yaw+.95,e=.16;return skyEnv([Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)])}
-function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,caveF);if(u.skyP)gl.uniform4f(u.skyP,cloudDrift%40000,.5+.22*Math.sin(time*.0031+1.3)+.12*Math.sin(time*.0113),Q.sky,0)}
+function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,caveF);if(u.skyP)gl.uniform4f(u.skyP,cloudDrift,.5+.22*Math.sin(time*.0031+1.3)+.12*Math.sin(time*.0113),Q.sky,0);if(u.deckEye)gl.uniform3fv(u.deckEye,env.deckEye||[0,0,0])}
 function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>1?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
 // Same as underCol() in the shaders: the colour water fades to at the camera's depth.
 function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.11,.42,.44],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
@@ -2317,6 +2330,7 @@ function updateCave(dt,title){if(!CAVES)return;
  const u=caveUnder?caveF>.45:caveF>.85;if(u!==caveUnder){caveUnder=u;streamDirty=true}}
 function render(cam,titleOpen,w,h){
  const aspect=w/h,F=makeFrustum(cam,aspect),underwater=!titleOpen&&get(Math.floor(cam.x),Math.floor(cam.y),Math.floor(cam.z))===10,env=environment(titleOpen,cam);
+ env.deckEye=[cam.x,cam.y,cam.z];
  const far=lodOK?Q.far:(Q.near+1)*CHUNK,cd=Math.max(0,SEA+.88-cam.y),cf=caveF,ck=1-cf,fog=[far*.6*ck+70*cf,far*.8*ck+140*cf,far*.97*ck+190*cf,underwater?1+cd:0];
  gl.clearColor(...(underwater?underColor(env,cd).map(v=>v*(1-.85*cf)):env.horizon.map((v,i)=>v*ck+[.022,.03,.056][i]*cf)),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
  // Underwater the fog closes within a few dozen blocks, so the far pass is skipped there.
