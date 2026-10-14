@@ -714,7 +714,7 @@ const SEA_=62;
 const AQ_SPOTS={river:[982,808],lake:[1102,712],reef:[1258,856],kelp:[1258,598]};
 const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=opaqueW.a,o=[];for(let i=0;i<opaqueW.n;i+=36){let code=a[i+8];const cv=Math.floor(code/1024);code-=cv*1024;const wet=code>=511.5;if(wet)code-=512;const sh=code>=255.5;if(sh)code-=256;
  const face=Math.floor((code+.5)/32),m=code-face*32;if(m<30.5)continue;let y0=1e9,y1=-1e9,xs=0,zs=0;for(let k=0;k<4;k++){const j=i+k*9;y0=Math.min(y0,a[j+1]);y1=Math.max(y1,a[j+1]);xs+=a[j];zs+=a[j+2]}
- o.push([Math.round((m-31)*10),face,+(xs/4).toFixed(3),+y0.toFixed(3),+y1.toFixed(3),+(zs/4).toFixed(3),wet?1:0,+a[i+7].toFixed(2)])}return JSON.stringify(o)})()`));
+ o.push([Math.round((m-31)/.06),face,+(xs/4).toFixed(3),+y0.toFixed(3),+y1.toFixed(3),+(zs/4).toFixed(3),wet?1:0,+a[i+7].toFixed(2)])}return JSON.stringify(o)})()`));
 {const d=boot(),R=c=>run(d,c);const found={},stat={};
  for(const [name,[x,z]] of Object.entries(AQ_SPOTS)){R(`paused=false;player.x=${x}+.5;player.z=${z}+.5;player.y=70;streamChunks(true);for(let i=0;i<40;i++)streamChunks()`);
   let all=[];for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++)all=all.concat(aquaQuads(d,(x>>4)+dx,(z>>4)+dz));stat[name]=all.length;
@@ -752,9 +752,9 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  for(const [name,[x,z]] of Object.entries(AQ_SPOTS)){const s=sim(x,z,40);hab[name]=[...new Set(s.map(q=>q.id))];total+=s.length;
   for(const q of s)for(const m of q.m){assert.equal(m[3],10,`${q.id} stays in water`);assert(m[1]<=62.6,`${q.id} stays under the surface`)}
   assert(s.reduce((a,q)=>a+q.n,0)<=R('FISH_Q[qualityName].fish')+16,'bounded numbers')}
- const fresh=['medaka','koi','nishiki','namazu'],salt=['hanadai','aobudai','kasago','hirame','ryugu'];
+ const fresh=['medaka','koi','nishiki','namazu'],reefFish=['hanadai','kakure','sorasuzume','chocho','nanyouhagi','hatatate'],salt=[...reefFish,'aobudai','kasago','hirame','ryugu'];
  assert(hab.river.length&&hab.river.every(i=>fresh.includes(i)),'river fish: '+hab.river);assert(hab.lake.length&&hab.lake.every(i=>fresh.includes(i)),'lake fish: '+hab.lake);
- assert(hab.reef.includes('hanadai')&&hab.reef.every(i=>salt.includes(i)),'reef fish: '+hab.reef);
+ assert(hab.reef.some(i=>reefFish.includes(i))&&hab.reef.every(i=>salt.includes(i)),'reef fish: '+hab.reef);
  // Deterministic schools: leaving and coming back finds the same species in the same cells, never more.
  const a1=sim(...AQ_SPOTS.reef,8).map(q=>q.key+q.id).sort();R(`player.x=200;player.z=200;for(let k=0;k<20;k++)updateFish(.1,player)`);assert.equal(R('fishSchools.length'),0,'schools leave with the player');
  const a2=sim(...AQ_SPOTS.reef,8).map(q=>q.key+q.id).sort();assert.deepEqual(a2,a1,'same schools on return');
@@ -774,6 +774,38 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert(R('FISH_Q.low.fish<FISH_Q.standard.fish&&FISH_Q.standard.fish<FISH_Q.high.fish'));
  console.log(`PASS: fish: ${sp.length} species (${sp.map(s=>s.id).join('/')}), river ${hab.river} / lake ${hab.lake} / reef ${hab.reef} / kelp sea ${hab.kelp}, all in water, deterministic schools, flight, fish per quality ${perQ.low}/${perQ.standard}/${perQ.high}`)}
 
+// ---- Coral reefs (v13): reef hot spots in the shallow sea, five coral forms in seven hues, rocks, and reef fish that gather there.
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ // Tiers: plain floor, a fringe, reef and dense cores; cores are a small share of the shallow sea.
+ const tier=J(`(()=>{let n=0,t=[0,0,0,0];const spots={core:null,plain:null};for(let z=600;z<1300;z+=3)for(let x=900;x<1600;x+=3){const h=height4(x,z);if(h>=SEA||gLand>0)continue;const D=SEA-h;if(D<3||D>9)continue;n++;
+  const r=reefZone(x,z)*smooth(1.2,3,D)*(1-smooth(10,16,D));t[r>.5?3:r>.2?2:r>.03?1:0]++;if(r>.85&&D>=5&&!spots.core)spots.core=[x,z];
+  if(reefZone(x,z)===0&&kelpZone(x,z)<.05&&D>=4&&D<=7&&!spots.plain&&Math.hypot(x-1300,z-936)>150)spots.plain=[x,z]}return{n,t:t.map(v=>v/n),spots}})()`);
+ assert(tier.t.every(v=>v>.02)&&tier.t[3]<.2&&tier.t[0]>.3,'reefs are spots, not the whole sea: '+tier.t.map(v=>v.toFixed(2)));
+ assert(tier.spots.core&&tier.spots.plain,'found a reef core and plain shallow sea');
+ const quads=(x,z)=>{R(`paused=false;player.x=${x}+.5;player.z=${z}+.5;player.y=70;streamChunks(true);for(let i=0;i<40;i++)streamChunks()`);let all=[];
+  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++)all=all.concat(JSON.parse(R(`(()=>{rebuild(${(x>>4)+dx},${(z>>4)+dz});const a=opaqueW.a,o=[];for(let i=0;i<opaqueW.n;i+=36){let code=a[i+8];code-=Math.floor(code/1024)*1024;const wet=code>=511.5;if(wet)code-=512;if(code>=255.5)code-=256;
+   const face=Math.floor((code+.5)/32),m=code-face*32;if(m<30.5)continue;let y1=-1e9;for(let k=0;k<4;k++)y1=Math.max(y1,a[i+k*9+1]);o.push([Math.round((m-31)/.06),face,+y1.toFixed(3),+a[i+3].toFixed(3),+a[i+4].toFixed(3),+a[i+5].toFixed(3),+a[i].toFixed(2),+a[i+2].toFixed(2)])}return JSON.stringify(o)})()`)));return all};
+ const core=quads(...tier.spots.core),plain=quads(...tier.spots.plain);
+ const kinds=new Set(core.map(q=>(q[1]===6?'b':'x')+q[0])),forms=['b4','x6','x0','x3','x5','x1','b5','b6'].filter(k=>kinds.has(k));
+ assert(forms.length>=7,'many coral forms in a core: '+forms);assert(kinds.has('x4'),'reef rocks in a core');
+ const coralQ=q=>q[1]===6?q[0]>=4:[0,1,3,5,6].includes(q[0]),nc=core.filter(coralQ).length,np=plain.filter(coralQ).length;
+ assert(nc>8*Math.max(1,np),`a core is much busier than plain sea (${nc} vs ${np} coral quads)`);
+ for(const q of core)assert(q[2]<62.88,'corals stay under the surface '+q);
+ // Hues: classify every coral colour; the seven palette families all show up around a core.
+ const hue=([r,g,b])=>{const mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx-mn<.1)return-1;let h=mx===r?((g-b)/(mx-mn)+6)%6:mx===g?(b-r)/(mx-mn)+2:(r-g)/(mx-mn)+4;return h*60};
+ const bins=new Set();for(const q of core.filter(coralQ)){const h=hue(q.slice(3,6));if(h<0)continue;bins.add(h<20||h>=345?'red':h<38?'orange':h<70?'yellow':h<185?'teal':h<225?'lightblue':h<300?'purple':'pink')}
+ assert(bins.size>=7,'seven coral hues: '+[...bins]);
+ // Lower quality keeps fewer decorations (a subset), so phones pay less for the same reef.
+ R(`player.x=${tier.spots.core[0]}.5;player.z=${tier.spots.core[1]}.5`);R("Q=QUALITY.low");const lo=quads(...tier.spots.core);R("Q=QUALITY[qualityName]");
+ const key=q=>q.join(),hs=new Set(core.map(key));assert(lo.length<core.length*.8&&lo.every(q=>hs.has(key(q))),`low quality: a smaller subset (${lo.length}/${core.length})`);
+ // Fish: a core holds more fish than plain sea, reef species live there, and reef cells host a second school.
+ const sim=(x,z,secs)=>{R(`paused=false;fishSchools.length&&fishSchools.splice(0);fishCells.clear();fishCount=0;lifeMode='all';player.x=${x}+.5;player.z=${z}+.5;player.y=75;flying=true;streamChunks(true);for(let i=0;i<60;i++)streamChunks();fishT=0`);
+  for(let k=0;k<secs*10;k++)R('updateFish(.1,player)');return J(`fishSchools.filter(s=>Math.hypot(s.hx-player.x,s.hz-player.z)<40).map(s=>({id:s.sp.id,n:s.n,key:s.key}))`)};
+ const fc=sim(...tier.spots.core,30),fp=sim(...tier.spots.plain,30),cnt=a=>a.reduce((t,s)=>t+s.n,0),reefIds=['kakure','sorasuzume','chocho','nanyouhagi','hatatate','hanadai'];
+ assert(cnt(fc)>cnt(fp)&&fc.filter(s=>reefIds.includes(s.id)).length>=2,`reef fish gather at a core (${cnt(fc)} fish: ${fc.map(s=>s.id)}) vs plain sea (${cnt(fp)}: ${fp.map(s=>s.id)})`);
+ assert(fc.some(s=>s.key>=16777216),'reef cells host a second school');assert(!fp.some(s=>['kakure','chocho','hatatate'].includes(s.id)),'core fish stay at reefs');
+ assert.deepEqual(sim(...tier.spots.core,30).map(s=>s.key+s.id).sort(),fc.map(s=>s.key+s.id).sort(),'the same reef schools every visit');
+ console.log(`PASS: coral reefs: tiers ${tier.t.map(v=>v.toFixed(2)).join('/')} (plain/fringe/reef/core), core forms ${forms} + rocks, hues ${[...bins]}, ${nc} vs ${np} coral quads, low ${lo.length}/${core.length}, fish ${cnt(fc)} (${[...new Set(fc.map(s=>s.id))]}) vs ${cnt(fp)}`)}
 // ---- v8: river stretches that used to be dry sand beds hold water; v7 worlds keep their exact terrain (recorded before v8).
 {const hashStep=(h,v)=>Math.imul(h^v,16777619);
  const v7=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:7,seed:73219,changes:[],inventory:{}})),r7=c=>run(v7,c);
@@ -781,8 +813,9 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert.equal(r7(`(()=>{let h=2166136261;for(let x=64;x<2048;x+=37)for(let z=64;z<2048;z+=41){h^=height4(x,z);h=Math.imul(h,16777619)}return h>>>0})()`),3097239738,'v7 heights');
  const blk=[[960,704,64],[1100,600,64],[500,1500,64],[1180,900,64],[400,420,64],[1650,700,64]].map(([x0,z0,n])=>{let h=2166136261;for(let x=x0;x<x0+n;x++)for(let z=z0;z<z0+n;z++)for(let y=20;y<180;y++)h=hashStep(h,v7.api.get(x,y,z));return h>>>0});
  assert.deepEqual(blk,[3372455204,3675025364,3480147517,1447613522,1736089219,2630077258],'v7 blocks are byte-identical');
- const meshes=[[62,48],[69,39],[74,40],[61,50]].map(([cx,cz])=>{r7(`rebuild(${cx},${cz})`);return JSON.parse(r7(`(()=>{let h=2166136261;for(const w of[opaqueW,waterW]){const a=w.a;for(let i=0;i<w.n;i++){h^=Math.round(a[i]*1000);h=Math.imul(h,16777619)}}return JSON.stringify({h:h>>>0,n:opaqueW.n+waterW.n})})()`))});
- assert.deepEqual(meshes,[{h:3466480933,n:42480},{h:1469257073,n:36432},{h:1115478590,n:58392},{h:2284240940,n:31860}],'v7 near meshes are identical');
+ const meshes=[[62,48],[69,39],[74,40],[61,50]].map(([cx,cz])=>{r7(`rebuild(${cx},${cz})`);return JSON.parse(r7(`(()=>{let h=2166136261,n=0;for(const w of[opaqueW,waterW]){const a=w.a;for(let i=0;i<w.n;i+=36){let code=a[i+8];code-=Math.floor(code/1024)*1024;if(code>=511.5)code-=512;if(code>=255.5)code-=256;if(code-Math.floor((code+.5)/32)*32>30.5)continue;n+=36;for(let k=i;k<i+36;k++){h^=Math.round(a[k]*1000);h=Math.imul(h,16777619)}}}return JSON.stringify({h:h>>>0,n})})()`))});
+ // Terrain faces only: underwater decorations (material 31) are mesh-only and were redesigned in v13 (coral reefs).
+ assert.deepEqual(meshes,[{h:3466480933,n:42480},{h:1469257073,n:36432},{h:1115478590,n:58392},{h:3561083328,n:25668}],'v7 near terrain meshes are identical');
  const tiles=[[8,512,1024],[2,1088,576],[16,1536,0]].map(([s,x,z])=>JSON.parse(r7(`(()=>{const it=tileMesh(${s},${x},${z});let q;while(!(q=it.next()).done);let h=2166136261;for(let i=0;i<lw.n*12;i++){h^=lw.u8[i];h=Math.imul(h,16777619)}return JSON.stringify({h:h>>>0,n:lw.n})})()`)));
  assert.deepEqual(tiles,[{h:4013535438,n:14232},{h:1573468157,n:24252},{h:2652048814,n:4180}],'v7 far tiles are identical');
  // Dry sand beds on river centre lines near sea level: v7 against v8 on the same seed.

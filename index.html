@@ -154,7 +154,7 @@ body:has(#eggs:not(.hidden)) .top,body:has(#eggs:not(.hidden)) #stick,body:has(#
 body:has(#eggs:not(.hidden)) #compass{display:none!important}
 @media(max-height:480px){#eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px)}#eggGrid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))}#eggGrid .egg{min-height:68px}#eggGrid .egg canvas{width:38px;height:38px}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>WATER LIFE · v12.1</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>CORAL REEF · v13.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
  <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -174,7 +174,7 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v12.1</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v13.0</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -979,6 +979,8 @@ precision mediump float;
 `;
 // aMat packs material + 32*face (0-5 cube faces, 6 plant, 7 unlit) + 256 when the face is under a roof + 512 when it faces water.
 // Water surfaces keep their shore exposure in the fraction of the material (10.00-10.45).
+// Underwater decoration variants step by AQV in the material id (31 + v*AQV stays below 31.5 for v <= 7).
+const AQV=.06;
 const mainVS=wind=>`
 attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
 uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock; uniform float wind; uniform float fade;
@@ -1008,8 +1010,8 @@ else if(m>30.5&&face>5.5){
  vec2 root=floor(vec2(aPos.x-mix(lu,.5,xFixed),aPos.z-mix(.5,lu,xFixed))+.5);
  float keep=1.-smoothstep(fade*.6,fade*1.1,length(root+.5-eye.xz));
  if(fract(sin(dot(root,vec2(12.9898,78.233)))*43758.5453)>keep){gl_Position=vec4(0.,0.,2.,1.);col=aColor;uv=aUV;mat=m;rel=vec3(0.);vClk=clock;vFace=face;vShade=shade;return;}
- float vr=floor(fract(m)*10.+.5),h=aUV.y,ph=dot(root,vec2(1.37,2.11));
- float amp=vr<.5?.16:vr<1.5?.24:vr<2.5?.28:vr<3.5?.05:0.;
+ float vr=floor(fract(m)/${AQV}+.5),h=aUV.y,ph=dot(root,vec2(1.37,2.11));
+ float amp=vr<.5?.16:vr<1.5?.24:vr<2.5?.28:vr<3.5?.05:vr<4.5?0.:vr<5.5?.035:.09;
  float bend=pow(h/max(S,.25),1.5)*min(S,6.);
  vec2 dir=di>.5?vec2(cos((di-1.)*.3927),sin((di-1.)*.3927)):vec2(cos(ph),sin(ph));
  float osc=sin(clock*.9+ph-h*.6)*.65+sin(clock*.53+ph*1.9-h*.3)*.35;
@@ -1027,7 +1029,7 @@ gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);col=aColor;uv=aUV;m
 const fragmentSource=PRECISION+`
 varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet; varying vec3 vCave;
 uniform vec3 eyeF;`+SKY_GLSL+`
-void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.;vec3 w=rel+eyeF;
+void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.,aw=.5;vec3 w=rel+eyeF;
 if(mat<.5){c=col;}
 else if(mat<1.5){float fleck=step(.77,n);c=col*(.76+n*.40)+vec3(.025,.045,.008)*fleck;}
 else if(mat<2.5){float pebble=step(.84,n);c=mix(col*(.70+n*.5),col*1.32,pebble*.55);}
@@ -1069,7 +1071,9 @@ else if(mat<28.5){ // crystals: facets and ribs, always glowing
  float f=hash(floor(q/4.)+mat),rib=step(.5,fract((q.x*.5+q.y*.35)/3.));c=mix(col*(.78+.5*f),col*1.55+vec3(.12),.32*rib+.22*step(.9,n));}
 else if(mat<29.5){ // luminous moss: soft patches with a few bright spores
  float m=smoothstep(.25,.7,hash(floor(q/4.)+3.)*.6+n*.4);c=mix(col*.55,col*1.35+vec3(.03,.14,.09),m);if(n>.93)c=vec3(.75,1.,.9);}
-else if(mat>30.5){float v=floor(fract(mat)*10.+.5);
+else if(mat>30.5){float v=floor(fract(mat)/${AQV}+.5);
+ // Corals lose less colour to the water than plants and stones, so a reef reads as colourful from further away.
+ aw=vFace>5.5?(v>3.5?.12:.5):(v<1.5||(v>2.5&&v<3.5)||v>4.5?.12:.5);
  if(vFace>5.5){float u=mod(uv.x,2.),S=mod(floor(uv.x/2.),64.)*.25,f=uv.y/max(S,.25),qx=floor(u*16.),qy=floor(uv.y*16.),T=S*16.;
   if(qy>T)discard;
   if(v<.5){ // short seagrass: ribbon blades of different lengths
@@ -1081,16 +1085,27 @@ else if(mat>30.5){float v=floor(fract(mat)*10.+.5);
    vec2 bd=vec2(dx-side*1.5,yy-1.);float bb=step(dot(bd,bd),2.2);if(abs(dx)>1.&&bl<.5&&bb<.5)discard;c=col*(.7+.35*f+n*.14)*(1.+bb*.45)*(.92+.15*sin(yy*.7));}
   else if(v<3.5){ // small plant: a low clump of rounded leaves
    vec2 d=(vec2(qx,qy)-vec2(7.5,0.))/vec2(7.5,max(T,2.));if(dot(d,d)>1.-.45*hash(vec2(qx,qy)))discard;c=col*(.68+n*.36+f*.2);}
-  else{ // branching coral: upright branches forking from a short trunk, pale tips
+  else if(v<4.5){ // branching coral: upright branches forking from a short trunk, pale tips
    float b=floor(qx/3.),bx=mod(qx,3.),top=T*(.5+.5*hash(vec2(b,11.))),base=T*.32*hash(vec2(b,5.));
    float br=step(bx,1.5)*step(qy,top)*step(base,qy),jn=step(abs(qy-floor(base)),1.)*step(abs(qx-7.5),abs(b*3.-6.)+2.)*step(base,T*.4),tr=step(abs(qx-7.5),1.5)*step(qy,T*.35);
-   if(br+jn+tr<.5)discard;c=col*(.75+n*.2)*(br>.5&&qy>top-2.?1.35:1.);}}
+   if(br+jn+tr<.5)discard;c=col*(.75+n*.2)*(br>.5&&qy>top-2.?1.35:1.);}
+  else if(v<5.5){ // sea fan: a lace of fine ribs spreading from a short stalk
+   float dx=abs(qx-7.5),r=(qy-1.)/max(T-1.,1.),wd=7.6*sqrt(clamp(r*1.25,0.,1.))*(1.-.25*smoothstep(.85,1.,r));
+   float lace=step(mod(qx+floor(qy*.5),3.),.99)+step(mod(qy,3.),.99),stalk=step(dx,.9)*step(qy,T*.25);
+   if(stalk<.5&&(dx>wd||lace<.5||qy<2.))discard;c=col*(.7+n*.3)*(stalk>.5?.75:1.)*(dx>wd-1.2?1.25:1.);}
+  else{ // soft coral: a crown of tentacles with bright tips on a squat stalk
+   float b=floor(qx/2.),tip=T*(.55+.45*hash(vec2(b,17.))),body=step(abs(qx-7.5),5.)*step(qy,T*.35);
+   if(body<.5&&(mod(qx,2.)>.99||qy>tip||qy<T*.2))discard;c=col*(.68+n*.25)*(body<.5&&qy>tip-2.?1.45:1.)*(body>.5?.85:1.);}}
  else{ // coral and pebbles on the floor (boxes): brain-coral grooves, tube coral, pebbles, table coral pores
   vec2 g=uv*16.;
   if(v<.5){float mz=abs(sin(g.x*.55+sin(g.y*.4)*2.2)+sin(g.y*.5+sin(g.x*.33)*1.6));c=col*(.62+.45*smoothstep(.2,.9,mz)+n*.1);}
   else if(v<1.5){c=col*(.8+n*.25)*(vFace>1.5&&vFace<2.5?.55:1.);}
   else if(v<2.5){c=col*(.7+n*.42);}
-  else{c=col*(.86+n*.2)*(1.-step(.8,hash(floor(g/2.)))*.35);}}}
+  else if(v<3.5){c=col*(.86+n*.2)*(1.-step(.8,hash(floor(g/2.)))*.35);}
+  else if(v<4.5){ // reef rock: weathered stone with crusts of pink coralline algae, a film of green on top
+   float cr=step(.78,hash(floor(g/2.)+3.));c=col*(.66+n*.4);c=mix(c,vec3(.86,.46,.56)*(.8+n*.3),cr*.75);if(vFace>1.5&&vFace<2.5)c=mix(c,vec3(.36,.52,.26)*(.8+n*.4),.45);}
+  else{ // finger and staghorn coral: paler toward the growing tips, dotted with polyps
+   c=col*(.66+.75*min(uv.y,.55)+n*.16)*(1.+step(.86,n)*.25)*(vFace>1.5&&vFace<2.5?1.2:1.);}}}
 else discard;
 if(mat<9.5||mat>10.5){
  vec3 nrm=faceNormal(vFace);
@@ -1106,7 +1121,9 @@ if(mat<9.5||mat>10.5){
   c*=Lt;}
  // Faces under water: rippling sun caustics, then light loses red and green along its way down and back up to the eye.
  if(vWet>.5){float ds=max(${SEA}.88-w.y,0.);c+=caustic(w.xz+vec2(w.y*.3),vClk)*dirCol*(vFace>1.5&&vFace<2.5?.55:.25)*exp(-ds*.12)*smoothstep(.0,.25,dirLight.y)*(1.-.7*misc.x)*(1.-vCave.x);
-  c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-normalize(rel).y,.1):0.))*(mat>30.5?.5:1.));}}
+  c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-normalize(rel).y,.1):0.))*(mat>30.5?aw:1.));}
+ // Corals also keep most of their colour across the water between them and a diving eye (fogMix takes red first).
+ if(aw<.2){if(fogP.w>.5)c*=exp(WABS*min(length(rel),24.)*.24);c=max(mix(vec3(dot(c,vec3(.3,.5,.2))),c,1.25),0.)*1.12;}}
 vec3 fc=fogMix(c,rel,w.y);if(mat>25.5&&mat<30.5)fc=mix(fc,c,.6*(1.-smoothstep(50.,260.,length(rel))));
 gl_FragColor=vec4(fc,alpha);}`;
 // Translucent pass (water surfaces and glass) has its own program, so the heavy water code never weighs on terrain pixels.
@@ -1455,7 +1472,34 @@ const FISH_SPECIES=[
 {id:'ryugu',name:'リュウグウノツカイ（珍しい）',rare:1,hab:{deep:.25},herd:[1,1],size:[.9,1.1],sp:.35,run:1.2,flee:0,zone:'mid',minD:12,wag:.28,freq:2,spread:1,piv:-5,
  parts:[['body',0,-2.5,6,1.4,5,22,'#d8dee6','dots'],['body',0,-2.2,17.8,1.3,4.2,1.6,'#c8d0da','scale'],['body',-.7,.5,17.6,.12,1,1,'#f0f0f0','eye',1],['body',-.76,.7,17.8,.1,.5,.5,'#0a0a0a','flat',1],
   ['body',0,2.5,7,.25,1.4,22,'#e0383a','flat'],['body',0,2,17.5,.25,5,.6,'#e8403e','flat'],['body',0,2,16.5,.25,4,.6,'#e8403e','flat'],['body',-.6,-6.5,15,.2,4,.3,'#e0383a','flat',1],
-  ['tail',0,-2.2,-10,1.2,4.4,10,'#d0d8e2','scale'],['tail',0,2.2,-10,.25,1.2,10,'#e0383a','flat'],['tail',0,-1.4,-15.6,.3,2.8,1.4,'#e0383a','flat']]}];
+  ['tail',0,-2.2,-10,1.2,4.4,10,'#d0d8e2','scale'],['tail',0,2.2,-10,.25,1.2,10,'#e0383a','flat'],['tail',0,-1.4,-15.6,.3,2.8,1.4,'#e0383a','flat']]},
+// Reef fish (v13): they live where the reef is dense (core) and swim low among the colonies (zone 'low', roam = how far they stray).
+{id:'kakure',name:'カクレクマノミ',hab:{core:3,reef:.4},herd:[2,4],size:[.85,1.1],sp:.45,run:2.4,flee:1.6,zone:'low',roam:3,minD:2,wag:.55,freq:7,spread:.8,piv:-2.6,
+ parts:[['body',0,-1.6,0,1.8,3.2,5.6,'#f26a1b','scale'],['body',0,-1.75,1.6,1.88,3.45,.95,'#151515','flat'],['body',0,-1.7,1.6,1.94,3.3,.6,'#f8f6f0','flat'],
+  ['body',0,-1.75,-.6,1.88,3.45,.95,'#151515','flat'],['body',0,-1.7,-.6,1.94,3.3,.6,'#f8f6f0','flat'],['body',0,-1.3,2.95,1.3,2.2,.5,'#f47a2a','flat'],
+  ['body',-.96,.2,2.3,.12,.8,.8,'#f6f0e0','eye',1],['body',-1.01,.35,2.4,.1,.4,.4,'#0a0a0a','flat',1],['body',0,1.6,-.3,.3,1,3.6,'#f26a1b','flat'],['body',0,2.45,-.3,.32,.18,3.6,'#151515','flat'],
+  ['body',-1,-1.3,1,.9,.25,1.1,'#f47a2a','flat',1],['body',0,-2.4,-1.2,.3,1,1.8,'#f26a1b','flat'],
+  ['tail',0,-1.25,-3.3,.3,2.6,1.2,'#f26a1b','flat'],['tail',0,-1.3,-3.95,.32,2.9,.25,'#151515','flat'],['tail',0,-1.3,-3.1,.34,1.6,.4,'#f8f6f0','flat']]},
+{id:'sorasuzume',name:'ソラスズメダイ',hab:{reef:2.4,core:1.2},herd:[10,16],size:[.85,1.1],sp:.75,run:3.6,flee:3.6,zone:'low',roam:7,minD:2,wag:.5,freq:9,spread:1.1,piv:-2.4,
+ parts:[['body',0,-1.4,0,1.5,2.8,4.8,'#2b86ff','scale'],['body',0,-1.5,.2,1.55,.9,4,'#3aa0ff','flat'],['body',0,-1.4,2.6,1.1,1.9,.6,'#2f8cff','flat'],
+  ['body',-.8,.2,1.9,.12,.75,.75,'#eef4ff','eye',1],['body',-.85,.35,2,.1,.38,.38,'#0a0a0a','flat',1],['body',0,1.4,-.4,.3,.9,3.4,'#2378e8','flat'],
+  ['body',0,-2.3,-1,.3,.9,1.8,'#ffd23a','flat'],['body',-.85,-1,.8,.8,.22,.9,'#5ab0ff','flat',1],
+  ['tail',0,-1.2,-2.9,.3,2.2,1.2,'#ffd23a','flat'],['tail',0,-2.2,-3.7,.3,.9,1.4,'#ffcc30','flat'],['tail',0,-.2,-3.7,.3,.9,1.4,'#ffcc30','flat']]},
+{id:'chocho',name:'チョウチョウウオ',hab:{reef:1.3,core:1.6},herd:[2,2],size:[.9,1.1],sp:.5,run:2.8,flee:2.4,zone:'low',roam:9,minD:2,wag:.35,freq:5,spread:1.4,piv:-3.2,
+ parts:[['body',0,-2.6,0,1.4,5.2,6,'#ffd23a','scale'],['body',0,-2.8,1.4,1.45,4.2,2.6,'#f6f2e6','flat'],['body',0,-1.6,3.4,.9,1.4,1.2,'#f6f2e6','flat'],['body',0,-1.4,4.4,.5,.5,1,'#2a2a2a','flat'],
+  ['body',0,-2.5,2.3,1.5,4.8,.55,'#1a1a1a','flat'],['body',-.71,-.3,2.5,.1,.7,.7,'#1a1a1a','eye',1],['body',0,2.6,-.6,.3,1.3,4.4,'#ffcf30','flat'],['body',-.76,1.7,-1.9,.08,.9,.9,'#151515','flat',1],
+  ['body',0,-3.2,-.8,.3,1.4,3.8,'#ffcf30','flat'],['body',0,3,-2.4,.32,.25,1.4,'#1a1a1a','flat'],
+  ['tail',0,-1.2,-3.6,.3,3,1.2,'#ffd23a','flat'],['tail',0,-1.2,-4.25,.32,3.1,.2,'#f6f2e6','flat']]},
+{id:'nanyouhagi',name:'ナンヨウハギ',hab:{reef:1.6,core:.9},herd:[2,5],size:[.9,1.15],sp:.6,run:2.6,flee:2.6,zone:'mid',roam:14,minD:3,wag:.35,freq:4.5,spread:2.2,piv:-4.6,
+ parts:[['body',0,-3,0,2.4,6,9,'#2456d8','scale'],['body',0,-1.6,-.6,2.48,2.4,6.4,'#151b3a','flat'],['body',0,-1.4,1.6,2.55,1.1,2,'#2456d8','flat'],['body',0,-2.4,5,1.8,3.6,1.6,'#2a62e4','scale'],
+  ['body',-1.25,0,4.2,.12,1,1,'#e8eef8','eye',1],['body',-1.32,.2,4.3,.1,.5,.5,'#0a0a0a','flat',1],['body',0,3,-.5,.4,1.6,7.4,'#1f48b8','flat'],['body',0,3.85,-.5,.42,.25,7.4,'#151b3a','flat'],
+  ['body',0,-3.6,-.8,.4,1.6,6,'#1f48b8','flat'],['body',-1.4,-1.6,2.2,1.4,.3,1.6,'#ffd02a','flat',1],
+  ['tail',0,-2.2,-5.6,.4,3.2,2.4,'#ffd02a','flat'],['tail',0,-3.6,-7.2,.4,1.4,1.6,'#151b3a','flat'],['tail',0,-.8,-7.2,.4,1.4,1.6,'#151b3a','flat']]},
+{id:'hatatate',name:'ハタタテハゼ',hab:{core:1.2,reef:.5,sand:.15},herd:[1,3],size:[.85,1.1],sp:.6,run:3.4,flee:2.6,zone:'bottom',minD:2,wag:.4,freq:6,spread:1.2,piv:-2.6,
+ parts:[['body',0,-.6,0,1.2,1.5,5.4,'#f6f2ec','scale'],['body',0,-.6,2,1.25,1.55,1.4,'#ffd84a','flat'],['body',0,-.5,-1.8,1.25,1.4,1.6,'#ff6a3c','flat'],
+  ['body',-.64,.35,2.1,.1,.55,.55,'#f8f0e0','eye',1],['body',-.68,.48,2.2,.08,.3,.3,'#0a0a0a','flat',1],['body',0,.9,1,.2,3.4,.5,'#ffd84a','flat'],['body',0,3.9,1.1,.22,.6,.4,'#ff6a3c','flat'],
+  ['body',0,.9,-1.1,.2,.8,2,'#ff7a46','flat'],['body',0,-1.4,-1,.2,.6,2.2,'#ff7a46','flat'],['body',-.65,-.9,1,.6,.2,.8,'#f6f2ec','flat',1],
+  ['tail',0,-.6,-3.1,.2,1.6,1.2,'#e83a2c','flat'],['tail',0,-.6,-3.75,.22,1.7,.2,'#1a1a1a','flat']]}];
 const FISH_BY_ID={};FISH_SPECIES.forEach((s,i)=>{s.i=i;FISH_BY_ID[s.id]=s});
 // Every species is stored FISH_BATCH times with bone indices 2k (body) and 2k+1 (tail), so one draw call moves up to eight fish.
 function buildFishModels(){const w=writer(1<<16);
@@ -1580,30 +1624,35 @@ function emitMeadow(w,wx,wz,y,k,info,g,ps,free2,keep){
  emitPlantM(w,wx,y,wz,m,c,size,ps,ox,oz)}
 function plantLevel(cx,cz){return centerCX===null||Math.max(Math.abs(cx-centerCX),Math.abs(cz-centerCZ))<=Q.plantNear?0:1}
 // ---- Underwater flora (v7). Mesh-only decoration of the water floor, a pure function of (seed, x, z) and the blocks: nothing is saved,
-// edits re-mesh it, and lower quality keeps a subset. Material 31 + variant/10: billboards (face 6) 0 short seagrass, 1 long waterweed,
-// 2 kelp, 3 small plant, 4 branching coral; small boxes (faces 0-5) 0 round coral, 1 tube coral, 2 pebble, 3 table coral.
+// edits re-mesh it, and lower quality keeps a subset. Material 31 + variant*AQV (kept below 31.5, the packed face code rounds there): billboards (face 6) 0 short seagrass, 1 long waterweed,
+// 2 kelp, 3 small plant, 4 branching coral, 5 sea fan, 6 soft coral; small boxes (faces 0-5) 0 round coral, 1 tube coral, 2 pebble,
+// 3 table coral, 4 reef rock, 5 finger coral, 6 staghorn coral.
 // Billboard uv.x = side (0/1) + 2*(height in quarter blocks + 64*lean direction), uv.y = height above the root, so the shader can sway
 // tall plants in segments and draw them at a constant pixel size.
 // A well-mixed hash for decorations (rand's single round correlates under linear input changes).
 function aqh(x,z,s){let n=Math.imul(x|0,0x27d4eb2d)^Math.imul(z|0,0x165667b1)^Math.imul((s+seed)|0,0x9e3779b1);n^=n>>>15;n=Math.imul(n,0x85ebca6b);n^=n>>>13;n=Math.imul(n,0xc2b2ae35);n^=n>>>16;return(n>>>0)/4294967296}
 function aquaKind(x,z,L){if(L<=0)return 1;const rm=smooth(-.12,.18,pn(x/900+60.1,z/900+12.3));return rm>0&&Math.abs(riverField(x,z))<.075?2:3}
-function reefZone(x,z){return smooth(.06,.3,fbm(x/260+901.3,z/260+417.7,3)+.12*pn(x/60+5.1,z/60+9.3))}
+// Coral reefs: a broad reef region times smaller hot spots, so the shallow sea has plain floor, a fringe with a little coral, reef
+// stretches and dense, vivid cores (about 7% of the shallow sea). The mesher and the fish read the same field.
+function reefZone(x,z){const b=smooth(.02,.26,fbm(x/260+901.3,z/260+417.7,3)+.12*pn(x/60+5.1,z/60+9.3));if(b<=0)return 0;
+ return b*(.2+.8*smooth(.46,.7,pn(x/46+13.7,z/46+71.1)*.5+.5+.1*pn(x/19+3.9,z/19+8.2)))}
 function kelpZone(x,z){return smooth(.0,.25,fbm(x/190+77.9,z/190+611.3,3)+.1*pn(x/45+2.7,z/45+8.1))}
 const AQ_GRASS=[[.30,.60,.22],[.40,.66,.25],[.24,.52,.24]],AQ_WEED=[[.20,.48,.20],[.32,.56,.18],[.17,.40,.26]],AQ_KELP=[[.34,.38,.14],[.44,.33,.13],[.26,.36,.17]],
- AQ_MOSS=[[.28,.46,.20],[.40,.48,.18],[.52,.40,.30]],CORAL=[[.98,.44,.52],[1,.60,.24],[.72,.42,.92],[.98,.84,.34],[.30,.82,.78],[.95,.34,.30],[.62,.90,.40]].map(c=>c.map(v=>Math.min(1,v*1.05))),
+ AQ_MOSS=[[.28,.46,.20],[.40,.48,.18],[.52,.40,.30]],// Seven coral hues around the colour wheel (yellow, orange, red, pink, purple, light blue, teal): a neighbouring index is a related hue.
+ CORAL=[[1,.84,.30],[1,.56,.20],[.94,.30,.26],[1,.50,.66],[.70,.40,.94],[.40,.72,1],[.22,.82,.70]],REEF_ROCK=[[.55,.52,.47],[.46,.45,.43],[.60,.55,.48]],
  PEBBLE=[[.55,.55,.52],[.45,.43,.40],[.66,.62,.55],[.38,.40,.40]];
 const aqFlow=[0,0,-1],aqZ=new Float32Array(50);
 // Reef and kelp zones are broad, so each chunk samples them on a 4-block grid and interpolates (two fbm per corner, not per column).
 function aquaZones(x0,z0){for(let j=0;j<5;j++)for(let i=0;i<5;i++){const x=x0+i*4,z=z0+j*4;aqZ[j*5+i]=reefZone(x,z);aqZ[25+j*5+i]=kelpZone(x,z)}}
 function aquaZone(lx,lz,o){const u=lx/4,v=lz/4,i=Math.min(3,u|0),j=Math.min(3,v|0),fu=u-i,fv=v-j,k=o+j*5+i;
  return(aqZ[k]*(1-fu)+aqZ[k+1]*fu)*(1-fv)+(aqZ[k+5]*(1-fu)+aqZ[k+6]*fu)*fv}
-function emitAquaPlant(w,x,y,z,v,c,size,ox,oz,dir){const m=31+v*.1+192+512,S=Math.max(1,Math.min(63,Math.round(size*4))),U=2*(S+64*dir),n=Math.max(1,Math.ceil(S/4-.2)),hs=S/4/n,X=x+.5+ox,Z=z+.5+oz;
+function emitAquaPlant(w,x,y,z,v,c,size,ox,oz,dir){const m=31+v*AQV+192+512,S=Math.max(1,Math.min(63,Math.round(size*4))),U=2*(S+64*dir),n=Math.max(1,Math.ceil(S/4-.2)),hs=S/4/n,X=x+.5+ox,Z=z+.5+oz;
  grow(w,72*n);
  for(let s=0;s<n;s++){const a=s*hs,b=(s+1)*hs,k=.82+.18*(a+b)/(S/2);
   vert(w,x,y+a,Z,c[0]*k,c[1]*k,c[2]*k,U,a,m);vert(w,x,y+b,Z,c[0]*k,c[1]*k,c[2]*k,U,b,m);vert(w,x+1,y+b,Z,c[0]*k,c[1]*k,c[2]*k,U+1,b,m);vert(w,x+1,y+a,Z,c[0]*k,c[1]*k,c[2]*k,U+1,a,m);
   vert(w,X,y+a,z,c[0]*k,c[1]*k,c[2]*k,U,a,m);vert(w,X,y+b,z,c[0]*k,c[1]*k,c[2]*k,U,b,m);vert(w,X,y+b,z+1,c[0]*k,c[1]*k,c[2]*k,U+1,b,m);vert(w,X,y+a,z+1,c[0]*k,c[1]*k,c[2]*k,U+1,a,m)}}
 // A small box standing on the floor (the bottom face is never seen); uv in blocks so patterns keep their scale.
-function emitAquaBox(w,x,y,z,sx,sy,sz,v,c){const m=31+v*.1+512,S=[sx,sy,sz];grow(w,180);
+function emitAquaBox(w,x,y,z,sx,sy,sz,v,c){const m=31+v*AQV+512,S=[sx,sy,sz];grow(w,180);
  for(let fi=0;fi<6;fi++){if(fi===3)continue;const f=faces[fi];for(const p of f.v){const u=f.n[0]?[p[2]*sz,p[1]*sy]:f.n[1]?[p[0]*sx,p[2]*sz]:[p[0]*sx,p[1]*sy];
   vert(w,x+p[0]*sx,y+p[1]*sy,z+p[2]*sz,c[0],c[1],c[2],u[0],u[1],m+32*fi)}}}
 // One decoration per water-floor column at most. D = water depth in blocks, ft = floor block, kind 1 sea / 2 river / 3 lake.
@@ -1625,20 +1674,64 @@ function emitAqua(w,wx,wz,fy,D,ft,kind,keep){
   if(r1<(.1+.3*meadow)*light+.06&&room>.35){emitAquaPlant(w,wx,fy,wz,0,pick(AQ_GRASS,r2),Math.min(room,.3+.45*r2),ox,oz,0);return}
   if(r1>.93&&room>.3){emitAquaPlant(w,wx,fy,wz,3,pick(AQ_MOSS,r2),.25+.25*r2,ox,oz,0);return}
   if(r1>.9)aquaPebble(w,wx,fy,wz,r2,r3);return}
- // Sea: coral reefs in warm shallow stretches, kelp forests on deeper rock, seagrass meadows on shallow sand, sparse life in the deep.
- const reef=aquaZone(wx&15,wz&15,0)*smooth(1.5,3.5,D)*(1-smooth(10,15,D)),kz=aquaZone(wx&15,wz&15,25)*smooth(4,7,D)*(1-smooth(22,30,D))*(1-reef);
- if(reef>.05&&r1<reef*(.3+.45*clump)){const u=aqh(wx*19+5,wz*37+2,7),c=CORAL[Math.floor(aqh(wx*3+71,wz*43+9,8)*CORAL.length)].map(v=>v*(.9+.2*r3));
-  if(u<.32){const s=.42+.42*r2,h=.22+.3*r3;emitAquaBox(w,wx+.5-s/2+ox*.5,fy-.04,wz+.5-s/2+oz*.5,s,h,s,0,c);const t=s*.66;emitAquaBox(w,wx+.5-t/2+ox*.5,fy-.04+h,wz+.5-t/2+oz*.5,t,h*.55,t,0,c)}
-  else if(u<.62&&room>.7)emitAquaPlant(w,wx,fy,wz,4,c,Math.min(room,.6+.8*r2),ox,oz,0);
-  else if(u<.88){const n=2+Math.floor(r2*3);for(let i=0;i<n;i++){const a=i*2.4+r3*6,d=i?.2+.08*i:0,tw=.14+.06*aqh(wx+i*7,wz*3+1,9),th=Math.min(room-.1,.35+.8*aqh(wx*3+i,wz+i*11,10));
-    emitAquaBox(w,wx+.5+ox*.4+Math.cos(a)*d-tw/2,fy-.04,wz+.5+oz*.4+Math.sin(a)*d-tw/2,tw,th,tw,1,c)}}
-  else if(room>.8){const s=.55+.35*r2,st=.14,hh=.28+.35*r3;emitAquaBox(w,wx+.5-st/2,fy-.04,wz+.5-st/2,st,hh,st,1,c.map(v=>v*.8));emitAquaBox(w,wx+.5-s/2+ox*.3,fy-.04+hh,wz+.5-s/2+oz*.3,s,.1,s,3,c)}
-  return}
+ // Sea: coral reefs in warm shallow stretches (dense cores, reef, a sparse fringe), kelp forests on deeper rock, seagrass meadows on
+ // shallow sand, rock gardens here and there, sparse life in the deep.
+ const reef=aquaZone(wx&15,wz&15,0)*smooth(1.2,3,D)*(1-smooth(10,16,D)),kz=aquaZone(wx&15,wz&15,25)*smooth(4,7,D)*(1-smooth(22,30,D))*(1-Math.min(1,reef*2));
+ if(reef>.03){const core=smooth(.35,.65,reef),rk=pn(wx/7+41.3,wz/7+17.9)*.5+.5,rockish=rocky||rk>.62-.08*core;let did=false;
+  if(r1<Math.min(.95,(reef<.2?reef*1.4:.3+.8*reef)*(.75+.5*clump))){let y=fy,rm=room;did=true;
+   // Reef rocks: boulders in the rocky patches of a reef, with coral growing on top of them.
+   if(core>.1&&rk>.66&&r3<.75&&room>1.5){const s=.62+.36*r2,h=Math.min(room-.9,.4+.5*aqh(wx*5+9,wz*3+1,23)),c=REEF_ROCK[Math.floor(aqh(wx*3+5,wz*9+1,29)*3)];
+    emitAquaBox(w,wx+.5-s/2+ox*.3,fy-.04,wz+.5-s/2+oz*.3,s,h+.04,s*(.8+.3*r3),4,c);y=fy+h;rm=room-h}
+   const u=aqh(wx*19+5,wz*37+2,7),sh=rockish?(u<.34?0:u<.48?1:u<.58?2:u<.78?3:u<.92?4:5):(u<.12?0:u<.4?1:u<.6?2:u<.74?3:u<.92?4:5);
+   emitCoral(w,wx,y,wz,rm,sh,coralColor(wx,wz,aqh(wx*3+71,wz*43+9,8),r2),r2,r3,ox,oz,core)}
+  // Between the colonies of a core: a soft coral, a small fan or a tuft of seagrass, so the floor never shows bare gaps.
+  if(core>.25&&room>.35&&aqh(wx*29+3,wz*31+7,24)<.6*core){const k=aqh(wx*17+5,wz*13+9,28),fx=ox>0?ox-.32:ox+.32,fz=oz>0?oz-.32:oz+.32;did=true;
+   if(k<.3)emitAquaPlant(w,wx,fy,wz,6,coralColor(wx+7,wz+3,k*2,r3),Math.min(room,.28+.25*r3),fx,fz,0);
+   else if(k<.45&&room>.5)emitAquaPlant(w,wx,fy,wz,5,coralColor(wx+3,wz+9,1-k,r2),Math.min(room,.4+.3*r3),fx,fz,0);
+   else if(k<.8)emitAquaPlant(w,wx,fy,wz,0,pick(AQ_GRASS,r3),Math.min(room,.3+.4*r2),fx,fz,0);
+   else emitAquaPlant(w,wx,fy,wz,3,pick(AQ_MOSS,r3),.22+.2*r2,fx,fz,0)}
+  // Longer weed around the edges of a reef.
+  if(!did&&reef<.35&&room>1.6&&r1>.86){emitAquaPlant(w,wx,fy,wz,r2<.5?2:1,pick(r2<.5?AQ_KELP:AQ_WEED,r3),Math.min(room-.2,1.2+1.6*r2),ox,oz,0);return}
+  if(did)return}
  if(kz>.05&&room>2&&r1<kz*(rocky?.55:.32)*(.5+clump)){const t=Math.min(room-.2,2.4+r2*Math.min(9,D*.6));emitAquaPlant(w,wx,fy,wz,2,pick(AQ_KELP,r3),t,ox,oz,0);return}
  if(sand&&D<=9&&room>.35&&r1<(.05+.55*meadow)*light*(1-reef*.6)){emitAquaPlant(w,wx,fy,wz,0,pick(AQ_GRASS,r2),Math.min(room,.35+.75*r2*(.6+.4*meadow)),ox,oz,0);return}
  if(rocky&&r1>.9-(.12*light)&&room>2&&D<26){emitAquaPlant(w,wx,fy,wz,2,pick(AQ_KELP,r3),Math.min(room-.2,1.4+2*r2),ox,oz,0);return}
+ // Rock gardens: loose clusters of boulders on the open floor.
+ const rg=smooth(.64,.8,pn(wx/26+7.7,wz/26+93.1)*.5+.5);
+ if(rg>0&&D>=2&&room>.9&&r1>1-.3*rg){const s=.35+.5*r2,h=Math.min(room-.3,s*(.6+.5*r3)),c=REEF_ROCK[Math.floor(aqh(wx*3+5,wz*9+1,29)*3)];
+  emitAquaBox(w,wx+.5-s/2+ox*.6,fy-.04,wz+.5-s/2+oz*.6,s,h+.04,s*(.75+.4*r3),4,c);return}
  if(r1>.965)aquaPebble(w,wx,fy,wz,r2,r3);
  else if(r1>.94&&room>.3)emitAquaPlant(w,wx,fy,wz,3,pick(AQ_MOSS,r2),.22+.22*r2,ox,oz,0)}
+// Coral colour: neighbouring colonies share a hue family (8-block cells), with related and random hues mixed in.
+function coralColor(wx,wz,u,v){const f=Math.floor(aqh(wx>>3,wz>>3,21)*7),k=u<.5?f:u<.8?f+(v<.5?6:1):Math.floor(v*7),c=CORAL[k%7],b=.9+.2*aqh(wx*7+3,wz*11+5,22);
+ return[Math.min(1,c[0]*b),Math.min(1,c[1]*b),Math.min(1,c[2]*b)]}
+// One coral colony standing at y (the floor or a reef rock), at most room tall; core makes colonies bigger.
+// Shapes: 0 branching, 1 round, 2 table, 3 finger, 4 small and colourful, 5 tube.
+function emitCoral(w,wx,y,wz,room,sh,c,r2,r3,ox,oz,core){const X=wx+.5+ox*.5,Z=wz+.5+oz*.5,big=.8+.35*core,y0=y-.04;if(room<.3)return;
+ if(sh===0&&room>.6){if(core>.3&&r3<.55&&room>.9)coralStag(w,X,y,Z,room,c,r2,r3,big,wx,wz);else emitAquaPlant(w,wx,y,wz,4,c,Math.min(room,(.6+.8*r2)*big),ox,oz,0);return}
+ if(sh===1||sh===0){const s=Math.min(1,(.45+.4*r2)*big),h=Math.min(room-.05,(.3+.3*r3)*big); // a dome of three slabs with brain grooves
+  emitAquaBox(w,X-s*.43,y0,Z-s*.43,s*.86,h*.35+.04,s*.86,0,c);emitAquaBox(w,X-s/2,y+h*.35,Z-s/2,s,h*.4,s,0,c);emitAquaBox(w,X-s*.35,y+h*.75,Z-s*.35,s*.7,h*.25,s*.7,0,c);return}
+ if(sh===2&&room>.6){const s=Math.min(1.05,(.55+.4*r2)*big),hh=Math.min(room-.25,.22+.35*r3),st=.15,dk=c.map(v=>v*.75); // a plate on a short stem, sometimes a second tier
+  emitAquaBox(w,X-st/2,y0,Z-st/2,st,hh+.04,st,1,dk);emitAquaBox(w,X-s/2,y+hh,Z-s/2,s,.1,s,3,c);
+  if(r2>.55&&room>hh+.55){const t=s*.55,d=(r3-.5)*.5;emitAquaBox(w,X+d-.05,y+hh+.1,Z-d-.05,.1,.22,.1,1,dk);emitAquaBox(w,X+d-t/2,y+hh+.32,Z-d-t/2,t,.08,t,3,c)}return}
+ if(sh===3||sh===2){const n=4+Math.floor(r2*4),hb=Math.min(room-.05,(.3+.35*r3)*big); // finger coral: a dense tuft of upright fingers
+  for(let i=0;i<n;i++){const a=i*2.39996+r3*6,d=i?.08+.05*i:0,tw=.09+.04*aqh(wx+i*5,wz*7+i,25),th=hb*(.55+.45*aqh(wx*3+i*13,wz+i*7,26));
+   emitAquaBox(w,X+Math.cos(a)*d-tw/2,y0,Z+Math.sin(a)*d-tw/2,tw,th+.04,tw,5,c)}return}
+ if(sh===4){const k=aqh(wx*23+1,wz*19+3,27); // small and colourful: a sea fan, a soft coral or a few button corals
+  if(k<.4&&room>.5)emitAquaPlant(w,wx,y,wz,5,c,Math.min(room,.45+.5*r2),ox,oz,0);
+  else if(k<.75)emitAquaPlant(w,wx,y,wz,6,c,Math.min(room,.3+.3*r2),ox,oz,0);
+  else{const n=2+Math.floor(r3*3);for(let i=0;i<n;i++){const a=i*2.4+r2*6,d=i?.16+.06*i:0,s=Math.min(room-.05,.12+.1*aqh(wx*5+i,wz*3+i*7,30));
+   emitAquaBox(w,X+Math.cos(a)*d-s/2,y0,Z+Math.sin(a)*d-s/2,s,s*.8+.04,s,0,coralColor(wx+i*5,wz-i*3,.9,aqh(wx+i,wz*7-i,31)))}}return}
+ const n=2+Math.floor(r2*3);for(let i=0;i<n;i++){const a=i*2.4+r3*6,d=i?.2+.08*i:0,tw=.14+.06*aqh(wx+i*7,wz*3+1,9),th=Math.min(room-.1,(.35+.7*aqh(wx*3+i,wz+i*11,10))*big); // tube coral
+  emitAquaBox(w,X+Math.cos(a)*d-tw/2,y0,Z+Math.sin(a)*d-tw/2,tw,th+.04,tw,1,c)}}
+// Staghorn coral: a short trunk with arms that turn upward, and a central leader (axis-aligned boxes only).
+function coralStag(w,X,y,Z,room,c,r2,r3,big,wx,wz){const tw=.13,th=Math.min(room*.4,.16+.12*r2),n=3+Math.floor(r3*1.99),s0=Math.floor(r2*4),bw=.1;
+ emitAquaBox(w,X-tw/2,y-.04,Z-tw/2,tw,th+.04,tw,6,c.map(v=>v*.85));
+ for(let i=0;i<n;i++){const d=(s0+i)&3,dx=d===0?1:d===2?-1:0,dz=d===1?1:d===3?-1:0,L=(.16+.14*aqh(wx*7+i,wz*5+i*3,32))*big,yy=y+th*(.5+.4*aqh(wx+i*9,wz*3-i,33)),
+   e=tw/2+L,tH=Math.min(room-(yy-y)-bw-.08,(.22+.4*aqh(wx*11+i,wz*13+i,34))*big);
+  emitAquaBox(w,X+(dx?(dx>0?tw/2:-e):-bw/2),yy,Z+(dz?(dz>0?tw/2:-e):-bw/2),dx?L:bw,bw,dz?L:bw,6,c);
+  if(tH>.05)emitAquaBox(w,X+dx*(e-bw/2)-bw/2,yy+bw,Z+dz*(e-bw/2)-bw/2,bw,tH,bw,6,c)}
+ const cH=Math.min(room-th-.05,(.25+.35*r3)*big);if(cH>.05)emitAquaBox(w,X-bw/2,y+th,Z-bw/2,bw,cH,bw,6,c)}
 function aquaPebble(w,wx,fy,wz,r2,r3){const n=1+Math.floor(r3*3);for(let i=0;i<n;i++){const a=aqh(wx*7+i,wz*13+i*5,11)*6.283,d=i?.22+.1*i:0,s=.16+.24*aqh(wx*3+i*9,wz*7+2,12)*(i?.7:1),h=s*(.5+.35*r2),c=PEBBLE[Math.floor(aqh(wx+i*3,wz*5+i,13)*4)];
   emitAquaBox(w,wx+.5+Math.cos(a)*d-s/2,fy-.05,wz+.5+Math.sin(a)*d-s/2,s,h,s*(.8+.4*r3),2,c)}}
 const FLOWERS=['#e84837','#f5e4df','#f4d03f','#8a7ee0','#f08bb5'].map(rgb),LEGACY_FLOWERS=[rgb('#e84837'),rgb('#f5e4df')],LEGACY_GRASS=rgb('#609c35');
@@ -2320,24 +2413,26 @@ function drawLife(cam,F,env,fog,aspect,near,far){lifeF=F;lifeDrawn=0;fishDrawn=0
 // one school, picked from the water at a fixed point of the cell (kind, depth, floor, reef). Leaving and coming back recreates the
 // same school, so reloading chunks never multiplies fish; caps per quality bound the total. AI runs per school (target, steering,
 // obstacle probe); members only follow their slot in the formation and never enter a non-water cell. Nothing is saved.
-const FISH_CELL=24,FISH_Q={low:{fish:30,schools:7,r:44,draw:40,n:.6},standard:{fish:64,schools:12,r:60,draw:56,n:.85},high:{fish:100,schools:18,r:76,draw:72,n:1}};
+const FISH_CELL=24,FISH_Q={low:{fish:34,schools:8,r:44,draw:40,n:.6},standard:{fish:76,schools:15,r:60,draw:56,n:.85},high:{fish:116,schools:22,r:76,draw:72,n:1}};
 const fishCells=new Map(),fishSchools=[],fishPool=[],FB=new Float32Array(FISH_BATCH*24);let fishT=0,fishCount=0,fishDrawn=0;
 function fishOn(){return AQUA&&lifeMode!=='off'}
 // Water at a column: open sky (not a cave lake), depth D, floor block and the habitat tags with their weights.
 function fishWater(X,Z){if(peek(X,SEA,Z)!==10)return null;const ci=columns.get((X>>4)+','+(Z>>4));if(!ci||!ci.wk)return null;const k=(Z&15)*16+(X&15);if(!ci.wk[k])return null;
  let y=SEA;while(y>1){const t=peek(X,y,Z);if(t<0)return null;if(t!==10)break;y--}const D=SEA-y;if(D<1)return null;return{kind:ci.wk[k],D,bed:y+1,ft:peek(X,y,Z)}}
 function fishCellTags(X,Z,w){const t={};if(w.kind===2){t.river=1;return t}if(w.kind===3){t.lake=1;return t}
- const rz=reefZone(X,Z)*smooth(1.5,3,w.D)*(1-smooth(11,15,w.D));if(rz>.2)t.reef=rz;
+ const rz=reefZone(X,Z)*smooth(1.2,3,w.D)*(1-smooth(10,16,w.D));if(rz>.2)t.reef=rz;if(rz>.4)t.core=smooth(.4,.65,rz);
  if(w.D<8&&w.ft===6)t.shallow=1;if(w.D>=5&&w.D<20)t.sea=1;if(w.D>=16)t.deep=1;if(w.ft===3)t.rock=1;if(w.ft===6&&w.D>=2&&w.D<14)t.sand=1;return t}
-// The school a cell holds (deterministic), or null.
-function fishCellPlan(ci,cj){const R=(a,b)=>aqh(ci,cj,a*31+b);
- for(let a=0;a<4;a++){const X=ci*FISH_CELL+3+Math.floor(R(17+a,5)*(FISH_CELL-6)),Z=cj*FISH_CELL+3+Math.floor(R(29+a,11)*(FISH_CELL-6));if(X<2||Z<2||X>W-3||Z>W-3)continue;
-  const w=fishWater(X,Z);if(!w)continue;const tags=fishCellTags(X,Z,w),occ=w.kind===2?.6:w.kind===3?.65:tags.reef?.45+.45*tags.reef:tags.deep?.22:.36;
-  if(R(41,7)>=occ)return null;let tot=0;const ok=[];for(const sp of FISH_SPECIES){if(w.D<sp.minD)continue;let s=0;for(const k in tags)s+=(sp.hab[k]||0)*tags[k];if(s>0){ok.push([sp,s]);tot+=s}}
-  if(!tot)return null;let u=R(53,13)*tot;for(const [sp,s] of ok)if((u-=s)<=0)return{sp,X,Z,w,n:sp.herd[0]+Math.floor(R(61,17)*(sp.herd[1]-sp.herd[0]+1))};return null}
- return null}
+// The school a cell holds (deterministic), or null. Reef cells hold a second school (layer 1), so a reef is busier than open sea.
+function fishCellPlan(ci,cj,ly=0){const R=(a,b)=>aqh(ci+ly*7919,cj,a*31+b);let X=0,Z=0,w=null,tags=null,best=-1;
+ // Four fixed candidate points; the wettest reef point wins (else the first wet one), so reefs draw schools to them.
+ for(let a=0;a<4;a++){const x=ci*FISH_CELL+3+Math.floor(R(17+a,5)*(FISH_CELL-6)),z=cj*FISH_CELL+3+Math.floor(R(29+a,11)*(FISH_CELL-6));if(x<2||z<2||x>W-3||z>W-3)continue;
+  const ww=fishWater(x,z);if(!ww)continue;const t=fishCellTags(x,z,ww),sc=(t.reef||0)+(t.core||0);if(sc>best){best=sc;X=x;Z=z;w=ww;tags=t}}
+ if(!w||(ly&&!tags.reef))return null;
+ const occ=ly?.2+.4*tags.reef+.4*(tags.core||0):w.kind===2?.6:w.kind===3?.65:tags.reef?.65+.35*tags.reef:tags.deep?.2:.3;
+ if(R(41,7)>=occ)return null;let tot=0;const ok=[];for(const sp of FISH_SPECIES){if(w.D<sp.minD)continue;let s=0;for(const k in tags)s+=(sp.hab[k]||0)*tags[k];if(s>0){ok.push([sp,s]);tot+=s}}
+ if(!tot)return null;let u=R(53,13)*tot;for(const [sp,s] of ok)if((u-=s)<=0)return{sp,X,Z,w,n:sp.herd[0]+Math.floor(R(61,17)*(sp.herd[1]-sp.herd[0]+1))};return null}
 function fishZoneY(sp,bed,u){const top=SEA+.35,room=top-bed;
- if(sp.zone==='bottom')return bed+.05;if(sp.zone==='top')return Math.max(bed+.5,top-.4-u*Math.min(2,room*.5));
+ if(sp.zone==='bottom')return bed+.05;if(sp.zone==='low')return bed+Math.max(.3,Math.min(room-.6,.4+u*Math.min(1.6,room-1)));if(sp.zone==='top')return Math.max(bed+.5,top-.4-u*Math.min(2,room*.5));
  return bed+Math.min(room-.6,.8+u*Math.max(0,room-1.6))}
 function fishSpawn(plan,key){const sp=plan.sp,s=fishPool.pop()||{m:[]};const fq=FISH_Q[qualityName],n=Math.max(1,Math.round(plan.n*(sp.herd[1]>3?fq.n:1)));
  Object.assign(s,{sp,key,x:plan.X+.5,z:plan.Z+.5,y:fishZoneY(sp,plan.w.bed,Math.random()),yaw:Math.random()*6.283,pitch:0,speed:sp.sp*.5,tx:0,ty:0,tz:0,timer:0,hx:plan.X+.5,hz:plan.Z+.5,
@@ -2349,9 +2444,9 @@ function fishSpawn(plan,key){const sp=plan.sp,s=fishPool.pop()||{m:[]};const fq=
 function fishDrop(s){const i=fishSchools.indexOf(s);if(i<0)return;fishSchools.splice(i,1);fishCount-=s.n;fishPool.push(s)}
 // A fish point is wet when its cell is water and it stays below the surface.
 function fishWet(x,y,z,sp){if(y>SEA+.55)return false;return peek(Math.floor(x),Math.floor(y),Math.floor(z))===10&&peek(Math.floor(x),Math.floor(y+(sp.zone==='bottom'?.15:sp.h*.3)),Math.floor(z))===10}
-function fishTarget(s){const sp=s.sp,roam=sp.zone==='bottom'?7:sp.herd[1]>3?12:16;
+function fishTarget(s){const sp=s.sp,roam=sp.roam||(sp.zone==='bottom'?7:sp.herd[1]>3?12:16);
  for(let a=0;a<5;a++){const back=Math.hypot(s.x-s.hx,s.z-s.hz)>roam,ang=back?Math.atan2(s.hx-s.x,s.hz-s.z)+(Math.random()-.5)*1.2:s.yaw+(Math.random()-.5)*(sp.zone==='bottom'?3:2.2),
-   d=(sp.zone==='bottom'?2:4)+Math.random()*(sp.zone==='bottom'?5:9),X=Math.floor(s.x+Math.sin(ang)*d),Z=Math.floor(s.z+Math.cos(ang)*d);
+   d=Math.min(roam*.7,(sp.zone==='bottom'?2:4)+Math.random()*(sp.zone==='bottom'?5:9)),X=Math.floor(s.x+Math.sin(ang)*d),Z=Math.floor(s.z+Math.cos(ang)*d);
   const g=groundAt(X+.5,Z+.5,SEA,40);if(g<-1e7||g>SEA)continue;if(SEA+.35-g<sp.minD*.5)continue;const y=fishZoneY(sp,g,Math.random());
   if(!fishWet(X+.5,y,Z+.5,sp))continue;s.tx=X+.5;s.tz=Z+.5;s.ty=y;s.bed=g;s.timer=4+Math.random()*6;return true}
  s.tx=s.hx;s.tz=s.hz;s.timer=2;return false}
@@ -2360,13 +2455,14 @@ function updateFish(dt,focus){if(!AQUA)return;const stamp=perfEnabled?performanc
  const fq=FISH_Q[qualityName],R=Math.min(fq.r,Math.max(24,readyR*CHUNK)),cap=fq.fish*lifeScale;
  if((fishT-=dt)<=0&&readyR>=1){fishT=.3;pkX=1e9;
   // Forget cells (and their schools) out of range or unloaded, then visit a few new cells near the focus.
-  for(const [key,s] of fishCells){const ci=key>>12,cj=key&4095,cx=(ci+.5)*FISH_CELL,cz=(cj+.5)*FISH_CELL;
+  for(const [key,s] of fishCells){const ci=(key&0xffffff)>>12,cj=key&4095,cx=(ci+.5)*FISH_CELL,cz=(cj+.5)*FISH_CELL;
    if(Math.hypot(cx-focus.x,cz-focus.z)>R+FISH_CELL+20||(s&&peek(Math.floor(s.x),1,Math.floor(s.z))<0)){if(s)fishDrop(s);fishCells.delete(key)}}
-  let budget=caveUnder?0:4;const c0=Math.floor((focus.x-R)/FISH_CELL),c1=Math.floor((focus.x+R)/FISH_CELL),d0=Math.floor((focus.z-R)/FISH_CELL),d1=Math.floor((focus.z+R)/FISH_CELL);
-  for(let cj=d0;cj<=d1&&budget>0;cj++)for(let ci=c0;ci<=c1&&budget>0;ci++){if(ci<0||cj<0)continue;const key=ci*4096+cj;if(fishCells.has(key))continue;
+  let budget=caveUnder?0:6;const c0=Math.floor((focus.x-R)/FISH_CELL),c1=Math.floor((focus.x+R)/FISH_CELL),d0=Math.floor((focus.z-R)/FISH_CELL),d1=Math.floor((focus.z+R)/FISH_CELL);
+  for(let cj=d0;cj<=d1&&budget>0;cj++)for(let ci=c0;ci<=c1&&budget>0;ci++)for(let ly=0;ly<2&&budget>0;ly++){if(ci<0||cj<0)continue;const key=ci*4096+cj+ly*16777216;if(fishCells.has(key))continue;
+   if(ly&&!fishCells.get(ci*4096+cj))continue; // a second school only joins a cell that already has one
    if(Math.hypot((ci+.5)*FISH_CELL-focus.x,(cj+.5)*FISH_CELL-focus.z)>R)continue;
    if(peek((ci+.5)*FISH_CELL|0,1,(cj+.5)*FISH_CELL|0)<0)continue;budget--;
-   const plan=fishCellPlan(ci,cj);if(plan&&(fishCount+plan.n>cap||fishSchools.length>=fq.schools))continue; // full: try again later
+   const plan=fishCellPlan(ci,cj,ly);if(plan&&(fishCount+plan.n>cap||fishSchools.length>=fq.schools))continue; // full: try again later
    fishCells.set(key,plan?fishSpawn(plan,key):null)}}
  pkX=1e9;
  for(let i=fishSchools.length-1;i>=0;i--){const s=fishSchools[i];s.dist=Math.hypot(s.x-focus.x,s.z-focus.z);
