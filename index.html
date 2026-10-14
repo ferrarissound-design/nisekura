@@ -1133,6 +1133,8 @@ varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying 
 uniform vec3 eyeF;`+SKY_GLSL+WATER_GLSL+`
 void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col;float alpha=1.;vec3 w=rel+eyeF;
 if(mat>29.5){
+ // Hide reef shafts immediately when switching to low quality; cave shafts remain unchanged.
+ if(fract(mat)>.2&&wq<.5)discard;
  // Light shaft from a skylight chimney: a soft column that fades at its edges and ends, streaked a little, only while the sun is up.
  float edge=1.-abs(uv.x*2.-1.),sun=smoothstep(.12,.5,dirLight.y)*(1.-misc.x);
  alpha=.5*smoothstep(0.,.55,edge)*smoothstep(0.,.18,uv.y)*smoothstep(1.,.78,uv.y)*sun*(.65+.35*vnoise(vec2(uv.x*7.+w.x*.3,w.y*.12-vClk*.06)));
@@ -1850,7 +1852,7 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
    const y0=y+1,y1=c.top+5,cxm=c.px+.5,czm=c.pz+.5;
    if(y1-y0>4)for(const [ax,az] of[[1,0],[0,1]]){grow(waterW,36);const hw=3.2;vert(waterW,cxm-ax*hw,y0,czm-az*hw,1,1,1,0,0,30);vert(waterW,cxm-ax*hw,y1,czm-az*hw,1,1,1,0,1,30);vert(waterW,cxm+ax*hw,y1,czm+az*hw,1,1,1,1,1,30);vert(waterW,cxm+ax*hw,y0,czm+az*hw,1,1,1,1,0,30)}}}
  const key=cx+','+cz;let ch=chunks.get(key);if(!ch){ch={buffer:gl.createBuffer(),water:gl.createBuffer(),cx,cz};chunks.set(key,ch)}
- ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;ch.plantLvl=lvl;
+ ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;ch.plantLvl=lvl;ch.reefShafts=Q.water>=1;
  gl.bindBuffer(gl.ARRAY_BUFFER,ch.buffer);gl.bufferData(gl.ARRAY_BUFFER,opaqueW.a.subarray(0,opaqueW.n),gl.STATIC_DRAW);
  gl.bindBuffer(gl.ARRAY_BUFFER,ch.water);gl.bufferData(gl.ARRAY_BUFFER,waterW.a.subarray(0,waterW.n),gl.STATIC_DRAW);if(perfEnabled)perfSample('chunkMesh',performance.now()-stamp)}
 
@@ -1873,13 +1875,15 @@ function streamChunks(initial=false){
   for(let x=cx-R;x<=cx+R;x++)for(let z=cz-R;z<=cz+R;z++)if(chunkInWorld(x,z)&&!chunks.has(x+','+z))chunkQueue.push([x,z]);
   chunkQueue.sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])||(a[0]-cx)**2+(a[1]-cz)**2-(b[0]-cx)**2-(b[1]-cz)**2);
   computeReady();
-  relevelQueue=VEG?[...chunks.values()].filter(ch=>ch.plantLvl!==plantLevel(ch.cx,ch.cz)).map(ch=>[ch.cx,ch.cz]).sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])):[];
+  // Quality changes must also re-mesh already-loaded reef shafts (low <-> standard/high).
+  // Reuse the one-chunk-per-frame vegetation queue instead of rebuilding the world at once.
+  relevelQueue=(VEG||AQUA)?[...chunks.values()].filter(ch=>(VEG&&ch.plantLvl!==plantLevel(ch.cx,ch.cz))||(AQUA&&ch.reefShafts!==(Q.water>=1))).map(ch=>[ch.cx,ch.cz]).sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])):[];
  }
  let built=0;const start=performance.now();
  if(initial){while(chunkQueue.length&&Math.max(Math.abs(chunkQueue[0][0]-cx),Math.abs(chunkQueue[0][1]-cz))<=1){rebuild(...chunkQueue.shift());built++}}
  else while(chunkQueue.length&&built<(isTitleOpen()?1:4)&&(built===0||performance.now()-start<Q.budget*loadScale)){rebuild(...chunkQueue.shift());built++}
  // Plant detail rings follow the player one chunk per frame, after any missing terrain.
- if(!built&&!initial&&relevelQueue.length){const [x,z]=relevelQueue.shift(),ch=chunks.get(x+','+z);if(ch&&ch.plantLvl!==plantLevel(x,z))rebuild(x,z)}
+ if(!built&&!initial&&relevelQueue.length){const [x,z]=relevelQueue.shift(),ch=chunks.get(x+','+z);if(ch&&((VEG&&ch.plantLvl!==plantLevel(x,z))||(AQUA&&ch.reefShafts!==(Q.water>=1))))rebuild(x,z)}
  if(built)computeReady();
  return built
 }
