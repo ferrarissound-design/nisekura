@@ -798,6 +798,23 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  // Lower quality keeps fewer decorations (a subset), so phones pay less for the same reef.
  R(`player.x=${tier.spots.core[0]}.5;player.z=${tier.spots.core[1]}.5`);R("Q=QUALITY.low");const lo=quads(...tier.spots.core);R("Q=QUALITY[qualityName]");
  const key=q=>q.join(),hs=new Set(core.map(key));assert(lo.length<core.length*.8&&lo.every(q=>hs.has(key(q))),`low quality: a smaller subset (${lo.length}/${core.length})`);
+ // Sun shafts: slanted pale columns over reef cores only, none over plain sea, none on low quality; they end at the surface.
+ const shafts=(x,z)=>{R(`paused=false;player.x=${x}+.5;player.z=${z}+.5;player.y=70;streamChunks(true);for(let i=0;i<40;i++)streamChunks()`);let n=0,top=-1e9,bot=1e9;
+  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const o=JSON.parse(R(`(()=>{rebuild(${(x>>4)+dx},${(z>>4)+dz});const a=waterW.a,o=[];for(let i=0;i<waterW.n;i+=36){let code=a[i+8];code-=Math.floor(code/1024)*1024;if(code>=511.5)code-=512;if(code>=255.5)code-=256;const m=code-Math.floor((code+.5)/32)*32;if(m>30.3&&m<30.5)o.push([a[i+1],a[i+10],a[i+19],a[i+28]])}return JSON.stringify(o)})()`));
+   n+=o.length;for(const q of o)for(const y of q){top=Math.max(top,y);bot=Math.min(bot,y)}}return{n,top,bot}};
+ const sc=shafts(...tier.spots.core),sp=shafts(...tier.spots.plain);R("Q=QUALITY.low");const sl=shafts(...tier.spots.core);R("Q=QUALITY[qualityName]");
+ assert(sc.n>=4&&sp.n===0&&sl.n===0,`sun shafts over reefs only (core ${sc.n}, plain ${sp.n}, low ${sl.n})`);assert(sc.top<=63.8&&sc.bot>=40,'shafts run from the floor to the surface '+JSON.stringify(sc));
+ // Regression: switching quality while a reef chunk is already cached must update its shaft mesh.
+ // Discard far missing chunks in this focused scheduler test so existing cached chunks are checked first.
+ const [shaftCX,shaftCZ]=tier.spots.core.map(v=>v>>4),shaftKey=shaftCX+','+shaftCZ;
+ R(`Q=QUALITY.standard;qualityName='standard';paused=false;player.x=${tier.spots.core[0]}+.5;player.z=${tier.spots.core[1]}+.5;streamChunks(true);rebuild(${shaftCX},${shaftCZ})`);
+ assert.equal(R(`chunks.get('${shaftKey}').reefShafts`),true,'standard mesh starts with reef shafts enabled');
+ R("setQuality('low');streamChunks();chunkQueue.length=0");
+ for(let i=0;i<5;i++)R('streamChunks()');
+ assert.equal(R(`chunks.get('${shaftKey}').reefShafts`),false,'low quality removes cached reef shaft geometry');
+ R("setQuality('standard');streamChunks();chunkQueue.length=0");
+ for(let i=0;i<5;i++)R('streamChunks()');
+ assert.equal(R(`chunks.get('${shaftKey}').reefShafts`),true,'standard quality restores cached reef shafts');
  // Fish: a core holds more fish than plain sea, reef species live there, and reef cells host a second school.
  const sim=(x,z,secs)=>{R(`paused=false;fishSchools.length&&fishSchools.splice(0);fishCells.clear();fishCount=0;lifeMode='all';player.x=${x}+.5;player.z=${z}+.5;player.y=75;flying=true;streamChunks(true);for(let i=0;i<60;i++)streamChunks();fishT=0`);
   for(let k=0;k<secs*10;k++)R('updateFish(.1,player)');return J(`fishSchools.filter(s=>Math.hypot(s.hx-player.x,s.hz-player.z)<40).map(s=>({id:s.sp.id,n:s.n,key:s.key}))`)};
@@ -805,7 +822,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert(cnt(fc)>cnt(fp)&&fc.filter(s=>reefIds.includes(s.id)).length>=2,`reef fish gather at a core (${cnt(fc)} fish: ${fc.map(s=>s.id)}) vs plain sea (${cnt(fp)}: ${fp.map(s=>s.id)})`);
  assert(fc.some(s=>s.key>=16777216),'reef cells host a second school');assert(!fp.some(s=>['kakure','chocho','hatatate'].includes(s.id)),'core fish stay at reefs');
  assert.deepEqual(sim(...tier.spots.core,30).map(s=>s.key+s.id).sort(),fc.map(s=>s.key+s.id).sort(),'the same reef schools every visit');
- console.log(`PASS: coral reefs: tiers ${tier.t.map(v=>v.toFixed(2)).join('/')} (plain/fringe/reef/core), core forms ${forms} + rocks, hues ${[...bins]}, ${nc} vs ${np} coral quads, low ${lo.length}/${core.length}, fish ${cnt(fc)} (${[...new Set(fc.map(s=>s.id))]}) vs ${cnt(fp)}`)}
+ console.log(`PASS: coral reefs: sun shafts ${sc.n}, tiers ${tier.t.map(v=>v.toFixed(2)).join('/')} (plain/fringe/reef/core), core forms ${forms} + rocks, hues ${[...bins]}, ${nc} vs ${np} coral quads, low ${lo.length}/${core.length}, fish ${cnt(fc)} (${[...new Set(fc.map(s=>s.id))]}) vs ${cnt(fp)}`)}
 // ---- v8: river stretches that used to be dry sand beds hold water; v7 worlds keep their exact terrain (recorded before v8).
 {const hashStep=(h,v)=>Math.imul(h^v,16777619);
  const v7=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:7,seed:73219,changes:[],inventory:{}})),r7=c=>run(v7,c);

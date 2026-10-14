@@ -154,7 +154,7 @@ body:has(#eggs:not(.hidden)) .top,body:has(#eggs:not(.hidden)) #stick,body:has(#
 body:has(#eggs:not(.hidden)) #compass{display:none!important}
 @media(max-height:480px){#eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px)}#eggGrid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))}#eggGrid .egg{min-height:68px}#eggGrid .egg canvas{width:38px;height:38px}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>CORAL REEF · v13.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>CORAL REEF · v13.1</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
  <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -174,7 +174,7 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v13.0</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v13.1</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -881,11 +881,12 @@ vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,sqrt(clamp(y,0
 vec3 caveGlow(float t){return t<1.5?vec3(.30,.55,1.):t<2.5?vec3(.72,.38,1.):vec3(.22,.95,.58);}
 // Light lost per block of water: red first, then green, so depth turns sand turquoise and then blue.
 const vec3 WABS=vec3(.22,.055,.038);
-vec3 underCol(float cd){float k=smoothstep(0.,26.,cd);return mix(vec3(.11,.42,.44),vec3(.03,.15,.33),k)*min(vec3(1.),ambCol*1.5+dirCol*.35);}
+// Shallow water is a clear, bright azure (reefs read from far away); with depth it closes in to a dark blue.
+vec3 underCol(float cd){float k=smoothstep(0.,26.,cd);return mix(vec3(.09,.45,.66),vec3(.03,.15,.33),k)*min(vec3(1.),ambCol*1.5+dirCol*.35);}
 vec3 fogMix(vec3 c,vec3 rel,float wy){float d=length(rel);vec3 dir=rel/max(d,.001);
  // Underwater (fogP.w = 1 + camera depth): colours shift toward blue-green with distance; light glows from the surface above.
  if(fogP.w>.5){float cd=fogP.w-1.,k=smoothstep(0.,26.,cd);vec3 u=underCol(cd)+dirCol*.07*pow(max(dir.y,0.),3.)*(1.-k);
-  u*=1.-.85*misc.w;return mix(c*exp(-WABS*d*.35),u,1.-exp(-d*mix(.045,.07,k)));}
+  u*=1.-.85*misc.w;return mix(c*exp(-WABS*d*.35),u,1.-exp(-d*mix(.03,.07,k)));}
  float f=1.-exp(-pow(d/fogP.x,1.6));f*=1.-.45*clamp((wy-${SEA+25}.)/140.,0.,1.);f=max(f,smoothstep(fogP.y,fogP.z,d));
  return mix(c,mix(skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),vec3(.022,.03,.056),misc.w),clamp(f,0.,1.));}
 vec3 faceNormal(float f){return f<.5?vec3(1.,0.,0.):f<1.5?vec3(-1.,0.,0.):f<2.5?vec3(0.,1.,0.):f<3.5?vec3(0.,-1.,0.):f<4.5?vec3(0.,0.,1.):f<5.5?vec3(0.,0.,-1.):vec3(0.,1.,0.);}
@@ -1132,10 +1133,14 @@ varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying 
 uniform vec3 eyeF;`+SKY_GLSL+WATER_GLSL+`
 void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col;float alpha=1.;vec3 w=rel+eyeF;
 if(mat>29.5){
+ // Hide reef shafts immediately when switching to low quality; cave shafts remain unchanged.
+ if(fract(mat)>.2&&wq<.5)discard;
  // Light shaft from a skylight chimney: a soft column that fades at its edges and ends, streaked a little, only while the sun is up.
  float edge=1.-abs(uv.x*2.-1.),sun=smoothstep(.12,.5,dirLight.y)*(1.-misc.x);
  alpha=.5*smoothstep(0.,.55,edge)*smoothstep(0.,.18,uv.y)*smoothstep(1.,.78,uv.y)*sun*(.65+.35*vnoise(vec2(uv.x*7.+w.x*.3,w.y*.12-vClk*.06)));
- c=vec3(1.,.93,.76)*1.5;if(alpha<.004)discard;gl_FragColor=vec4(c,alpha);return;}
+ c=vec3(1.,.93,.76)*1.5;
+ if(fract(mat)>.2){alpha*=.62*smoothstep(.2,.6,uv.y+.2)*(.8+.4*uv.y);c=vec3(.78,.94,1.)*1.45;} // sea shaft: bluer, brightest near the surface
+ if(alpha<.004)discard;gl_FragColor=vec4(c,alpha);return;}
 else if(mat<9.5){float edge=step(.94,max(abs(uv.x-.5),abs(uv.y-.5))*2.);float shine=step(.91,mod(uv.x+uv.y,.9));c=mix(col*.70,vec3(.86,.96,1.),max(edge,shine*.65));alpha=.22+edge*.48+shine*.12;}
 else{
  // Water: col.r = depth (0..1 for 0..30 blocks), col.g = shore nearness (1 at the land edge, 0 from 3.5 blocks out),
@@ -1835,13 +1840,19 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
  if(AQUA&&info&&info.wk){const ak=(lvl?.55:1)*(.3+.7*Q.plant);let zones=false;
   for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const k=z*16+x;if(!info.wk[k])continue;const col=(z+1)*PW+x+1;let y=SEA;if(pad[(y+1)*PA+col]!==10)continue;
    while(y>1&&pad[(y+1)*PA+col]===10)y--;const ft=pad[(y+1)*PA+col];if(ft!==2&&ft!==3&&ft!==6)continue;if(!zones&&info.wk[k]===1){aquaZones(x0,z0);zones=true}emitAqua(opaqueW,x0+x,z0+z,y+1,SEA-y,ft,info.wk[k],ak)}}
+ // Sun shafts over reef cores: slanted pale columns from the surface down to the floor (one per 8x8 block cell at most; not on low quality).
+ if(AQUA&&info&&info.wk&&Q.water>=1){for(let j=0;j<2;j++)for(let i=0;i<2;i++){const lx=i*8+1+Math.floor(aqh(x0+i*8,z0+j*8,41)*6),lz=j*8+1+Math.floor(aqh(x0+i*8,z0+j*8,42)*6),wx=x0+lx,wz=z0+lz;
+   if(info.wk[lz*16+lx]!==1||aqh(wx,wz,43)>.75)continue;const col=(lz+1)*PW+lx+1;if(pad[(SEA+1)*PA+col]!==10)continue;
+   let y=SEA;while(y>1&&pad[(y+1)*PA+col]===10)y--;const D=SEA-y;if(D<3||D>16||reefZone(wx,wz)*smooth(1.2,3,D)*(1-smooth(10,16,D))<.4)continue;
+   const y0=y+1,y1=SEA+.85,cxm=wx+.5,czm=wz+.5,sx=-(y1-y0)*.34,sz=-(y1-y0)*.2,hw=2.3+1.6*aqh(wx,wz,44);
+   for(const [ax,az] of[[1,0],[0,1]]){grow(waterW,36);vert(waterW,cxm+sx-ax*hw,y0,czm+sz-az*hw,1,1,1,0,0,30.4);vert(waterW,cxm-ax*hw,y1,czm-az*hw,1,1,1,0,1,30.4);vert(waterW,cxm+ax*hw,y1,czm+az*hw,1,1,1,1,1,30.4);vert(waterW,cxm+sx+ax*hw,y0,czm+sz+az*hw,1,1,1,1,0,30.4)}}}
  // Light shafts: each skylight chimney gets two crossed translucent quads from its mouth down to the floor or the lake (drawn in the water pass).
  if(CAVES){const cell=caveCell(cx>>4,cz>>4);if(cell)for(const cm of cell.chambers){const c=cm.chimney;if(!c||c.px<x0||c.px>=x0+CHUNK||c.pz<z0||c.pz>=z0+CHUNK)continue;
    const pc=(c.pz-z0+1)*PW+c.px-x0+1;let y=Math.min(H-2,Math.floor(c.top)+3);while(y>2&&!pad[(y+1)*PA+pc])y--;
    const y0=y+1,y1=c.top+5,cxm=c.px+.5,czm=c.pz+.5;
    if(y1-y0>4)for(const [ax,az] of[[1,0],[0,1]]){grow(waterW,36);const hw=3.2;vert(waterW,cxm-ax*hw,y0,czm-az*hw,1,1,1,0,0,30);vert(waterW,cxm-ax*hw,y1,czm-az*hw,1,1,1,0,1,30);vert(waterW,cxm+ax*hw,y1,czm+az*hw,1,1,1,1,1,30);vert(waterW,cxm+ax*hw,y0,czm+az*hw,1,1,1,1,0,30)}}}
  const key=cx+','+cz;let ch=chunks.get(key);if(!ch){ch={buffer:gl.createBuffer(),water:gl.createBuffer(),cx,cz};chunks.set(key,ch)}
- ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;ch.plantLvl=lvl;
+ ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;ch.plantLvl=lvl;ch.reefShafts=Q.water>=1;
  gl.bindBuffer(gl.ARRAY_BUFFER,ch.buffer);gl.bufferData(gl.ARRAY_BUFFER,opaqueW.a.subarray(0,opaqueW.n),gl.STATIC_DRAW);
  gl.bindBuffer(gl.ARRAY_BUFFER,ch.water);gl.bufferData(gl.ARRAY_BUFFER,waterW.a.subarray(0,waterW.n),gl.STATIC_DRAW);if(perfEnabled)perfSample('chunkMesh',performance.now()-stamp)}
 
@@ -1864,13 +1875,15 @@ function streamChunks(initial=false){
   for(let x=cx-R;x<=cx+R;x++)for(let z=cz-R;z<=cz+R;z++)if(chunkInWorld(x,z)&&!chunks.has(x+','+z))chunkQueue.push([x,z]);
   chunkQueue.sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])||(a[0]-cx)**2+(a[1]-cz)**2-(b[0]-cx)**2-(b[1]-cz)**2);
   computeReady();
-  relevelQueue=VEG?[...chunks.values()].filter(ch=>ch.plantLvl!==plantLevel(ch.cx,ch.cz)).map(ch=>[ch.cx,ch.cz]).sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])):[];
+  // Quality changes must also re-mesh already-loaded reef shafts (low <-> standard/high).
+  // Reuse the one-chunk-per-frame vegetation queue instead of rebuilding the world at once.
+  relevelQueue=(VEG||AQUA)?[...chunks.values()].filter(ch=>(VEG&&ch.plantLvl!==plantLevel(ch.cx,ch.cz))||(AQUA&&ch.reefShafts!==(Q.water>=1))).map(ch=>[ch.cx,ch.cz]).sort((a,b)=>cheb(a[0],a[1])-cheb(b[0],b[1])):[];
  }
  let built=0;const start=performance.now();
  if(initial){while(chunkQueue.length&&Math.max(Math.abs(chunkQueue[0][0]-cx),Math.abs(chunkQueue[0][1]-cz))<=1){rebuild(...chunkQueue.shift());built++}}
  else while(chunkQueue.length&&built<(isTitleOpen()?1:4)&&(built===0||performance.now()-start<Q.budget*loadScale)){rebuild(...chunkQueue.shift());built++}
  // Plant detail rings follow the player one chunk per frame, after any missing terrain.
- if(!built&&!initial&&relevelQueue.length){const [x,z]=relevelQueue.shift(),ch=chunks.get(x+','+z);if(ch&&ch.plantLvl!==plantLevel(x,z))rebuild(x,z)}
+ if(!built&&!initial&&relevelQueue.length){const [x,z]=relevelQueue.shift(),ch=chunks.get(x+','+z);if(ch&&((VEG&&ch.plantLvl!==plantLevel(x,z))||(AQUA&&ch.reefShafts!==(Q.water>=1))))rebuild(x,z)}
  if(built)computeReady();
  return built
 }
@@ -2682,7 +2695,7 @@ function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayT
 function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,caveF);if(u.skyP)gl.uniform4f(u.skyP,cloudDrift,.5+.22*Math.sin(time*.0031+1.3)+.12*Math.sin(time*.0113),Q.sky,0);if(u.deckEye)gl.uniform3fv(u.deckEye,env.deckEye||[0,0,0])}
 function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>1?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
 // Same as underCol() in the shaders: the colour water fades to at the camera's depth.
-function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.11,.42,.44],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
+function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.09,.45,.66],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
 const visibleChunks=[];
 // ---- Underground state. caveF (0..1) says how enclosed the camera is: rays out of the camera escape to open air or hit rock, and the
 // camera must also be well below the natural surface, so houses and forests never count. It drives fog, the lantern and the far-view cut.
