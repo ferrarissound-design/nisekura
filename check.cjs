@@ -4,15 +4,15 @@ function boot(saved,session={},prefs={}){const nodes={},storage={...prefs},event
 const gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true,createBuffer:()=>({}),getAttribLocation:()=>1,bufferData:(_,data)=>{if(typeof data==='number'){assert(Number.isFinite(data)&&data>=0);return}assert(data.every(Number.isFinite));triangles+=data.length},bufferSubData:(_,offset,data)=>{assert(data.every(Number.isFinite));triangles+=data.length}}, {get:(o,k)=>k in o?o[k]:(()=>({}))});
 const node=()=>({style:{},classList:{values:new Set(),add(n){this.values.add(n)},remove(n){this.values.delete(n)},toggle(n,on){if(on)this.values.add(n);else this.values.delete(n)},contains(n){return this.values.has(n)}},setAttribute(){},focus(){},listeners:{},addEventListener(n,f){(this.listeners[n]??=[]).push(f)},appendChild(){},getContext:()=>gl,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:112,height:112})});
 const c={console,Math,Uint8Array,Float32Array,Map,Set,JSON,Number,Error,Date,performance:{now:()=>0},sessionStorage:{getItem:k=>session[k]||null,setItem:(k,v)=>session[k]=v,removeItem:k=>{delete session[k]}},localStorage:{getItem:k=>storage[k]||null,setItem:(k,v)=>storage[k]=v,removeItem:k=>{delete storage[k]}},document:{body:node(),getElementById:id=>nodes[id]??=node(),createElement:node,querySelectorAll:()=>[],hidden:false,addEventListener:(n,f)=>events[n]=f},matchMedia:()=>({matches:false}),requestAnimationFrame(){},innerWidth:800,innerHeight:600,devicePixelRatio:1};c.window=c;c.addEventListener=(n,f)=>windowEvents[n]=f;c.confirm=()=>true;c.location={pathname:'/jocraft/',href:'/jocraft/'};vm.createContext(c);vm.runInContext(script,c);return {gl,c,api:c.Nisekura,storage,get triangles(){return triangles},events,windowEvents,nodes,session}}
-const run=(b,code)=>vm.runInContext(code,b.c);
+const run=(b,code)=>vm.runInContext(code,b.c);const SEA0=62;
 function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++)for(let y=0;y<y1;y++){h^=api.get(x,y,z);h=Math.imul(h,16777619)}return h>>>0}
 
 // ---- New GRAND VISTA world: basics, saves, physics.
 const t0=Date.now();const a=boot();console.log(`boot new world: ${Date.now()-t0} ms`);
 assert(a.triangles>0);assert(!a.api.collides(a.api.player),'spawn must be clear');assert.equal(a.api.get(32,0,32),11);assert(a.api.collides({x:32.5,y:.5,z:32.5}));assert(a.api.collides({x:-1,y:25,z:30}));
-assert.equal(run(a,'terrainVersion'),8);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
+assert.equal(run(a,'terrainVersion'),9);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
 a.api.edit(30,30,30,8);assert(a.api.save());const b=boot(a.storage['nisekura-v1']);assert.equal(b.api.get(30,30,30),8,'world edit survives reload');assert(!b.api.collides(b.api.player));
-assert.equal(run(b,'terrainVersion'),8,'v8 save reloads as v8');
+assert.equal(run(b,'terrainVersion'),9,'v9 save reloads as v9');
 run(b,'paused=false;for(let i=0;i<120;i++)update(1/60)');assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(run(b,'ground'));
 console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
@@ -122,7 +122,7 @@ resetTest.windowEvents.pagehide();
 assert.equal(resetTest.storage['nisekura-v1'],undefined,'unload callbacks must not restore deleted saves');
 assert.equal(run(resetTest,'save()'),false,'autosave must remain disabled until navigation completes');
 const afterReset=boot(resetTest.storage['nisekura-v1']);
-assert.equal(run(afterReset,'terrainVersion'),8,'reset must activate new terrain generator');
+assert.equal(run(afterReset,'terrainVersion'),9,'reset must activate new terrain generator');
 assert.equal(run(afterReset,'SEA'),62,'new world sea level is 62');
 assert.equal(run(afterReset,'H'),192,'new world height is 192');
 console.log('PASS: new world reset survives blur, visibility and pagehide without resurrecting legacy terrain');
@@ -508,7 +508,7 @@ const SEA_=62;
 }
 {
  const K='nisekura-v1',A=K+'-protected',d=boot(legacy);d.api.edit(30,30,30,9);d.nodes.reset.onclick();assert.equal(d.storage[K],undefined);assert.equal(JSON.parse(d.storage[A]).changes.find(e=>e[0]===30+2048*(30+2048*30))[1],9,'reset checkpoints unsaved construction');
- const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),8,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
+ const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),9,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
  const failed=boot(legacy);failed.c.localStorage.setItem=()=>{throw Error('QuotaExceededError')};failed.nodes.reset.onclick();assert.equal(failed.storage[K],legacy);assert.equal(run(failed,'resettingWorld'),false);
  const auto=boot(legacy);run(auto,'paused=false;frame(16001)');assert(auto.storage[K]);assert(JSON.parse(auto.storage[K]).integrity);run(auto,'dayTime=.64');auto.c.document.hidden=true;auto.events.visibilitychange();assert.equal(JSON.parse(auto.storage[K]).dayTime,.64);
  run(auto,'dayTime=.65');auto.windowEvents.pagehide();assert.equal(JSON.parse(auto.storage[K]).dayTime,.65);
@@ -691,10 +691,10 @@ const SEA_=62;
  const srcHas=()=>R(`(()=>{const l=glowSources(${px>>4},${pz>>4},voxelChunk(${px>>4},${pz>>4}));for(let i=0;i<l.length;i+=4)if(l[i]===${px}&&l[i+1]===${py+3}&&l[i+2]===${pz})return true;return false})()`);
  assert.equal(srcHas(),true,'the placed crystal is a light source');d.api.edit(px,py+3,pz,0);assert.equal(srcHas(),false,'removing it drops it from the light sources');
  R('toggleFlight()');R('keys.Space=true;for(let i=0;i<30;i++)update(1/60);delete keys.Space');assert(R('flying')&&!R('collides(player)'),'flying inside a cave');
- d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),8);
+ d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),9);
  assert.equal(run(re,`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),R(`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),'reloading does not change the caves');
  // Save format: new block ids are accepted, the unused plant-material ids are not, and future versions are rejected.
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},false]]){
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},false]]){
   const t=()=>run(d,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  console.log(`PASS: caves: lake ${lk.water} water voxels (${lk.exposed} open sides), ${cr.n} crystals lighting ${cr.glowFaces} faces, ${dec.hang}/${dec.stand} stalactites/stalagmites, underground factor ${deep.toFixed(2)}, ${spots} spots visited, edits/save/validation`)}
 {// Underground life: dark-loving monsters appear on cave floors only, and the surface is left alone while the player is below.
@@ -844,8 +844,91 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert.deepEqual(tiles,[{h:4013535438,n:14232},{h:1573468157,n:24252},{h:2652048814,n:4180}],'v7 far tiles are identical');
  // Dry sand beds on river centre lines near sea level: v7 against v8 on the same seed.
  const dry=b=>JSON.parse(run(b,`(()=>{let wet=0,dry=0;for(let z=40;z<W-40;z+=4)for(let x=40;x<W-40;x+=4){if(Math.abs(riverField(x,z))>.006)continue;const h=height4(x,z);if(gLand<=0||smooth(-.12,.18,pn(x/900+60.1,z/900+12.3))<=0)continue;if(h<SEA)wet++;else if(h<=SEA+2)dry++}return JSON.stringify({wet,dry})})()`));
- const d7=dry(v7),v8=boot(),d8=dry(v8);assert.equal(run(v8,'terrainVersion'),8);
+ const d7=dry(v7),v8=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:8,seed:73219,changes:[],inventory:{}})),d8=dry(v8);assert.equal(run(v8,'terrainVersion'),8);
  assert(d8.dry<d7.dry*.25&&d8.wet>d7.wet,`v8 fills most dry river beds (${d7.dry} -> ${d8.dry} dry, ${d7.wet} -> ${d8.wet} wet)`);
  // The far view agrees with the near terrain (the LOD worker serialises height4 with the version).
  assert(run(v8,'lodWorkerSource()').includes('terrainVersion>=8&&h>SEA-3'),'worker carries the v8 river rule');
  console.log(`PASS: v8 rivers: dry sand beds ${d7.dry} -> ${d8.dry}, wet centre line ${d7.wet} -> ${d8.wet}; v7 worlds keep identical terrain, blocks, near meshes and far tiles`)}
+// ---- v9 WONDERS: canyons, waterfalls, arches, rock windows and sea-floor landforms; v8 worlds keep their exact terrain (recorded before v9).
+{const hashStep=(h,v)=>Math.imul(h^v,16777619);
+ const v8=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:8,seed:73219,changes:[],inventory:{}})),r8=c=>run(v8,c);
+ assert.equal(r8('terrainVersion'),8);assert.equal(r8('WON'),false,'v8 worlds build no wonders');assert.equal(r8('WLIST.length+WF.length+WA.length'),0);
+ assert.equal(r8(`(()=>{let h=2166136261;for(let x=64;x<2048;x+=37)for(let z=64;z<2048;z+=41){h^=height4(x,z);h=Math.imul(h,16777619)}return h>>>0})()`),1998421872,'v8 heights');
+ const blk=[[960,704,64],[1100,600,64],[500,1500,64],[1180,900,64],[400,420,64],[1650,700,64]].map(([x0,z0,n])=>{let h=2166136261;for(let x=x0;x<x0+n;x++)for(let z=z0;z<z0+n;z++)for(let y=20;y<180;y++)h=hashStep(h,v8.api.get(x,y,z));return h>>>0});
+ assert.deepEqual(blk,[3372455204,3643137044,3480147517,1447613522,1736089219,2630077258],'v8 blocks are byte-identical');
+ const meshes=[[62,48],[69,39],[74,40],[61,50]].map(([cx,cz])=>{r8(`rebuild(${cx},${cz})`);return JSON.parse(r8(`(()=>{let h=2166136261,n=0;for(const w of[opaqueW,waterW]){const a=w.a;for(let i=0;i<w.n;i+=36){n+=36;for(let k=i;k<i+36;k++){h^=Math.round(a[k]*1000);h=Math.imul(h,16777619)}}}return JSON.stringify({h:h>>>0,n})})()`))});
+ assert.deepEqual(meshes,[{h:3466480933,n:42480},{h:3148664237,n:26316},{h:162066211,n:35748},{h:1248027087,n:31608}],'v8 near meshes (terrain, water and decorations) are identical');
+ const tiles=[[8,512,1024],[2,1088,576],[16,1536,0]].map(([s,x,z])=>JSON.parse(r8(`(()=>{const it=tileMesh(${s},${x},${z});let q;while(!(q=it.next()).done);let h=2166136261;for(let i=0;i<lw.n*12;i++){h^=lw.u8[i];h=Math.imul(h,16777619)}return JSON.stringify({h:h>>>0,n:lw.n})})()`)));
+ assert.deepEqual(tiles,[{h:3593889150,n:14172},{h:3175642778,n:22984},{h:2652048814,n:4180}],'v8 far tiles are identical');
+ assert.equal(r8('JSON.stringify(vista)'),'{"x":992,"z":736,"yaw":0,"eye":121.5}','v8 start point unchanged');
+ // New worlds: every kind of wonder exists, the list is a pure function of the seed, giants stay rare and wonders keep apart.
+ const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`)),G=(x,y,z)=>d.api.get(Math.floor(x),Math.floor(y),Math.floor(z));
+ assert.equal(R('terrainVersion'),9);
+ const L=J('WLIST.map(s=>({k:s.kind,x:s.x,z:s.z,size:s.size,label:s.label}))'),count=k=>L.filter(s=>s.k===k).length;
+ for(const [k,n] of [['canyon',1],['falls',3],['arch',1],['hoodoo',1],['seaArch',1],['uwArch',1],['reefHill',1]])assert(count(k)>=n,`${k} exists (${count(k)})`);
+ assert(count('trench')+count('drop')>=1,'a trench or drop-off exists');
+ assert.equal(JSON.stringify(L),run(boot(),'JSON.stringify(WLIST.map(s=>({k:s.kind,x:s.x,z:s.z,size:s.size,label:s.label})))'),'same seed, same wonders');
+ assert(L.filter(s=>s.k==='falls'&&s.size>=60).length<=1&&count('arch')<=2,'giant falls and big arches are rare');
+ const pts=L.filter(s=>['arch','hoodoo','seaArch','uwArch','reefHill'].includes(s.k));for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++)assert(Math.hypot(pts[i].x-pts[j].x,pts[i].z-pts[j].z)>40,'wonders keep apart');
+ // Waterfalls: an unbroken sheet from the pool to the lip in open air, a stream at the lip level behind it, a pool that runs on to a river or the sea.
+ const F=J('WF.filter(f=>f.t===3)');let drops=[];
+ for(const f of F){const sx=f.x+f.dx,sz=f.z+f.dz;let wet=0;for(let y=SEA0+1;y<=f.wu;y++)if(G(sx,y,sz)===10)wet++;assert.equal(wet,f.wu-SEA0,`falls sheet is unbroken water (${wet}/${f.wu-SEA0})`);
+  let air=0;for(let y=SEA0+2;y<=f.wu;y++)if(G(f.x+f.dx*4,y,f.z+f.dz*4)===0)air++;assert(air>=(f.wu-SEA0-1)*.85,`the sheet falls through open air (${air}/${f.wu-SEA0-1})`);
+  assert.equal(G(f.x-f.dx*1.5,f.wu,f.z-f.dz*1.5),10,'the stream reaches the lip at the sheet level');assert(![0,10].includes(G(f.x-f.dx*1.5,f.wu-3,f.z-f.dz*1.5)),'the stream has a solid bed');
+  assert.equal(G(f.px,SEA0,f.pz),10,'the plunge pool holds water');drops.push(f.wu-SEA0)}
+ const conn=J(`WF.filter(f=>f.t===3).map(f=>{const q=[[Math.floor(f.px),Math.floor(f.pz)]],seen=new Set([q[0].join()]);let ok=false;
+  while(q.length&&seen.size<5000&&!ok){const [x,z]=q.shift();height4(x,z);if(gWF&8||gLand<=0||Math.hypot(x-f.x,z-f.z)>f.sl+f.pr*2+40){ok=true;break}
+   for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const k=(x+a)+','+(z+b);if(seen.has(k))continue;seen.add(k);if(get(x+a,SEA,z+b)===10)q.push([x+a,z+b])}}return ok})`);
+ assert(conn.every(Boolean),`every plunge pool runs on to a river or the sea (${conn})`);
+ // Canyons: a river at the bottom, walls 20+ blocks high with sheer steps, the same in the near field and in the far LOD worker.
+ const C=J('WF.find(f=>f.t===1)');let ci=-1;for(let i=1;i<C.P.length-2;i++)if(F.every(f=>Math.hypot(f.x-C.P[i][0],f.z-C.P[i][1])>C.P[i][4]+50)&&(ci<0||C.P[i][4]>C.P[ci][4]))ci=i;
+ const cp=C.P[ci],cq=C.P[ci+1],cl=Math.hypot(cq[0]-cp[0],cq[1]-cp[1]),cnx=-(cq[1]-cp[1])/cl,cnz=(cq[0]-cp[0])/cl,h4=(x,z)=>d.api.height(Math.round(x),Math.round(z));
+ assert(h4(cp[0],cp[1])<SEA0,'the canyon floor holds its river');assert(h4(cp[0]+cnx*(cp[4]+3),cp[1]+cnz*(cp[4]+3))-SEA0>=20,'the canyon walls are tall');
+ let sheer=0;for(let s=cp[3];s<cp[4];s++){const a=h4(cp[0]+cnx*s,cp[1]+cnz*s),b=h4(cp[0]+cnx*(s+1),cp[1]+cnz*(s+1));if(b-a>=6)sheer++}assert(sheer>=1,'canyon walls have sheer steps');
+ const src=R('lodWorkerSource()');let out=null;const wc={Math,Int16Array,Uint8Array,Float32Array,ArrayBuffer,JSON,Number,Array,postMessage:m=>out=m};vm.createContext(wc);vm.runInContext(src,wc);
+ const A=J("WA.find(f=>f.t===4&&f.kind==='arch')"),tileOf=(x,z,s)=>[s,Math.floor(x/(s*32))*s*32,Math.floor(z/(s*32))*s*32];let fallQuads=0,rockQuads=0;
+ for(const [step,x0,z0] of [tileOf(cp[0],cp[1],2),tileOf(F[0].x+F[0].dx,F[0].z+F[0].dz,4),tileOf(F[0].x+F[0].dx,F[0].z+F[0].dz,16),tileOf(A.x,A.z,8),tileOf(A.x,A.z,2)]){wc.onmessage({data:{id:9,step,x0,z0}});
+  const main=JSON.parse(R(`(()=>{const it=tileMesh(${step},${x0},${z0});let r;while(!(r=it.next()).done);return JSON.stringify({r:r.value,b:Array.from(lw.u8.subarray(0,lw.n*12)),m:Array.from(lw.i16.subarray(0,lw.n*6)).filter((v,i)=>i%6===3)})})()`));
+  assert.equal(JSON.stringify(out.r),JSON.stringify(main.r),'worker bounds match on wonder tiles');assert.equal(out.bytes.length,main.b.length,'worker size matches on wonder tiles');for(let i=0;i<main.b.length;i+=29)assert.equal(out.bytes[i],main.b[i],'worker bytes match on wonder tiles');
+  fallQuads+=main.m.filter(m=>(m&7)===3).length/4;rockQuads+=main.r.ymax>0?1:0}
+ assert(fallQuads>=1,'falls show in the far LOD');
+ // Arches and rock windows: an opening that stays open (walk under, or swim under at sea), rock above it, and no loose blocks.
+ const rocks=J('WA.filter(f=>f.t===4)');const floating=[];
+ for(const f of rocks){const mid=f.N[Math.floor(f.N.length/2)];
+  if(f.kind==='hoodoo'){const hc=f.holes[0],hx=(hc[0][0]+hc[1][0])/2,hy=(hc[0][1]+hc[1][1])/2,hz=(hc[0][2]+hc[1][2])/2;assert([0,10].includes(G(hx,hy,hz)),'the rock window is open');
+   let above=0;for(let y=hy+hc[0][3]+1;y<hy+hc[0][3]+6;y++)if(G(f.N[4][0],y,f.N[4][2])===3||G(f.N[4][0],y,f.N[4][2])===1)above++;assert(above>=1,'rock stands above the window')}
+  else{const gx=mid[0],gz=mid[2];let y=Math.floor(mid[1]);while(y>2&&[3,1].includes(G(gx,y,gz)))y--;let open=0;while(y>2&&[0,10].includes(G(gx,y,gz))){open++;y--}
+   assert(open>=4,`${f.kind}: an opening at least 4 blocks tall under the crown (${open})`);let rock=0;for(let yy=Math.floor(mid[1]-mid[4]);yy<=Math.ceil(mid[1]+mid[4]);yy++)if([3,1].includes(G(gx,yy,gz)))rock++;assert(rock>=2,`${f.kind}: rock at the crown`)}
+  // Loose blocks: every rock voxel of the solid connects (6-neighbour) to the ground.
+  floating.push(R(`(()=>{const f=WA.find(q=>q.id===${JSON.stringify(f.id)}),b=f.bb,x0=Math.floor(b[0]),x1=Math.ceil(b[1]),z0=Math.floor(b[4]),z1=Math.ceil(b[5]),y0=Math.max(1,Math.floor(b[2])),y1=Math.min(H-3,Math.ceil(b[3]));
+   const nx=x1-x0+1,ny=y1-y0+1,nz=z1-z0+1,S=new Uint8Array(nx*ny*nz),id=(x,y,z)=>((y-y0)*nz+(z-z0))*nx+(x-x0);let total=0;
+   for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++){const t=get(x,y,z);if(t&&t!==10&&t!==5&&t!==4&&(t<13||t>16)){S[id(x,y,z)]=1;if(rockIn(f,x+.5,y+.5,z+.5))total++}}
+   const q=[];for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)if(S[id(x,y0,z)]){S[id(x,y0,z)]=2;q.push([x,y0,z])}
+   while(q.length){const [x,y,z]=q.pop();for(const [a,b,c] of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){const X=x+a,Y=y+b,Z=z+c;if(X<x0||X>x1||Y<y0||Y>y1||Z<z0||Z>z1)continue;const i=id(X,Y,Z);if(S[i]===1){S[i]=2;q.push([X,Y,Z])}}}
+   let loose=0;for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)if(S[id(x,y,z)]===1&&rockIn(f,x+.5,y+.5,z+.5))loose++;return loose})()`))}
+ assert(floating.every(n=>n===0),`no loose rock blocks in arches and rock windows (${floating})`);
+ // The hollow behind a fall: open, lit by crystals.
+ const al=J('WA.filter(f=>f.t===5)');for(const a of al){assert(a.cry.length>0,'crystals behind the fall');const c=a.cry.find(c=>c[3]!==29);if(c)assert.equal(G(c[0],c[1],c[2]),c[3],'crystal placed');assert.equal(G(a.x-a.dx*2,a.y0+1,a.z-a.dz*2),0,'the hollow behind the fall is open')}
+ // Sea floor: a reef hill rises toward the surface and carries corals on its floor (not floating); trenches cut deep.
+ const hill=J('WF.find(f=>f.t===2&&f.s===0)');assert(SEA0-h4(hill.x,hill.z)<=7,'the reef hill rises close to the surface');
+ const reef=J(`(()=>{rebuild(${Math.floor(hill.x/16)},${Math.floor(hill.z/16)});const a=opaqueW.a,out={coral:0,bad:0};for(let i=0;i<opaqueW.n;i+=36){let c=a[i+8];c-=Math.floor(c/1024)*1024;if(c>=511.5)c-=512;if(c>=255.5)c-=256;const face=Math.floor((c+.5)/32),m=c-face*32;if(m<30.5)continue;
+  let y=a[i+1],v0=9,lo=1e9,hi=-1e9;for(let k=0;k<4;k++){const X=a[i+k*9],Z=a[i+k*9+2];y=Math.min(y,a[i+k*9+1]);v0=Math.min(v0,a[i+k*9+7]);
+   for(const [ox,oz] of [[-.05,-.05],[.05,.05]]){let fy=SEA;while(fy>1&&get(Math.floor(X+ox),fy,Math.floor(Z+oz))===10)fy--;lo=Math.min(lo,fy+1);hi=Math.max(hi,fy+1)}}
+  out.coral++;if((face===6&&v0>.01)||face===2||face===3)continue; // upper plant segments and box tops/bottoms say nothing about support
+  if(y>hi+3)out.bad++}return out})()`); // a base more than 3 blocks above every floor under it (mound tops reach about 2.8) would float
+ assert(reef.coral>200&&reef.bad===0,`reef hill decorations sit on the floor (${reef.coral} quads, ${reef.bad} floating)`);
+ for(const t of J('WF.filter(f=>f.t===2&&f.s===1)')){let cut=0;for(let i=1;i<t.P.length-2;i++){const p=t.P[i],q=t.P[i+1],l=Math.hypot(q[0]-p[0],q[1]-p[1]),nx=-(q[1]-p[1])/l,nz=(q[0]-p[0])/l;
+  cut=Math.max(cut,Math.min(h4(p[0]+nx*(p[3]+4),p[1]+nz*(p[3]+4)),h4(p[0]-nx*(p[3]+4),p[1]-nz*(p[3]+4)))-h4(p[0],p[1]))}assert(cut>=8,`the trench cuts well below the sea bed on both sides (${cut})`)}
+ // Effects: spray, rainbow mist and ripples are meshed at the foot of each fall in every quality; the shader branches exist.
+ for(const q of ['low','standard','high']){R(`setQuality('${q}')`);const fx=J(`(()=>{const f=WF.find(f=>f.t===3);rebuild(Math.floor((f.x+f.dx*1.5)/16),Math.floor((f.z+f.dz*1.5)/16));let mist=0,ring=0;const a=waterW.a;for(let i=0;i<waterW.n;i+=36){const m=a[i+8];if(Math.abs(m-30.6)<.01)mist++;if(Math.abs(m-30.7)<.01)ring++}return{mist,ring}})()`);assert(fx.mist===3&&fx.ring===1,`falls effects in ${q} quality (${JSON.stringify(fx)})`)}
+ assert(d.api.waterFragmentSource.includes('v9 falling water')&&d.api.waterFragmentSource.includes('rainbow')&&d.api.lodFragmentSource.includes('v9 far falls'),'falls shaders');
+ // Discovery and the scenic tour: classic spots keep their order, wonders follow; each visit lands safely; finding one on foot names it once.
+ R('spotList=null;nextSpot()');const tour=J('spotList.map(s=>s.w?"w:"+s.w.kind:s.kind)');assert(tour.slice(0,12).every(k=>!k.startsWith('w:')),'classic spots first');assert(tour.filter(k=>k.startsWith('w:')).length===L.length,'every wonder is on the tour');
+ for(const k of ['falls','canyon','arch','hoodoo','uwArch']){R(`visitWonder(WLIST.find(s=>s.kind==='${k}'))`);assert(!d.api.collides(d.api.player),`${k} visit lands in open space`)}
+ R(`paused=false;wonderFound=null;localStorage.removeItem(WONDER_FOUND_KEY+seed);const s=WLIST.find(s=>s.kind==='falls');player.x=s.x+.5;player.z=s.z+.5;player.y=SEA+40;wonderNext=0;wonderTick(1)`);
+ const first=d.nodes.hint.textContent;assert.match(first,/絶景を発見/,'finding a wonder on foot names it');
+ for(let i=0;i<6;i++){R(`$('hint').textContent='';wonderNext=0;wonderTick(${i+2})`);assert.notEqual(d.nodes.hint.textContent,first,'a found wonder is not announced twice')}
+ assert.equal(J('JSON.parse(localStorage.getItem(WONDER_FOUND_KEY+seed)).length'),J('wonderFound.size'),'found wonders are remembered on the device');
+ // Save: an edit at a fall survives a reload of the v9 world.
+ const f0=F[0];d.api.edit(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz),0);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(run(re,'terrainVersion'),9);assert.equal(re.api.get(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz)),0,'an edit at a fall survives reload');
+ console.log(`PASS: v9 wonders: ${L.length} (${[...new Set(L.map(s=>s.k))].map(k=>k+' '+count(k)).join(', ')}), falls ${drops.join('/')}m with pools that run on, canyon river and sheer walls, worker matches on wonder tiles (${fallQuads} far falls quads), arches open with no loose blocks, ${al.length} hollows with crystals, reef hill ${reef.coral} coral quads, effects in 3 qualities, tour/discovery/save; v8 worlds identical`)}

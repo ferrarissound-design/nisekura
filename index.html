@@ -212,7 +212,7 @@ function validateSave(d){
  const obj=v=>v&&typeof v==='object'&&!Array.isArray(v),bad=()=>{throw Error('セーブ形式・内容が不正、または未対応のバージョンです')};
  if(!obj(d)||d.version!==1||!Number.isFinite(d.seed)||!Array.isArray(d.changes)||!obj(d.inventory))bad();
  const tv=d.terrainVersion??1,w=d.worldWidth??64,h=d.worldHeight??40;
- if(!Number.isInteger(tv)||tv<1||tv>8||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
+ if(!Number.isInteger(tv)||tv<1||tv>9||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
  for(const e of d.changes)if(!Array.isArray(e)||e.length!==2||!Number.isSafeInteger(e[0])||e[0]<0||e[0]>=w*w*h||!Number.isInteger(e[1])||e[1]<0||e[1]>=defs.length||e[1]&&!defs[e[1]])bad();
  for(const [k,v]of Object.entries(d.inventory))if(!/^[1-9]\d*$/.test(k)||+k>=defs.length||!defs[+k]||!Number.isSafeInteger(v)||v<0)bad();
  for(const k of ['creative','flying'])if(d[k]!==undefined&&typeof d[k]!=='boolean')bad();
@@ -233,7 +233,8 @@ try{expectedRaw=localStorage.getItem(KEY);if(expectedRaw!==null){saved=decodeSav
 // v6 adds scenic landforms (sea cliffs, landmark peaks, gorges, river plains); v4/v5 worlds keep their exact terrain.
 // v7 adds caves (entrances, tunnels, halls, underground lakes, crystal caves); v4-v6 worlds keep their exact terrain.
 // v8 fills the river stretches that were left as dry sand beds; v7 worlds keep their exact terrain.
-const terrainVersion=saved?.version===1?(saved.terrainVersion||1):8,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
+// v9 adds the wonders: canyons, waterfalls, natural arches and rock windows, reef hills, sea-floor arches, trenches and drop-offs; v8 worlds keep their exact terrain.
+const terrainVersion=saved?.version===1?(saved.terrainVersion||1):9,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
 // Underwater life (v7 worlds): water plants and coral are mesh-only, fish are runtime-only, so nothing is added to saves.
 const AQUA=CAVES;
 const glowChunks=new Set(),glowCache=new Map(); // chunks that contain crystals or moss (for the lighting bake)
@@ -277,7 +278,11 @@ function grad(h,x,z){switch(h&7){case 0:return x+z;case 1:return z-x;case 2:retu
 function pn(x,z){const X=Math.floor(x),Z=Math.floor(z),xf=x-X,zf=z-Z,xi=X&255,zi=Z&255,u=xf*xf*xf*(xf*(xf*6-15)+10),v=zf*zf*zf*(zf*(zf*6-15)+10),a=perm[xi]+zi,b=perm[xi+1]+zi;
  const n00=grad(perm[a],xf,zf),n10=grad(perm[b],xf-1,zf),n01=grad(perm[a+1],xf,zf-1),n11=grad(perm[b+1],xf-1,zf-1),n0=n00+u*(n10-n00);return n0+v*(n01+u*(n11-n01)-n0)}
 function fbm(x,z,oct){let s=0,a=1,n=0;for(let o=0;o<oct;o++){s+=pn(x,z)*a;n+=a;a*=.5;x=x*2.03+17.1;z=z*2.03+9.7}return s/n}
-let gLand=0,gMount=0,gOpen=0; // gOpen: 0..1, how open (meadow-like) the scenic landform keeps the ground
+let gLand=0,gMount=0,gOpen=0; // gOpen: 0..1, how open (meadow-like) the scenic landform keeps the ground (v9: below 0 = lusher)
+// v9 wonders (see buildWonders): set by each height4 call once they are built. gWL water level of the column (SEA unless a stream or
+// a falls sheet stands higher), gSheet 1 on a falls sheet, gSurf a surface block override, gWF flags (1 trench floor, 2 reef hill,
+// 4 fresh water above the sea, 8 canyon river, 16 undersea wall). snI/snT/snD are segNear results.
+let WON=false,gWL=SEA,gSheet=0,gSurf=0,gWF=0,snI=-1,snT=0,snD=0;
 // River centre line (zero crossings). v6 rivers also meander with a slow sideways drift.
 function rvf(wx,wz){return SCENIC?pn(wx/820+17.7,(wz+70*pn(wx/420+4.4,.37))/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8):pn(wx/820+17.7,wz/230+3.1)+.2*pn(wx/140+2.2,wz/140+8.8)}
 // Landmark peaks (v6): one candidate per 640-block cell, a pyramid whose arms reach farther along some bearings (spurs) and sag between them (saddles).
@@ -307,8 +312,8 @@ function height4(x,z){
   if(near>0){cl=near*smooth(-.1,.18,fbm(x/330+210.1,z/330+95.5,3))*(1-smooth(.35,.62,pn(x/58+3.3,z/58+9.9)));
    L+=near*((.32+.28*cl)*fbm(x/110+13.7,z/110+61.3,2)+.1*pn(x/36+5.5,z/36+1.9))}}
  L=Math.min(L,(Math.min(x,z,W-1-x,W-1-z)-170)/75+.35*pn(x/190+50.5,z/190+3.3));
- gLand=L;gMount=0;gOpen=0;
- if(L<=0){const deep=Math.min(1,-L/(SCENIC?1.4-.95*cl:1.4));return Math.max(4,Math.floor(SEA-1-deep*(4+deep*24)+pn(x/41,z/41)*1.4))}
+ gLand=L;gMount=0;gOpen=0;gWL=SEA;gSheet=0;gSurf=0;gWF=0;
+ if(L<=0){const deep=Math.min(1,-L/(SCENIC?1.4-.95*cl:1.4)),sh=Math.max(4,Math.floor(SEA-1-deep*(4+deep*24)+pn(x/41,z/41)*1.4));return WON?wonderH(x,z,sh,L):sh}
  const c=smooth(0,.75,L),hills=fbm(x/210+5.5,z/210+66.1,4);
  let h=SEA+1+c*(4+11*(hills*.5+.5))+pn(x/37+.5,z/37+.5)*2.2*c;
  // Mountain ranges rise inland; ridged noise gives sharp crests and long spurs.
@@ -344,7 +349,7 @@ function height4(x,z){
   if(terrainVersion>=8&&h>SEA-3){const cw=(1-smooth(w*.35,w,rv))*smooth(0,.08,rm)*(1-smooth(SEA+2,SEA+9,h));if(cw>0)h+=(SEA-3-h)*cw}}
  if(L>.7&&m<.35&&h>SEA-4){const t=smooth(.26,.4,fbm(x/240+300.5,z/240+300.5,2))*(1-m/.35)*smooth(.7,1.2,L);if(t>0)h+=(SEA-4-h)*t}
  if(SCENIC){if(h>140)h=140+42*Math.tanh((h-140)/58)}else if(h>H-34)h=H-34+(h-(H-34))*.45;
- return Math.max(4,Math.min(H-10,Math.floor(h)))
+ const lh=Math.max(4,Math.min(H-10,Math.floor(h)));return WON?wonderH(x,z,lh,L):lh
 }
 function humidity(x,z){return fbm(x/430+500.3,z/430+500.9,3)*.5+.5}
 function birchiness(x,z){return pn(x/170+77.7,z/170+33.3)}
@@ -407,7 +412,7 @@ function palettePick(h,wet,alt){if(alt>=44)return h<.8?7:6;if(wet>.45&&h<.6)retu
 // Environment of one column. sunny>0 on slopes facing the midday sun, L = distance-inland measure of the coast (<=0 is sea).
 function vegEnv(x,z,h,slope,sunny,L,hum,open=0){
  const alt=h-SEA,wet=smooth(7,1.5,alt)*smooth(.35,.8,L),moist=clamp01(hum+.36*wet-.1*sunny),
-  clump=fieldClump(x,z),glade=fieldGlade(x,z),tone=fieldTone(x,z),tallf=fieldTall(x,z),dens=forestDensity(alt,moist,slope,L,clump,glade)*(1-.85*open);
+  clump=fieldClump(x,z),glade=fieldGlade(x,z),tone=fieldTone(x,z),tallf=fieldTall(x,z),dens=Math.min(1,forestDensity(alt,moist,slope,L,clump,glade)*(1-.85*open));
  const dry=clamp01((.56-moist)*3+(.5-tone)*.9+sunny*.3),lush=clamp01((moist-.5)*2.2+wet*.4+dens*.5+(tone-.5)*.6-dry*.3),coast=smooth(.9,.1,L);
  E.wet=wet;E.moist=moist;E.dens=dens;E.dry=dry;E.lush=lush;
  E.bare=smooth(.66,.78,fieldBare(x,z))*(.45+.55*dry)*(1-dens)*(slope>=2?1:.7)*(alt>4?1:0);
@@ -495,15 +500,20 @@ function growVegetation(write,leaf,x0,z0){
  for(const e of el)growGiant(write,leaf,e)}
 function columnInfo(cx,cz){const key=cx+','+cz;let c=columns.get(key);if(c)return c;
  const x0=cx*CHUNK,z0=cz*CHUNK,P=CHUNK+2,hh=new Int16Array(P*P),ll=VEG?new Float32Array(P*P):null,oo=VEG?new Float32Array(P*P):null;
- for(let j=0;j<P;j++)for(let i=0;i<P;i++){hh[j*P+i]=height4(x0+i-1,z0+j-1);if(ll){ll[j*P+i]=gLand;oo[j*P+i]=gOpen}}
+ const wv=WON?new Int16Array(P*P):null,sv=WON?new Uint8Array(P*P):null,fv=WON?new Uint8Array(P*P):null;
+ for(let j=0;j<P;j++)for(let i=0;i<P;i++){hh[j*P+i]=height4(x0+i-1,z0+j-1);if(ll){ll[j*P+i]=gLand;oo[j*P+i]=gOpen}if(wv){const p=j*P+i;wv[p]=gWL;sv[p]=gSurf;fv[p]=gWF|(gSheet?32:0)}}
  c={h:new Int16Array(256),surf:new Uint8Array(256),slope:new Uint8Array(256),hum:new Float32Array(256),birch:new Float32Array(256)};
+ if(WON){c.wl=new Int16Array(256);c.wf=new Uint8Array(256)}
  if(VEG)for(const n of['dens','shrub','gd','tl','dry','lush','fc'])c[n]=new Float32Array(256),c.fp=new Uint8Array(256);
  for(let z=0;z<16;z++)for(let x=0;x<16;x++){const k=z*16+x,p=(z+1)*P+x+1,h=hh[p],s=Math.max(Math.abs(h-hh[p-1]),Math.abs(h-hh[p+1]),Math.abs(h-hh[p-P]),Math.abs(h-hh[p+P]));
   c.h[k]=h;c.slope[k]=Math.min(255,s);c.hum[k]=humidity(x0+x,z0+z);c.birch[k]=birchiness(x0+x,z0+z);c.surf[k]=surface4(x0+x,z0+z,h,s);
   if(VEG){vegEnv(x0+x,z0+z,h,s,Math.max(-1,Math.min(1,(hh[p-P]-hh[p+P])*.35)),ll[p],c.hum[k],oo[p]);
-   c.dens[k]=E.dens;c.shrub[k]=E.shrub;c.gd[k]=E.gd;c.tl[k]=E.tl;c.dry[k]=E.dry;c.lush[k]=E.lush;c.fc[k]=E.fc;c.fp[k]=E.fp;if(c.surf[k]===1&&E.bare>.4)c.surf[k]=2}}
- if(AQUA){c.wk=new Uint8Array(256);for(let z=0;z<16;z++)for(let x=0;x<16;x++){const k=z*16+x;if(c.h[k]<SEA)c.wk[k]=aquaKind(x0+x,z0+z,ll[(z+1)*P+x+1])}}
+   c.dens[k]=E.dens;c.shrub[k]=E.shrub;c.gd[k]=E.gd;c.tl[k]=E.tl;c.dry[k]=E.dry;c.lush[k]=E.lush;c.fc[k]=E.fc;c.fp[k]=E.fp;if(c.surf[k]===1&&E.bare>.4)c.surf[k]=2}
+  // v9: stream beds and falls sheets hold water above the ground (gravel or sand under it, no plants); canyon floors get their gravel.
+  if(wv){const p=(z+1)*P+x+1;c.wl[k]=wv[p];c.wf[k]=fv[p];if(sv[p])c.surf[k]=sv[p];if(wv[p]>h){if(!sv[p])c.surf[k]=6;if(VEG){c.dens[k]=c.shrub[k]=c.fc[k]=c.tl[k]=0;c.gd[k]*=.3}}}}
+ if(AQUA){c.wk=new Uint8Array(256);for(let z=0;z<16;z++)for(let x=0;x<16;x++){const k=z*16+x;if(c.h[k]<SEA)c.wk[k]=WON&&c.wf[k]&8?2:aquaKind(x0+x,z0+z,ll[(z+1)*P+x+1])}}
  if(CAVES&&VEG){const cell=caveCell(cx>>4,cz>>4);if(cell)for(const o of cell.open)for(let z=0;z<16;z++)for(let x=0;x<16;x++){const d=Math.hypot(x0+x-o.x,z0+z-o.z);if(d>=o.r*1.4)continue;const f=smooth(o.r*.6,o.r*1.4,d),k=z*16+x;c.dens[k]*=f;c.shrub[k]*=f;c.fc[k]*=f;c.tl[k]*=f;c.gd[k]*=.3+.7*f}}
+ if(WON&&VEG)wonderClear(c,x0,z0);
  columns.set(key,c);return c}
 // The scenic evaluation point: a hill near the coast that sees both open sea and high mountains.
 function findVista(){
@@ -577,6 +587,273 @@ function* scanSpots(out){
    if(kind==='summit'){let bestA=-1e9,bestY=0;for(let d=0;d<16;d++){const a=d*Math.PI/8;let sc=0;for(let r=60;r<=500;r+=40){const q=height4(Math.round(c.x+Math.sin(a)*r),Math.round(c.z+Math.cos(a)*r));sc+=q<SEA?1.5:Math.max(-.5,(c.h-q)/60)}if(sc>bestA){bestA=sc;bestY=a}}c.yaw=bestY}
    res.push(c)}}
  out.spots=res;out.done=true}
+// ---- v9 WONDERS (terrainVersion >= 9): canyons, waterfalls, natural arches and rock windows, and sea-floor landforms.
+// They are placed once per world from the base terrain (a pure function of the seed, so every device builds the same list) and then
+// applied inside height4, so chunks, LOD tiles and the LOD worker share one definition. Canyons, falls and the sea floor change the
+// height map (plus a water level for the streams above the falls); arches, rock windows and the hollow behind a fall are 3D and are
+// filled or carved voxel by voxel in generateChunk, while the far LOD draws them as coarse block meshes from the same solid test.
+// Saves only gain terrainVersion 9; worlds from v8 and before never see any of this.
+const WONDER=terrainVersion>=9,WB=64,WBN=W/WB,WONDER_KINDS={falls:'大滝',canyon:'大渓谷',arch:'天然アーチ',bridge:'天然の石橋',hoodoo:'風穴の奇岩',seaArch:'海食アーチ',uwArch:'海底アーチ',reefHill:'珊瑚礁の丘',trench:'海底渓谷',drop:'海底の崖'};
+let WF=[],WA=[],WBK=null,WREEF=[],WLIST=[];
+// Nearest segment of a polyline [[x,z,...],...] within margin M of its bounding boxes: index (or -1), position along it and distance.
+function segNear(P,px,pz,M){let bd=1e18;snI=-1;
+ for(let i=0;i<P.length-1;i++){const a=P[i],c=P[i+1];
+  if(px<(a[0]<c[0]?a[0]:c[0])-M||px>(a[0]>c[0]?a[0]:c[0])+M||pz<(a[1]<c[1]?a[1]:c[1])-M||pz>(a[1]>c[1]?a[1]:c[1])+M)continue;
+  const ex=c[0]-a[0],ez=c[1]-a[1],l2=ex*ex+ez*ez||1;let t=((px-a[0])*ex+(pz-a[1])*ez)/l2;t=t<0?0:t>1?1:t;
+  const dx=px-a[0]-ex*t,dz=pz-a[1]-ez*t,d2=dx*dx+dz*dz;if(d2<bd){bd=d2;snI=i;snT=t}}
+ snD=Math.sqrt(bd);return snI}
+function wonderH(x,z,h,L){if(x<0||z<0||x>=W||z>=W)return h;const b=WBK[(z>>6)*WBN+(x>>6)];if(!b)return h;
+ for(let n=0;n<b.length;n++){const f=WF[b[n]];h=f.t===1?canyonH(f,x,z,h):f.t===2?seaFloorH(f,x,z,h):fallsH(f,x,z,h)}
+ return h<4?4:h>H-10?H-10:h}
+// Canyon: a river at sea level between tall walls. Floor, then near-vertical tiers with benches; the walls wander a little, the width
+// changes along the way (slots and wide stretches) and the head ends in a round amphitheatre. The floor is lush, the rim kept open.
+function canyonH(f,x,z,h){const px=x+.5,pz=z+.5,b=f.bb;if(px<b[0]||px>b[1]||pz<b[2]||pz>b[3]||segNear(f.P,px,pz,f.M)<0)return h;
+ const a=f.P[snI],c=f.P[snI+1],t=snT,wr=a[2]+(c[2]-a[2])*t,wf=a[3]+(c[3]-a[3])*t,wt=a[4]+(c[4]-a[4])*t,
+  d=snD+2.6*pn(x/19+f.k,z/19+3.3)+1.1*pn(x/7.3+5.1,z/7.3+f.k);
+ if(d>wt*1.3+4)return h;
+ let nh;
+ if(d<wr){nh=SEA-4+Math.floor(3.4*smooth(0,1,d/wr));gWF|=8}
+ else if(d<wf){nh=SEA+1+Math.floor(1.7*smooth(wr,wf,d)+.5*(pn(x/9+f.k,z/9)+.5));gOpen=-.55;if(d<wr+2.5&&rand(x*3+1,z*7+5)>.4)gSurf=rand(x+7,z*3)>.5?3:6}
+ else{const u=(d-wf)/(wt-wf);if(u>=1){gOpen=Math.max(gOpen,.85*(1-smooth(1.05,1.35,u)));return h}
+  const fl=SEA+2,D=h-fl;if(D<=0)return h;const v=u*f.n,j=Math.floor(v),fr=v-j;nh=fl+D*(j+smooth(0,.27,fr))/f.n;
+  if(u>.75)gOpen=Math.max(gOpen,.85*smooth(.75,.9,u));else if(fr>.42)gOpen=Math.min(gOpen,-.25)}
+ nh=Math.floor(nh);return nh<h?nh:h}
+// Sea floor: s 0 reef hill (a mound rising close under the surface), 1 trench (a sinuous undersea valley), 2 drop-off (a shelf that ends in a wall).
+function seaFloorH(f,x,z,h){const px=x+.5,pz=z+.5,b=f.bb;if(px<b[0]||px>b[1]||pz<b[2]||pz>b[3])return h;
+ if(f.s===0){const r=Math.hypot(px-f.x,pz-f.z)/f.r+.13*pn(x/6+f.k,z/6);if(r>=1.35)return h;
+  const top=f.top+Math.floor(1.3*pn(x/4.7+f.k,z/4.7)+.5),tg=Math.floor(top+(h-top)*smooth(.15,1.35,r));if(r<1)gWF|=2;return tg>h?tg:h}
+ if(f.s===1){if(segNear(f.P,px,pz,f.M)<0)return h;const a=f.P[snI],c=f.P[snI+1],t=snT,wf=a[2]+(c[2]-a[2])*t,wt=a[3]+(c[3]-a[3])*t,e=a[4]+(c[4]-a[4])*t,fl=a[5]+(c[5]-a[5])*t,
+   d=snD+1.6*pn(x/11+f.k,z/11);if(d>=wt||e<=0)return h;let nh;
+  if(d<wf){nh=fl+Math.floor(.8*(pn(x/5,z/5+f.k)+.5));if(e>.5)gWF|=1}
+  else{const u=(d-wf)/(wt-wf),D=h-fl;if(D<=0)return h;const v=u*2,j=Math.floor(v),fr=v-j;nh=fl+D*(j+smooth(0,.45,fr))/2;if(u<.6)gWF|=16}
+  nh=Math.floor(h-(h-nh)*e);return nh<h?nh:h}
+ const ex=px-f.ax,ez=pz-f.az,s=(ex*f.tx+ez*f.tz)/f.len;if(s<=0||s>=1)return h;
+ const e=smooth(0,.14,s)*smooth(1,.86,s),sd=ex*f.nx+ez*f.nz+2.4*pn(x/13+f.k,z/13)+1.2*pn(x/5,z/5+f.k);
+ if(sd<0){const w=(1-smooth(16,44,-sd))*e,tg=f.shelf+Math.floor(.8*(pn(x/7+f.k,z/7)+.5));if(sd>-6)gWF|=16;return h<tg?Math.floor(h+(tg-h)*w):h}
+ const w=smooth(0,2.5,sd)*(1-smooth(24,46,sd))*e;if(sd<6)gWF|=16;return h>f.deep?Math.floor(h-(h-f.deep)*w):h}
+// Waterfall: upstream a stream of stepped pools (each a flat water level, small cascades between them) runs to the lip; there a sheet of
+// water two blocks thick drops to a plunge pool, and a slot cut into the cliff carries the pool on to the canyon river or the sea.
+function fallsH(f,x,z,h){const px=x+.5,pz=z+.5,b=f.bb;if(px<b[0]||px>b[1]||pz<b[2]||pz>b[3])return h;
+ const ex=px-f.x,ez=pz-f.z,t=ex*f.dx+ez*f.dz,u=Math.abs(ez*f.dx-ex*f.dz),ww=f.ww;
+ if(t>=0){
+  if(t<2&&u<=ww){gWL=f.wu;gSheet=1;gWF|=4;return f.fl<h?f.fl:h}
+  const r=Math.hypot(px-f.px,pz-f.pz);if(r<f.pr*2.6)gOpen=Math.min(gOpen,-.5);
+  if(r<f.pr){const nh=f.fl+Math.floor(3*(r/f.pr)**2);return nh<h?nh:h}
+  if(t<f.sl){const sw=ww+3+Math.min(t,22)*.32+1.4*pn(x/8+f.k,z/8)+2.2*pn(x/23,z/23+f.k);if(u<sw)return SEA-2<h?SEA-2:h;
+   // the slot walls step back in ragged ledges instead of standing as one smooth face
+   const bw=6+Math.max(0,h-SEA)*.16;if(u<sw+bw&&h>SEA){const e=(u-sw)/bw,nh=SEA-2+Math.floor(Math.pow(e,1.2+.7*(pn(x/9+f.k,z/9)+.5))*(h-SEA+2)+3.5*pn(x/4.3,z/4.3+f.k));return nh<h?nh:h}}
+  return h}
+ if(segNear(f.S,px,pz,ww+f.vv+f.pond+6)<0)return h;
+ const i=snI,n=f.S.length,lv=f.S[i][2],ws=Math.max(1.6,ww*(1-.4*Math.min(1,(i+snT)/(n-1))))+(i===n-2&&snT>.7?f.pond*(snT-.7)/.3:0),d=snD+.9*pn(x/6+f.k,z/6+2.2);
+ if(d<ws){gWL=lv;gWF|=4;gSurf=rand(x*5+2,z*3+9)>.55?3:6;return lv-2-(d<ws*.45?1:0)}
+ if(d<ws+3){gOpen=Math.min(gOpen,-.35);const nh=Math.min(h,lv+1+Math.floor((d-ws)*.7));return nh<lv+1?lv+1:nh}
+ if(d<ws+3+f.vv){const nh=lv+3+Math.floor((d-ws-3)*1.3);return nh<h?nh:h}
+ return h}
+// Water movement for the shader: outward from plunge pools, down the streams toward the lip, along canyon rivers.
+function wonderFlow(x,z,out){if(x<0||z<0||x>=W||z>=W)return;const b=WBK[(z>>6)*WBN+(x>>6)];if(!b)return;
+ for(const n of b){const f=WF[n];
+  if(f.t===3){const r=Math.hypot(x-f.px,z-f.pz),R=f.pr*2.4;
+   if(r<R&&r>.5){const k=.9*(1-r/R);out[0]+=(x-f.px)/r*k;out[1]+=(z-f.pz)/r*k}
+   else if(segNear(f.S,x,z,f.ww+2)>=0&&snD<f.ww+1){const a=f.S[snI],c=f.S[snI+1],ex=a[0]-c[0],ez=a[1]-c[1],l=Math.hypot(ex,ez)||1;out[0]+=ex/l*.8;out[1]+=ez/l*.8}}
+  else if(f.t===1&&segNear(f.P,x,z,12)>=0){const a=f.P[snI],c=f.P[snI+1];if(snD<a[3]){const ex=c[0]-a[0],ez=c[1]-a[1],l=Math.hypot(ex,ez)||1,k=.55*(1-smooth(a[2]*.6,a[3],snD));out[0]+=ex/l*k;out[1]+=ez/l*k}}}}
+function wonderReef(x,z){let b=0;for(const r of WREEF){const d=Math.hypot(x-r[0],z-r[1])/r[2];if(d<1.25){const v=r[3]*(1-smooth(.55,1.25,d));if(v>b)b=v}}return b}
+// Rock solids: a chain of capsules with elliptical sections (node = [x, y, z, horizontal radius, vertical radius]) roughened by 3D noise,
+// minus the hole chains. Arches bend a chain over a span, rock windows stack it into a pillar with a hole through it.
+function chainQ(N,x,y,z){let best=9;
+ for(let i=0;i<N.length-1;i++){const a=N[i],b=N[i+1],ex=b[0]-a[0],ey=b[1]-a[1],ez=b[2]-a[2],l2=ex*ex+ey*ey+ez*ez;let t=l2>0?((x-a[0])*ex+(y-a[1])*ey+(z-a[2])*ez)/l2:0;t=t<0?0:t>1?1:t;
+  const rh=a[3]+(b[3]-a[3])*t,rv=a[4]+(b[4]-a[4])*t,dx=x-a[0]-ex*t,dy=y-a[1]-ey*t,dz=z-a[2]-ez*t,q=(dx*dx+dz*dz)/(rh*rh)+dy*dy/(rv*rv);if(q<best)best=q}
+ return best}
+function rockIn(f,x,y,z){const b=f.bb;if(x<b[0]||x>b[1]||y<b[2]||y>b[3]||z<b[4]||z>b[5])return false;
+ const q=chainQ(f.N,x,y,z);if(q>1.9)return false;
+ const n=(vn3(x*.13+f.k,y*.13,z*.13)-.5)*f.na+(vn3(x*.37,y*.37+f.k,z*.37)-.5)*f.na*.5;if(q>=1+n)return false;
+ if(f.holes)for(const hn of f.holes)if(chainQ(hn,x,y,z)<1+n*.4)return false;
+ return true}
+// Voxels of the 3D wonders in one chunk: rock (turf on top above the sea), and the hollow behind a fall with its crystals and moss.
+function wonderVoxels(data,cx,cz){const x0=cx*CHUNK,z0=cz*CHUNK,X1=x0+CHUNK,Z1=z0+CHUNK;let glow=false;
+ for(const f of WA){const b=f.bb;if(f.t===4){if(b[1]<x0||b[0]>=X1||b[5]<z0||b[4]>=Z1)continue;
+   const xa=Math.max(x0,Math.floor(b[0])),xb=Math.min(X1-1,Math.ceil(b[1])),za=Math.max(z0,Math.floor(b[4])),zb=Math.min(Z1-1,Math.ceil(b[5])),ya=Math.max(1,Math.floor(b[2])),yb=Math.min(H-3,Math.ceil(b[3]));
+   // The solid test on a grid one voxel wider than this part of the chunk (pure, so neighbouring chunks agree); a voxel needs two
+   // solid neighbours, which removes the odd speck the noise leaves near the surface without thinning real edges.
+   const gx=xb-xa+3,gz=zb-za+3,gy=yb-ya+3,G=new Uint8Array(gx*gy*gz),gi=(x,y,z)=>((y-ya+1)*gz+(z-za+1))*gx+(x-xa+1);
+   for(let y=ya-1;y<=yb+1;y++)for(let z=za-1;z<=zb+1;z++)for(let x=xa-1;x<=xb+1;x++)if(y>=1&&y<=yb&&rockIn(f,x+.5,y+.5,z+.5))G[gi(x,y,z)]=1;
+   const solidAt=(x,y,z)=>{if(!G[gi(x,y,z)])return false;return G[gi(x+1,y,z)]+G[gi(x-1,y,z)]+G[gi(x,y+1,z)]+G[gi(x,y-1,z)]+G[gi(x,y,z+1)]+G[gi(x,y,z-1)]>=2};
+   for(let z=za;z<=zb;z++)for(let x=xa;x<=xb;x++){let prev=false,top=-1;
+    for(let y=ya;y<=yb+1;y++){const s=y<=yb&&solidAt(x,y,z),i=(y*CHUNK+(z-z0))*CHUNK+(x-x0);
+     if(!s&&prev)top=y-1;if(s&&data[i]!==11)data[i]=3;prev=s}
+    // turf only on the crown: the highest rock of the column, open to the sky above it
+    if(top>SEA+1&&f.grass){const i=(top*CHUNK+(z-z0))*CHUNK+(x-x0);if(data[i+256]===0&&data[i+512]===0)data[i]=1}}}
+  else{if(b[1]<x0||b[0]>=X1||b[3]<z0||b[2]>=Z1)continue;
+   for(let z=Math.max(z0,Math.floor(b[2]));z<=Math.min(Z1-1,Math.ceil(b[3]));z++)for(let x=Math.max(x0,Math.floor(b[0]));x<=Math.min(X1-1,Math.ceil(b[1]));x++){
+    const ex=x+.5-f.x,ez=z+.5-f.z,t=ex*f.dx+ez*f.dz,u=ez*f.dx-ex*f.dz;if(t>=0)continue;const q=(t/f.ad)**2+(u/f.aw)**2;if(q>=1)continue;
+    const y1=f.y0+Math.floor(f.ah*(1-.55*q));for(let y=f.y0;y<y1;y++){const i=(y*CHUNK+(z-z0))*CHUNK+(x-x0);if(data[i]!==10&&data[i]!==11)data[i]=0}}
+   for(const c of f.cry)if(c[0]>=x0&&c[0]<X1&&c[2]>=z0&&c[2]<Z1){data[(c[1]*CHUNK+(c[2]-z0))*CHUNK+(c[0]-x0)]=c[3];glow=true}}}
+ if(glow)glowChunks.add(cx+','+cz)}
+// No trees or shrubs under or around a rock solid (a trunk must never grow through an arch); the meadow under a span stays open.
+// Around arches and rock windows the forest opens into a meadow, so they stand free and can be seen from a distance.
+function wonderClear(c,x0,z0){for(const f of WA){if(f.t!==4)continue;const R=f.span?f.span*.8+10:16,b=f.bb;if(Math.max(b[1],f.x+R)<x0-4||Math.min(b[0],f.x-R)>x0+20||Math.max(b[5],f.z+R)<z0-4||Math.min(b[4],f.z-R)>z0+20)continue;
+  for(let z=0;z<16;z++)for(let x=0;x<16;x++){const px=x0+x+.5,pz=z0+z+.5,k=z*16+x;let clear=false;for(const p of f.N){const r=p[3]+4,dx=px-p[0],dz=pz-p[2];if(dx*dx+dz*dz<r*r){clear=true;break}}
+   if(clear){c.dens[k]=c.shrub[k]=c.tl[k]=0;continue}const m=smooth(R*.6,R,Math.hypot(px-f.x,pz-f.z));c.dens[k]*=m;c.shrub[k]*=.3+.7*m}}}
+// Far LOD: the sheet of each fall as one quad, and rock solids as coarse blocks (cell 2-4) built from rockIn, so the far shapes
+// match the near voxels: the opening of an arch stays open at any distance. Cells under the terrain are solid but never drawn.
+const FALLS_COL=[.84,.91,.95],ROCK_TOP=[.42,.6,.27],rockLod=new Map();
+function lodFalls(f,x0,z0){const cx=f.x+f.dx-x0,cz=f.z+f.dz-z0,lx=-f.dz,lz=f.dx,w=f.ww+.5,y0=SEA+.9,y1=f.wu+.9,face=Math.abs(f.dx)>Math.abs(f.dz)?(f.dx>0?0:1):(f.dz>0?4:5),m=3+8*face;lgrow(4);
+ lvert(cx-lx*w,y0,cz-lz*w,FALLS_COL,1,m);lvert(cx-lx*w,y1,cz-lz*w,FALLS_COL,1,m);lvert(cx+lx*w,y1,cz+lz*w,FALLS_COL,1,m);lvert(cx+lx*w,y0,cz+lz*w,FALLS_COL,1,m)}
+function lodRock(f,x0,z0,s){const c=s<=2?2:s<=8?3:4,b=f.bb,nx=Math.ceil((b[1]-b[0])/c),ny=Math.ceil((b[3]-b[2])/c),nz=Math.ceil((b[5]-b[4])/c),key=f.id+':'+c;let occ=rockLod.get(key);
+ if(!occ){occ=new Uint8Array(nx*ny*nz);const gr=new Float32Array(nx*nz);for(let k=0;k<nz;k++)for(let i=0;i<nx;i++)gr[k*nx+i]=height4(Math.floor(b[0]+(i+.5)*c),Math.floor(b[4]+(k+.5)*c))+1;
+  for(let j=0;j<ny;j++)for(let k=0;k<nz;k++)for(let i=0;i<nx;i++){const y=b[2]+(j+.5)*c;occ[(j*nz+k)*nx+i]=y<gr[k*nx+i]?2:rockIn(f,b[0]+(i+.5)*c,y,b[4]+(k+.5)*c)?1:0}
+  if(rockLod.size>64)rockLod.clear();rockLod.set(key,occ)}
+ const at=(i,j,k)=>i<0||j<0||k<0||i>=nx||j>=ny||k>=nz?0:occ[(j*nz+k)*nx+i];let top=-1e9;
+ for(let j=0;j<ny;j++)for(let k=0;k<nz;k++)for(let i=0;i<nx;i++){if(occ[(j*nz+k)*nx+i]!==1)continue;
+  const xa=b[0]+i*c-x0,ya=b[2]+j*c,za=b[4]+k*c-z0,xb=xa+c,yb=ya+c,zb=za+c;lgrow(24);if(yb>top)top=yb;
+  if(!at(i,j+1,k)){const col=f.grass&&yb>SEA+2?ROCK_TOP:STONE;lvert(xa,yb,za,col,1,16);lvert(xb,yb,za,col,1,16);lvert(xb,yb,zb,col,1,16);lvert(xa,yb,zb,col,1,16)}
+  if(!at(i,j-1,k)){lvert(xa,ya,za,STONE,.8,24);lvert(xb,ya,za,STONE,.8,24);lvert(xb,ya,zb,STONE,.8,24);lvert(xa,ya,zb,STONE,.8,24)}
+  if(!at(i+1,j,k)){lvert(xb,ya,za,STONE,1,0);lvert(xb,yb,za,STONE,1,0);lvert(xb,yb,zb,STONE,1,0);lvert(xb,ya,zb,STONE,1,0)}
+  if(!at(i-1,j,k)){lvert(xa,ya,za,STONE,1,8);lvert(xa,yb,za,STONE,1,8);lvert(xa,yb,zb,STONE,1,8);lvert(xa,ya,zb,STONE,1,8)}
+  if(!at(i,j,k+1)){lvert(xa,ya,zb,STONE,1,32);lvert(xa,yb,zb,STONE,1,32);lvert(xb,yb,zb,STONE,1,32);lvert(xb,ya,zb,STONE,1,32)}
+  if(!at(i,j,k-1)){lvert(xa,ya,za,STONE,1,40);lvert(xa,yb,za,STONE,1,40);lvert(xb,yb,za,STONE,1,40);lvert(xb,ya,za,STONE,1,40)}}
+ return top}
+// Mist and ripples at the foot of a fall (mesh-only, near field): three crossed spray curtains (with a rainbow in the shader) and a
+// ring of ripples and foam on the plunge pool. Built by the chunk that holds the sheet.
+function emitFallsFx(w,f){const fh=f.wu-SEA,o=2.2+f.pr*.25,cx=f.x+f.dx*o,cz=f.z+f.dz*o,y0=SEA+.9,hm=Math.min(26,5+fh*.34),it=Math.min(1,.35+fh/70),ph=(f.k%10)/10,lx=-f.dz,lz=f.dx;
+ for(const [ang,wd] of [[0,f.ww+5.5],[.95,f.ww+3.5],[-.95,f.ww+3.5]]){const ca=Math.cos(ang),sa=Math.sin(ang),qx=lx*ca+f.dx*sa,qz=lz*ca+f.dz*sa;grow(w,36);
+  vert(w,cx-qx*wd,y0,cz-qz*wd,it,ph,0,0,0,30.6);vert(w,cx-qx*wd,y0+hm,cz-qz*wd,it,ph,0,0,1,30.6);vert(w,cx+qx*wd,y0+hm,cz+qz*wd,it,ph,0,1,1,30.6);vert(w,cx+qx*wd,y0,cz+qz*wd,it,ph,0,1,0,30.6)}
+ const rr=f.pr+f.ww+3,y=SEA+.95,px=f.px,pz=f.pz;grow(w,36);
+ vert(w,px-rr,y,pz-rr,rr/40,ph,0,-1,-1,30.7);vert(w,px-rr,y,pz+rr,rr/40,ph,0,-1,1,30.7);vert(w,px+rr,y,pz+rr,rr/40,ph,0,1,1,30.7);vert(w,px+rr,y,pz-rr,rr/40,ph,0,1,-1,30.7)}
+// Capsule chain for an arch from leg a to leg b: the legs start 6 blocks underground and rise steeply, the span bows sideways and
+// leans toward one leg (skew), and the section thins toward the crown.
+function archNodes(ax,az,ha,bx,bz,hb,apex,rA,rB,rT,vT,bow,skew,pw,n){const N=[],ex=bx-ax,ez=bz-az,L=Math.hypot(ex,ez),sx=-ez/L,sz=ex/L;
+ for(let i=0;i<=n;i++){const t=i/n,s=Math.sin(Math.PI*Math.pow(t,skew)),gy=ha-6+(hb-ha)*t,y=gy+(apex-gy)*Math.pow(s,pw),r0=rA+(rB-rA)*t;
+  N.push([ax+ex*t+sx*bow*s,y,az+ez*t+sz*bow*s,r0*(1-s)+rT*s,r0*.95*(1-s)+vT*s])}
+ return N}
+function buildWonders(){if(!WONDER)return;
+ const R=treeRng(911,377,9001),cache=new Map();
+ const bs=(x,z)=>{x=Math.round(x);z=Math.round(z);if(x<8||z<8||x>=W-8||z>=W-8)return null;const k=x*4099+z;let v=cache.get(k);if(!v){v=[height4(x,z),gLand,gMount];cache.set(k,v)}return v};
+ const bh=(x,z)=>{const v=bs(x,z);return v?v[0]:SEA-30};
+ const grad=(x,z,e)=>[(bh(x+e,z)-bh(x-e,z))/(2*e),(bh(x,z+e)-bh(x,z-e))/(2*e)];
+ // Spacing: features keep apart from each other; canyon courses are reserved too, except for the falls and the bridge that belong to them.
+ const taken=[],cres=[],free=(x,z,r,own=false)=>taken.every(o=>Math.hypot(o[0]-x,o[1]-z)>o[2]+r)&&(own||cres.every(o=>Math.hypot(o[0]-x,o[1]-z)>o[2]+r)),take=(x,z,r)=>{taken.push([x,z,r])};
+ const fix=v=>Math.round(v*100)/100,canyons=[],sea=[],falls=[],rocks=[],alc=[],list=[];
+ // 1. Canyons: from high ground, trace a winding course down toward the east coast; the deepest courses win.
+ const cand=[];
+ for(let k=0;k<44;k++){const x0=300+R()*780,z0=280+R()*1490,h0=bh(x0,z0);if(h0<SEA+50)continue;
+  const P=[[x0,z0,h0]],ph=R()*6.283;let a=(R()-.5)*1.4,x=x0,z=z0;
+  for(let i=0;i<34;i++){const g=grad(x,z,12),gl=Math.hypot(g[0],g[1]);let vx=Math.cos(a)+.3,vz=Math.sin(a);if(gl>.05){vx-=g[0]/gl*.5;vz-=g[1]/gl*.5}
+   let da=Math.atan2(vz,vx)+.3*Math.sin(i*.6+ph)-a;da=Math.atan2(Math.sin(da),Math.cos(da));a+=Math.max(-.42,Math.min(.42,da));
+   x+=Math.cos(a)*22;z+=Math.sin(a)*22;if(x<190||z<190||x>W-190||z>W-190)break;const hh=bh(x,z);P.push([x,z,hh]);if(hh<SEA+2)break}
+  if(P.length<12)continue;let sc=0;for(const p of P)sc+=Math.max(0,Math.min(100,p[2]-SEA-6));if(sc/P.length<24)continue;cand.push({P,sc})}
+ cand.sort((a,b)=>b.sc-a.sc);
+ for(const c of cand){if(canyons.length>=3)break;if(canyons.length&&(c.sc<canyons[0].sc*.4||!canyons.every(o=>o.P.every(p=>c.P.every(q=>Math.hypot(p[0]-q[0],p[1]-q[1])>230)))))continue;canyons.push(c)}
+ canyons.forEach((c,ci)=>{const n=c.P.length,k=fix(R()*90),raw=c.P.map((p,i)=>{const s=i/(n-1),Dc=Math.max(0,p[2]-SEA-2),wr=2.2+2.4*s+R()*.8,wf=wr+2.5+4.5*R()*(.4+s),kw=.32+.42*(pn(i*.27+k,5.3)*.5+.5);return[p[0],p[1],wr,wf,wf+Math.max(7,Math.min(70,Dc*kw)),Dc]});
+  const P=raw.map((p,i)=>{const q=raw[Math.max(0,i-1)],r=raw[Math.min(n-1,i+1)];return[fix(p[0]),fix(p[1]),fix((q[2]+2*p[2]+r[2])/4),fix((q[3]+2*p[3]+r[3])/4),fix((q[4]+2*p[4]+r[4])/4),p[5]]});
+  let M=0,len=0,maxD=0;for(let i=0;i<n;i++){M=Math.max(M,P[i][4]*1.3+8);maxD=Math.max(maxD,P[i][5]);if(i)len+=Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1])}
+  const bb=[1e9,-1e9,1e9,-1e9];for(const p of P){bb[0]=Math.min(bb[0],p[0]-M);bb[1]=Math.max(bb[1],p[0]+M);bb[2]=Math.min(bb[2],p[1]-M);bb[3]=Math.max(bb[3],p[1]+M)}
+  c.f={t:1,P:P.map(p=>p.slice(0,5)),M:fix(M),n:ci===0?3:2,k,bb};c.Pp=P;c.len=len;c.maxD=maxD;for(const p of P)cres.push([p[0],p[1],p[4]+14])});
+ // 2. Waterfalls: at canyon heads, from the canyon rims (side streams) and from tall sea cliffs.
+ const mkFalls=(kind,lx,lz,dx,dz,cap,ww,sl,ux,uz,big)=>{const qx=-dz,qz=dx;let mn=1e9;for(const o of[-ww,0,ww])mn=Math.min(mn,bh(lx+qx*o-dx*2,lz+qz*o-dz*2));
+  const wu=Math.min(Math.floor(mn)-3,SEA+cap);if(wu<SEA+(kind==='sea'?16:20)||!free(lx,lz,30,kind!=='sea'))return null;
+  const pr=ww+4+R()*3,f={t:3,kind,x:fix(lx),z:fix(lz),dx:Math.round(dx*1e4)/1e4,dz:Math.round(dz*1e4)/1e4,ww:fix(ww),wu,fl:SEA-5-Math.floor(R()*3),pr:fix(pr),sl:fix(sl),k:fix(R()*90),vv:6};
+  f.px=fix(lx+dx*(pr*.75+1));f.pz=fix(lz+dz*(pr*.75+1));
+  const S=[[f.x,f.z,wu]],ph=R()*6.283,maxL=big?150:60+R()*70;let x=lx,z=lz,a=Math.atan2(uz,ux),lv=wu,L=0;
+  for(let i=0;i<18&&L<maxL;i++){const st=i===0?9:11;
+   if(i>0){const g=grad(x,z,6),gl=Math.hypot(g[0],g[1]);let vx=Math.cos(a),vz=Math.sin(a);if(gl>.05){vx+=g[0]/gl*.4;vz+=g[1]/gl*.4}
+    let da=Math.atan2(vz,vx)+.32*Math.sin(i*.8+ph)-a;da=Math.atan2(Math.sin(da),Math.cos(da));const na=a+Math.max(-.38,Math.min(.38,da));if(Math.cos(na)*ux+Math.sin(na)*uz>=.45)a=na}
+   const nx=x+Math.cos(a)*st,nz=z+Math.sin(a)*st,px=-Math.sin(a),pz=Math.cos(a);let m2=1e9;for(const o of[-ww-2,0,ww+2])m2=Math.min(m2,bh(nx+px*o,nz+pz*o));
+   const tg=Math.floor(m2)-3;if(tg<lv-1)break;lv=Math.max(lv,Math.min(tg,lv+3));x=nx;z=nz;L+=st;S.push([fix(x),fix(z),lv])}
+  if(S.length<3)return null;f.S=S;f.pond=fix(1.5+R()*2.5);f.h=wu-SEA;
+  const m=ww+3+f.vv+f.pond+6,reach=Math.max(sl,pr*2.6)+3,lat=ww+12+pr,bb=[1e9,-1e9,1e9,-1e9],add=(x,z,r)=>{bb[0]=Math.min(bb[0],x-r);bb[1]=Math.max(bb[1],x+r);bb[2]=Math.min(bb[2],z-r);bb[3]=Math.max(bb[3],z+r)};
+  for(const p of S)add(p[0],p[1],m);add(lx+dx*reach,lz+dz*reach,lat);add(lx,lz,lat);f.bb=bb.map(fix);take(lx,lz,40);falls.push(f);return f};
+ canyons.forEach((c,ci)=>{const P=c.Pp,n=P.length,main=ci===0;
+  if(main||R()<.7){const ex=P[1][0]-P[0][0],ez=P[1][1]-P[0][1],l=Math.hypot(ex,ez),dx=ex/l,dz=ez/l,back=P[0][4]+1.5;
+   mkFalls('head',P[0][0]-dx*back,P[0][1]-dz*back,dx,dz,main?(R()<.5?76:62):52,main?5+R()*2.5:3.2+R()*2.2,back+2,-dx,-dz,main)}
+  let last=-1e9,cnt=0;const want=main?3:1+(R()<.5?1:0);
+  for(let i=3;i<n-3&&cnt<want;i++){const p=P[i];if(p[5]<26||i-last<4||R()<.45)continue;
+   const ex=P[i+1][0]-P[i-1][0],ez=P[i+1][1]-P[i-1][1],l=Math.hypot(ex,ez),side=R()<.5?1:-1,nx=-ez/l*side,nz=ex/l*side,off=p[4]+1.5,lx=p[0]+nx*off,lz=p[1]+nz*off;
+   if(bh(lx+nx*20,lz+nz*20)<bh(lx,lz)-4)continue;if(mkFalls('trib',lx,lz,-nx,-nz,58,1.8+R()*2.2,off+1,nx,nz,false)){last=i;cnt++}}});
+ for(let k=0,cnt=0;k<16&&cnt<2;k++){const z=260+R()*1520;let seaX=-1;
+  for(let x=1600;x>860;x-=5){const h=bh(x,z);if(h<SEA-1){seaX=x;continue}if(seaX<0)continue;if(seaX-x>12)break;if(h<SEA+24)continue;
+   const g=grad(x,z,4),gl=Math.hypot(g[0],g[1]);if(gl<.6)break;const dx=-g[0]/gl,dz=-g[1]/gl;let lx=x,lz=z;
+   for(let s=0;s<12;s++){if(bh(lx+dx*2,lz+dz*2)<h-6)break;lx+=dx*2;lz+=dz*2}
+   let sl=4;while(sl<24&&bh(lx+dx*sl,lz+dz*sl)>=SEA-1)sl+=2;
+   if(sl<24&&bh(lx-dx*24,lz-dz*24)>=h-8&&mkFalls('sea',lx,lz,dx,dz,46,2.2+R()*2,sl+3,-dx,-dz,false))cnt++;break}}
+ // Hollows behind the tallest falls: a domed room under the lip, reached by swimming through the sheet, lit by blue crystals and moss.
+ falls.forEach((f,i)=>{if(f.h<28||!(i===0&&f.kind==='head'||R()<.45))return;const ad=5+Math.floor(R()*3),aw=f.ww+1.2,ah=Math.min(9,f.wu-7-SEA);if(ah<4)return;
+  const a={t:5,id:'a'+i,x:f.x,z:f.z,dx:f.dx,dz:f.dz,ad,aw:fix(aw),y0:SEA+1,ah,cry:[]},r=ad+aw+2;a.bb=[f.x-r,f.x+r,f.z-r,f.z+r].map(fix);
+  const at=(t,u)=>[Math.floor(f.x+f.dx*t-f.dz*u),Math.floor(f.z+f.dz*t+f.dx*u)];
+  for(let q=0;q<12;q++){const [X,Z]=at(-ad*(.35+.55*R()),(R()*2-1)*aw*.85),ex=X+.5-f.x,ez=Z+.5-f.z,t=ex*f.dx+ez*f.dz,u=ez*f.dx-ex*f.dz,qq=(t/ad)**2+(u/aw)**2;if(t>=0||qq>=.9)continue;
+   const y1=a.y0+Math.floor(ah*(1-.55*qq))-1,id=R()<.72?26:R()<.6?28:27;
+   if(q%3===2){a.cry.push([X,a.y0-1,Z,29]);continue}
+   const L=1+Math.floor(R()*2.6);for(let s=0;s<L;s++){if(q&1)a.cry.push([X,y1-s,Z,id]);else a.cry.push([X,a.y0+s,Z,id])}}
+  f.cave=1;alc.push(a)});
+ // 3. Natural arches on hills and mountain feet, a stone bridge over the main canyon, sea arches off the coast, rock windows, and
+ // arches on the sea floor.
+ const mkRock=(kind,N,holes,na,grass)=>{const b=[1e9,-1e9,1e9,-1e9,1e9,-1e9];for(const p of N){const r=Math.max(p[3],p[4])*1.45+1,rv=p[4]*1.45+1;b[0]=Math.min(b[0],p[0]-r);b[1]=Math.max(b[1],p[0]+r);b[2]=Math.min(b[2],p[1]-rv);b[3]=Math.max(b[3],p[1]+rv);b[4]=Math.min(b[4],p[2]-r);b[5]=Math.max(b[5],p[2]+r)}
+  const f={t:4,id:'r'+rocks.length,kind,N:N.map(p=>p.map(fix)),na,grass,k:fix(R()*50),bb:b.map(fix)};if(holes)f.holes=holes.map(h=>h.map(p=>p.map(fix)));rocks.push(f);return f};
+ for(let k=0,cnt=0;k<140&&cnt<2;k++){const x=260+R()*1000,z=260+R()*1530,v=bs(x,z);if(!v||v[0]<SEA+5||v[0]>SEA+85||v[2]>.65)continue;
+  const big=cnt===0&&R()<.7,S=big?46+R()*22:24+R()*18,a=R()*Math.PI,ux=Math.cos(a),uz=Math.sin(a),ax=x-ux*S/2,az=z-uz*S/2,bx=x+ux*S/2,bz=z+uz*S/2,ha=bh(ax,az),hb=bh(bx,bz);
+  if(Math.abs(ha-hb)>16||Math.min(ha,hb)<SEA+3)continue;let mid=-1e9;for(const t of[.2,.35,.5,.65,.8])mid=Math.max(mid,bh(ax+ux*S*t,az+uz*S*t));if(mid>Math.max(ha,hb)+3||!free(x,z,S*.6+25))continue;
+  const top=Math.max(ha,hb),apex=Math.min(H-16,top+(big?28+R()*14:15+R()*11)),f=mkRock('arch',archNodes(ax,az,ha,bx,bz,hb,apex,4.6+R()*2.4,4+R()*2.8,big?3.6+R()*1.4:2.8+R()*1.2,big?3+R()*1.2:2.2+R()*1,(R()-.5)*S*.32,.8+R()*.4,.55+R()*.3,16),null,.55,true);
+  f.x=fix(x);f.z=fix(z);f.span=fix(S);f.ax=ux;f.az=uz;f.h=Math.round(apex-top);take(x,z,S*.6+25);cnt++}
+ if(canyons.length&&R()<.85){const c=canyons[0],P=c.Pp,n=P.length;let bi=-1,bw=1e9;
+  for(let i=Math.floor(n*.3);i<Math.floor(n*.78);i++){const p=P[i];if(p[5]>=28&&p[4]<bw&&falls.every(f=>Math.hypot(f.x-p[0],f.z-p[1])>60)){bw=p[4];bi=i}}
+  if(bi>0){const p=P[bi],ex=P[bi+1][0]-P[bi-1][0],ez=P[bi+1][1]-P[bi-1][1],l=Math.hypot(ex,ez),nx=-ez/l,nz=ex/l,off=p[4]+6,A=[p[0]+nx*off,p[1]+nz*off],B=[p[0]-nx*off,p[1]-nz*off],hr=Math.min(bh(A[0],A[1]),bh(B[0],B[1]));
+   if(hr>SEA+30){const N=[],wd=4.5+R()*2,bow=(R()-.5)*8;for(let i=0;i<=12;i++){const t=i/12,s=Math.sin(Math.PI*t),rv=8.5-4.3*s;N.push([A[0]+(B[0]-A[0])*t+ex/l*bow*s,hr+1.5-rv,A[1]+(B[1]-A[1])*t+ez/l*bow*s,wd*(1+.35*(1-s)),rv])}
+    const f=mkRock('bridge',N,null,.4,true);f.x=fix(p[0]);f.z=fix(p[1]);f.span=fix(off*2);f.ax=nx;f.az=nz;f.h=Math.round(hr-SEA);f.cx=ex/l;f.cz=ez/l;f.wt=p[4]}}}
+ for(let k=0,cnt=0;k<30&&cnt<2;k++){const z=260+R()*1520;let fx=-1;for(let x=1600;x>860;x-=6)if(bh(x,z)>=SEA+1){fx=x;break}if(fx<0)continue;
+  const g=grad(fx,z,5),gl=Math.hypot(g[0],g[1]);if(gl<.1)continue;const sx=-g[0]/gl,sz=-g[1]/gl,o=12+R()*10,cx=fx+sx*o,cz=z+sz*o,tx=-sz,tz=sx,S=22+R()*16,ax=cx-tx*S/2,az=cz-tz*S/2,bx=cx+tx*S/2,bz=cz+tz*S/2,ha=bh(ax,az),hb=bh(bx,bz);
+  if(bh(cx,cz)>SEA-3||Math.min(ha,hb)<SEA-16||Math.max(ha,hb)>SEA+14||!free(cx,cz,S*.6+30))continue;
+  const apex=SEA+11+R()*14,f=mkRock('seaArch',archNodes(ax,az,ha,bx,bz,hb,apex,4.2+R()*2.2,4+R()*2.4,3+R()*1.3,2.4+R()*1.1,(R()-.5)*S*.25,.85+R()*.3,.6+R()*.25,14),null,.5,true);
+  f.x=fix(cx);f.z=fix(cz);f.span=fix(S);f.ax=tx;f.az=tz;f.sx=sx;f.sz=sz;f.h=Math.round(apex-SEA);take(cx,cz,S*.6+30);cnt++}
+ for(let k=0,cnt=0;k<110&&cnt<4;k++){const x=260+R()*1080,z=260+R()*1530,v=bs(x,z);if(!v||v[0]<SEA+4||v[0]>SEA+50)continue;const g=grad(x,z,5);if(Math.hypot(g[0],g[1])>.9||!free(x,z,45))continue;
+  const g0=v[0],Hh=14+R()*14,R0=3.4+R()*2.2,lx=(R()-.5)*.25,lz=(R()-.5)*.25,N=[],rad=f=>R0*(1.05-.3*smooth(.15,.55,f)+.32*smooth(.62,.86,f)*(1-.7*smooth(.94,1,f)));
+  for(let i=0;i<=8;i++){const fr=i/8,y=g0-5+(Hh+5)*fr,r=rad(fr);N.push([x+lx*(y-g0),y,z+lz*(y-g0),r,r*1.05])}
+  const holes=[],nh=R()<.3?2:1;let ha=0;
+  for(let j=0;j<nh;j++){const fy=g0+Hh*(j?.3+R()*.12:.55+R()*.15),a=R()*Math.PI,hx=Math.cos(a),hz=Math.sin(a),cx=x+lx*(fy-g0),cz=z+lz*(fy-g0),hr=Math.min(rad((fy-g0+5)/(Hh+5))-1.8,1.7+R()*1.1),L=R0+4;
+   if(hr<1.3)continue;if(!j)ha=a;holes.push([[cx-hx*L,fy,cz-hz*L,hr,hr*1.3],[cx+hx*L,fy+(R()-.5)*1.5,cz+hz*L,hr*.9,hr*1.2]])}
+  if(!holes.length)continue;const f=mkRock('hoodoo',N,holes,.45,true);f.x=fix(x);f.z=fix(z);f.h=Math.round(Hh);f.ax=Math.cos(ha);f.az=Math.sin(ha);f.g=g0;f.hy=fix(holes[0][0][1]);take(x,z,45);cnt++}
+ for(let k=0,cnt=0;k<400&&cnt<3;k++){const x=150+R()*1750,z=150+R()*1750,v=bs(x,z);if(!v||v[1]>0||v[0]<SEA-22||v[0]>SEA-12)continue;
+  const S=15+R()*12,a=R()*Math.PI,ux=Math.cos(a),uz=Math.sin(a),ax=x-ux*S/2,az=z-uz*S/2,bx=x+ux*S/2,bz=z+uz*S/2,ha=bh(ax,az),hb=bh(bx,bz);let top=Math.max(ha,hb);
+  for(const t of[.3,.5,.7])top=Math.max(top,bh(ax+ux*S*t,az+uz*S*t)); // the sea bed under the whole span, so the opening stays open
+  if(top>SEA-11||Math.min(ha,hb)<SEA-24||!free(x,z,S*.6+30))continue;const vT=2+R()*.7,apex=Math.min(SEA-5,top+11+R()*4);if(apex-vT*1.35-top<6)continue;
+  const f=mkRock('uwArch',archNodes(ax,az,ha,bx,bz,hb,apex,3.6+R()*1.6,3.4+R()*1.8,2.5+R()*.8,vT,(R()-.5)*S*.3,.85+R()*.3,.6+R()*.25,12),null,.5,false);
+  f.x=fix(x);f.z=fix(z);f.span=fix(S);f.ax=ux;f.az=uz;f.h=Math.round(SEA-Math.min(ha,hb));WREEF.push([fix(x),fix(z),fix(S*.75),.6]);take(x,z,S*.6+30);cnt++}
+ // 4. Sea floor: reef hills in the shallow sea, trenches running out to the deep, and drop-offs where a shelf ends in a wall.
+ for(let k=0,cnt=0;k<160&&cnt<5;k++){const x=150+R()*1750,z=150+R()*1750,v=bs(x,z);if(!v||v[1]>0||v[1]<-1.3||v[0]<SEA-21||v[0]>SEA-9||!free(x,z,40))continue;
+  const r=13+R()*12,f={t:2,s:0,x:fix(x),z:fix(z),r:fix(r),top:SEA-4-Math.floor(R()*2),k:fix(R()*50)};f.bb=[x-r*1.4-2,x+r*1.4+2,z-r*1.4-2,z+r*1.4+2].map(fix);f.h=SEA-Math.floor(v[0]);sea.push(f);WREEF.push([f.x,f.z,fix(r*1.15),.78]);take(x,z,r+20);cnt++}
+ for(let k=0,cnt=0;k<500&&cnt<2;k++){const x0=150+R()*1750,z0=150+R()*1750,v=bs(x0,z0);if(!v||v[1]>0||v[0]<SEA-18||v[0]>SEA-5)continue;
+  // it winds along the shelf, steering down-slope where the bed is shallow and up-slope where it gets deep, so it stays in the light
+  const g0=grad(x0,z0,8);let a=Math.atan2(-g0[1],-g0[0])+(R()<.5?1.2:-1.2),x=x0,z=z0;const P=[],ph=R()*6.283;
+  for(let i=0;i<16;i++){const bz=bh(x,z);if(bz>SEA-4||bz<SEA-24||!free(x,z,20))break;P.push([x,z]);const g=grad(x,z,8),gl=Math.hypot(g[0],g[1]),e=Math.max(-1,Math.min(1,(bz-(SEA-12))/6));let vx=Math.cos(a),vz=Math.sin(a);if(gl>.02){vx-=g[0]/gl*.45*e;vz-=g[1]/gl*.45*e}
+   let da=Math.atan2(vz,vx)+.35*Math.sin(i*.7+ph)-a;da=Math.atan2(Math.sin(da),Math.cos(da));a+=Math.max(-.35,Math.min(.35,da));x+=Math.cos(a)*16;z+=Math.sin(a)*16;if(x<150||z<150||x>W-150||z>W-150)break}
+  if(P.length<7)continue;const n=P.length,cut=9+Math.floor(R()*4),wf=2.5+R()*2;let M=0,fl=99;
+  // the floor follows the sea bed 9-12 blocks down, between 16 and 27 blocks under the surface, where some light still reaches
+  const Pp=P.map((p,i)=>{const s=i/(n-1),wt=wf+7+6*R(),f0=Math.max(SEA-28,Math.min(SEA-16,bh(p[0],p[1])-cut));M=Math.max(M,wt+4);fl=Math.min(fl,f0);return[fix(p[0]),fix(p[1]),fix(wf),fix(wt),fix(smooth(0,.2,s)*smooth(1,.8,s)),f0]});
+  const bb=[1e9,-1e9,1e9,-1e9];for(const p of Pp){bb[0]=Math.min(bb[0],p[0]-M);bb[1]=Math.max(bb[1],p[0]+M);bb[2]=Math.min(bb[2],p[1]-M);bb[3]=Math.max(bb[3],p[1]+M)}
+  const f={t:2,s:1,P:Pp,M:fix(M),k:fix(R()*50),bb};f.h=SEA-fl;sea.push(f);for(const p of P)take(p[0],p[1],M+12);cnt++}
+ for(let k=0,cnt=0;k<500&&cnt<2;k++){const x=150+R()*1750,z=150+R()*1750,v=bs(x,z);if(!v||v[1]>0||v[0]<SEA-17||v[0]>SEA-7)continue;
+  const g=grad(x,z,10),gl=Math.hypot(g[0],g[1]);if(gl<.05)continue;const nx=-g[0]/gl,nz=-g[1]/gl,tx=-nz,tz=nx,len=140+R()*140,ax=x-tx*len/2,az=z-tz*len/2,bx=x+tx*len/2,bz=z+tz*len/2;
+  if(bh(ax,az)>SEA-5||bh(bx,bz)>SEA-5||!free(x,z,len/2+20))continue;
+  const f={t:2,s:2,x:fix(x),z:fix(z),ax:fix(ax),az:fix(az),tx,tz,nx,nz,len:fix(len),shelf:SEA-7-Math.floor(R()*2),deep:SEA-24-Math.floor(R()*3),k:fix(R()*50)};
+  f.bb=[Math.min(ax,bx)-52,Math.max(ax,bx)+52,Math.min(az,bz)-52,Math.max(az,bz)+52].map(fix);f.h=f.shelf-f.deep;sea.push(f);take(x,z,len/2+20);cnt++}
+ // Buckets of 64x64 blocks list the height-map features that touch them, canyons first, then the sea floor, then falls (which cut last).
+ WF=[...canyons.map(c=>c.f),...sea,...falls];WF.forEach((f,i)=>{f.id=i});WA=[...rocks,...alc];
+ WBK=new Array(WBN*WBN).fill(null);
+ WF.forEach((f,i)=>{const b=f.bb;for(let j=Math.max(0,Math.floor(b[2]/WB));j<=Math.min(WBN-1,Math.floor(b[3]/WB));j++)for(let q=Math.max(0,Math.floor(b[0]/WB));q<=Math.min(WBN-1,Math.floor(b[1]/WB));q++)(WBK[j*WBN+q]||(WBK[j*WBN+q]=[])).push(i)});
+ // The list for discovery and the scenic tour: kind, place, size and a label.
+ for(const c of canyons){const P=c.Pp,m=P[Math.floor(P.length*.45)];list.push({kind:'canyon',f:c.f,x:m[0],z:m[1],size:c.maxD,label:`大渓谷（深さ${Math.round(c.maxD)}m・長さ${Math.round(c.len/10)*10}m）`,P})}
+ for(const f of falls)list.push({kind:'falls',f,x:f.x,z:f.z,size:f.h,label:`${f.h>=60?'大瀑布':f.h>=35?'大滝':'滝'}（落差${f.h}m${f.cave?'・裏に洞窟':''}）`});
+ for(const f of rocks){const k=f.kind,lab=k==='arch'?`天然アーチ（高さ${f.h}m・幅${Math.round(f.span)}m）`:k==='bridge'?`天然の石橋（谷底まで${f.h}m）`:k==='hoodoo'?`風穴の奇岩（高さ${f.h}m）`:k==='seaArch'?`海食アーチ（海面から${f.h}m）`:`海底アーチ（水深${f.h}m）`;
+  list.push({kind:k,f,x:f.x,z:f.z,size:f.h,label:lab,uw:k==='uwArch'})}
+ for(const f of sea){const k=f.s===0?'reefHill':f.s===1?'trench':'drop',lab=k==='reefHill'?`珊瑚礁の丘（水深${f.h}mからそびえる）`:k==='trench'?`海底渓谷（水深${f.h}m）`:`海底の崖（落差${f.h}m）`;
+  list.push({kind:k,f,x:f.s===1?f.P[Math.floor(f.P.length/2)][0]:f.x,z:f.s===1?f.P[Math.floor(f.P.length/2)][1]:f.z,size:f.h,label:lab,uw:true})}
+ list.forEach((s,i)=>{s.id=i});WLIST=list;WON=true}
+// Distance from (x,z) to a wonder, for discovery: line features measure to their course.
+function wonderDist(s,x,z){const f=s.f;
+ if(s.kind==='canyon'){segNear(f.P,x,z,1e4);const a=f.P[Math.max(0,snI)];return Math.max(0,snD-a[4])}
+ if(s.kind==='trench'){segNear(f.P,x,z,1e4);return snD}
+ if(s.kind==='drop'){const ex=x-f.ax,ez=z-f.az,t=Math.max(0,Math.min(f.len,ex*f.tx+ez*f.tz));return Math.hypot(ex-f.tx*t,ez-f.tz*t)}
+ return Math.hypot(x-s.x,z-s.z)}
+function wonderReach(s){return s.kind==='falls'?40+s.size*.5:s.kind==='canyon'?36:s.kind==='arch'||s.kind==='bridge'?30+s.f.span*.6:s.kind==='hoodoo'?36:s.uw?26:40}
+buildWonders();
 const vista=GRAND?findVista():null;
 // ---- Caves (terrainVersion >= 7). A cave system is a pure function of (seed, cell): each 256x256 cell holds a few chambers (halls, lakes,
 // crystal caves), tunnels that wander down from hillside mouths, pockets, shafts, bridges and a skylight chimney. Chunks ask their cell for the
@@ -831,8 +1108,8 @@ function generateChunk(cx,cz){
  if(GRAND){
   const info=columnInfo(cx,cz);
   for(let lz=0;lz<16;lz++)for(let lx=0;lx<16;lx++){const k=lz*16+lx,h=info.h[k],top=info.surf[k],sub=top===1||top===2?2:top===6?6:3;
-   data[k]=11;const soil=SCENIC&&info.slope[k]>=2?2:4;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-soil?sub:3;for(let y=h+1;y<=SEA;y++)data[y*256+k]=10}
-  if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);if(CAVES)carveCaves(data,cx,cz,info);return data}
+   data[k]=11;const soil=SCENIC&&info.slope[k]>=2?2:4;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-soil?sub:3;const wl=info.wl?info.wl[k]:SEA;for(let y=h+1;y<=wl;y++)data[y*256+k]=10}
+  if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);if(CAVES)carveCaves(data,cx,cz,info);if(WON)wonderVoxels(data,cx,cz);return data}
   // One tree candidate per 5x5 cell; canopies reach three blocks into neighbouring chunks.
   for(let i=Math.floor((x0-3)/5);i<=Math.floor((x0+CHUNK+2)/5);i++)for(let j=Math.floor((z0-3)/5);j<=Math.floor((z0+CHUNK+2)/5);j++){
    const tx=i*5+Math.floor(rand(i*7+1,j*13+5)*5),tz=j*5+Math.floor(rand(i*11+3,j*3+17)*5);
@@ -1133,6 +1410,23 @@ varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying 
 uniform vec3 eyeF;`+SKY_GLSL+WATER_GLSL+`
 void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col;float alpha=1.;vec3 w=rel+eyeF;
 if(mat>29.5){
+ float fm=fract(mat);
+ if(fm>.55&&fm<.65){
+  // v9 falls mist: spray boiling up from the plunge pool (col.r = strength, col.g = phase), thinner on low quality. Where sunlight
+  // reaches it at 40-42 degrees from the point opposite the sun, the spray shows a rainbow (violet inside, red outside).
+  float edge=1.-abs(uv.x*2.-1.),v=uv.y;vec2 p=vec2(uv.x*5.+col.g*13.,v*2.2-vClk*.55);
+  float dens=smoothstep(.25,.85,vnoise(p+vec2(0.,-vClk*.2))*.62+vnoise(p*2.3+vec2(4.1,-vClk*1.1))*.38);
+  alpha=smoothstep(0.,.45,edge)*pow(1.-v,1.35)*(.12+.42*dens)*col.r*(wq<.5?.6:1.);c=(ambCol*1.15+dirCol*.75)*vec3(.94,.97,1.);
+  float ang=degrees(acos(clamp(dot(normalize(rel),-sunDir),-1.,1.))),rb=smoothstep(39.4,40.4,ang)*(1.-smoothstep(41.6,42.6,ang))*smoothstep(.02,.15,sunDir.y)*(1.-misc.x);
+  if(rb>0.){float k=clamp((ang-39.6)/2.8,0.,1.);vec3 hue=clamp(abs(fract(vec3(.78*(1.-k))+vec3(1.,.6667,.3333))*6.-3.)-1.,0.,1.);
+   c=mix(c,hue*(dirCol*1.2+.25),rb*.75);alpha=max(alpha,rb*.32*smoothstep(0.,.3,edge)*(1.-smoothstep(.55,1.,v))*(wq<.5?.6:1.));}
+  if(alpha<.004)discard;gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);return;}
+ if(fm>.65&&fm<.75){
+  // v9 plunge pool: rings of ripples running out from the foot of the fall, foam churning where the water lands (col.r = radius/40).
+  float r=length(uv);if(r>1.)discard;float d=r*col.r*40.;
+  float ring=pow(.5+.5*sin(d*1.35-vClk*4.2+vnoise(w.xz*.3)*2.),8.)*smoothstep(1.,.25,r)*smoothstep(0.,.12,r);
+  float fo=smoothstep(.5,.85,vnoise(floor(w.xz*8.)/8.*.9+vec2(vClk*.6,-vClk*.45)))*(1.-smoothstep(.12,.5,r));
+  alpha=(ring*.22+fo*.7)*(wq<.5?.7:1.);c=vec3(.93,.97,1.)*(ambCol+dirCol*.7);if(alpha<.004)discard;gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);return;}
  // Hide reef shafts immediately when switching to low quality; cave shafts remain unchanged.
  if(fract(mat)>.2&&wq<.5)discard;
  // Light shaft from a skylight chimney: a soft column that fades at its edges and ends, streaked a little, only while the sun is up.
@@ -1146,6 +1440,14 @@ else{
  // Water: col.r = depth (0..1 for 0..30 blocks), col.g = shore nearness (1 at the land edge, 0 from 3.5 blocks out),
  // col.b = sandy bed share, uv = river flow (blocks/s), fract(mat) = exposure to the open sea. All are smooth per corner.
  float D=col.r*30.,s=col.g,sand=col.b,ex=clamp(fract(mat)*2.23,0.,1.),sp=length(uv);vec3 v=normalize(rel);float d=length(rel);
+ if((vFace<1.5||(vFace>3.5&&vFace<5.5))&&w.y>${SEA}.95+.3){
+  // v9 falling water: a vertical water face above the sea is a falls sheet or a cascade. Pixel streaks race down at different
+  // speeds, the sheet whitens toward the foot, and a few bright drops flicker.
+  vec2 g=floor(vec2(vFace<1.5?w.z:w.x,w.y)*8.)/8.;
+  float st=vnoise(vec2(g.x*2.1,g.y*.09+vClk*1.9))*.55+vnoise(vec2(g.x*5.3+3.7,g.y*.25+vClk*3.3))*.45,foot=1.-smoothstep(0.,5.,w.y-${SEA+1}.);
+  c=mix(vec3(.2,.44,.54),vec3(.86,.93,.97),clamp(smoothstep(.3,.75,st)+foot*.6,0.,1.))*(ambCol*1.05+dirCol*(.45+.35*max(dot(faceNormal(vFace),dirLight),0.)));
+  c+=(ambCol+dirCol)*.15*step(.93,hash(floor(vec2(g.x*8.,g.y*2.+vClk*16.))));c*=1.-.85*vCave.x;
+  gl_FragColor=vec4(fogMix(c,rel,w.y),.72+.22*smoothstep(.3,.8,st));return;}
  if(rel.y>0.&&vFace>1.5&&vFace<2.5){
   // From below: the sky shows only inside Snell's window; outside it the surface mirrors the deep water.
   vec2 g=waveSlope(w.xz,vClk,d*.004,.6);float win=smoothstep(.62,.72,v.y+dot(g,v.xz)*.8);vec3 u=underCol(max(${SEA}.88-eyeF.y,0.));
@@ -1197,11 +1499,15 @@ void main(){
  // overdraws it wherever it has geometry, and it fills the gaps seen through the near water at the square's edge.
  if(vRel.x>hole.x&&vRel.x<hole.z&&vRel.z>hole.y&&vRel.z<hole.w&&(vMat<.5||vMat>1.5))discard;
  vec3 w=vRel+eyeF;float d=length(vRel);vec3 c=vCol;
- if(vMat>.5&&vMat<1.5){
+ if((vMat>.5&&vMat<1.5)||(vMat>3.5&&vMat<4.5)){
   // Far water: vCol.r = depth (0..40 blocks), vCol.g = sandy bed share. The bed is not drawn here, so it is folded in analytically.
+  // Material 4 is a v9 stream above the sea (same shading; hidden under the near field like the land).
   float D=vCol.r*40.;vec3 v=vRel/max(d,.001);float fp=d/(500.*max(abs(v.y),.03));vec4 ws=waterShade(v,waveSlope(w.xz,vClk,fp,1.),D,vCol.g,fp,0.);
   vec3 bed=mix(vec3(.40,.40,.38),vec3(.86,.80,.58),vCol.g)*(ambCol+dirCol*max(dirLight.y,0.))*exp(-WABS*(D+D/max(-v.y,.1)));
   c=ws.rgb+(1.-ws.a)*bed;}
+ else if(vMat>2.5&&vMat<3.5){ // v9 far falls: streaks running down the sheet
+  float hc=abs(faceNormal(vFace).x)>.5?w.z:w.x,st=vnoise(vec2(hc*.9,w.y*.07+vClk*1.6))*.6+vnoise(vec2(hc*2.3+4.,w.y*.16+vClk*2.6))*.4;
+  c=mix(vec3(.5,.7,.8),vec3(.95,.98,1.),smoothstep(.3,.75,st))*(ambCol*1.05+dirCol*.55);}
  else{float n=hash(floor(w.xz-.01)+floor(w.y-.01)*17.);c*=1.+(n-.5)*.16*(1.-smoothstep(90.,380.,d));if(vMat>1.5)c*=.9+.14*hash(floor(w.xz*.5-.01)+3.7);
   c*=lighting(faceNormal(vFace),0.,w,0.);}
  gl_FragColor=vec4(fogMix(c,vRel,w.y),1.);}`;
@@ -1474,7 +1780,7 @@ const FISH_SPECIES=[
  parts:[['body',0,0,0,8,1.4,11,'#9a8466','dots'],['body',0,-.1,0,7.6,.2,10.6,'#ece6dc','flat'],['body',-4.5,.2,-.5,1.2,.4,10,'#8a7558','flat',1],['body',0,.3,5.8,4,.8,1,'#8f7a5c','flat'],
   ['body',-1.6,1.4,3.4,1.1,.5,1.1,'#e8dca0','eye'],['body',1,1.4,3.9,1.1,.5,1.1,'#e8dca0','eye'],['body',-1.6,1.9,3.4,.5,.12,.5,'#0a0a0a','flat'],['body',1,1.9,3.9,.5,.12,.5,'#0a0a0a','flat'],
   ['tail',0,.2,-6.8,4,.4,2.6,'#8a7558','flat']]},
-{id:'ryugu',name:'リュウグウノツカイ（珍しい）',rare:1,hab:{deep:.25},herd:[1,1],size:[.9,1.1],sp:.35,run:1.2,flee:0,zone:'mid',minD:12,wag:.28,freq:2,spread:1,piv:-5,
+{id:'ryugu',name:'リュウグウノツカイ（珍しい）',rare:1,hab:{deep:.25,trench:1.3},herd:[1,1],size:[.9,1.1],sp:.35,run:1.2,flee:0,zone:'mid',minD:12,wag:.28,freq:2,spread:1,piv:-5,
  parts:[['body',0,-2.5,6,1.4,5,22,'#d8dee6','dots'],['body',0,-2.2,17.8,1.3,4.2,1.6,'#c8d0da','scale'],['body',-.7,.5,17.6,.12,1,1,'#f0f0f0','eye',1],['body',-.76,.7,17.8,.1,.5,.5,'#0a0a0a','flat',1],
   ['body',0,2.5,7,.25,1.4,22,'#e0383a','flat'],['body',0,2,17.5,.25,5,.6,'#e8403e','flat'],['body',0,2,16.5,.25,4,.6,'#e8403e','flat'],['body',-.6,-6.5,15,.2,4,.3,'#e0383a','flat',1],
   ['tail',0,-2.2,-10,1.2,4.4,10,'#d0d8e2','scale'],['tail',0,2.2,-10,.25,1.2,10,'#e0383a','flat'],['tail',0,-1.4,-15.6,.3,2.8,1.4,'#e0383a','flat']]},
@@ -1639,14 +1945,15 @@ function aqh(x,z,s){let n=Math.imul(x|0,0x27d4eb2d)^Math.imul(z|0,0x165667b1)^Ma
 function aquaKind(x,z,L){if(L<=0)return 1;const rm=smooth(-.12,.18,pn(x/900+60.1,z/900+12.3));return rm>0&&Math.abs(riverField(x,z))<.075?2:3}
 // Coral reefs: a broad reef region times smaller hot spots, so the shallow sea has plain floor, a fringe with a little coral, reef
 // stretches and dense, vivid cores (about 7% of the shallow sea). The mesher and the fish read the same field.
-function reefZone(x,z){const b=smooth(.02,.26,fbm(x/260+901.3,z/260+417.7,3)+.12*pn(x/60+5.1,z/60+9.3));if(b<=0)return 0;
- return b*(.2+.8*smooth(.46,.7,pn(x/46+13.7,z/46+71.1)*.5+.5+.1*pn(x/19+3.9,z/19+8.2)))}
+// v9: reef hills and sea-floor arches carry a reef of their own (wonderReef), wherever they stand.
+function reefZone(x,z){const w=WON?wonderReef(x,z):0,b=smooth(.02,.26,fbm(x/260+901.3,z/260+417.7,3)+.12*pn(x/60+5.1,z/60+9.3));if(b<=0)return w;
+ const v=b*(.2+.8*smooth(.46,.7,pn(x/46+13.7,z/46+71.1)*.5+.5+.1*pn(x/19+3.9,z/19+8.2)));return v>w?v:w}
 function kelpZone(x,z){return smooth(.0,.25,fbm(x/190+77.9,z/190+611.3,3)+.1*pn(x/45+2.7,z/45+8.1))}
 const AQ_GRASS=[[.30,.60,.22],[.40,.66,.25],[.24,.52,.24]],AQ_WEED=[[.20,.48,.20],[.32,.56,.18],[.17,.40,.26]],AQ_KELP=[[.34,.38,.14],[.44,.33,.13],[.26,.36,.17]],
  AQ_MOSS=[[.28,.46,.20],[.40,.48,.18],[.52,.40,.30]],// Seven coral hues around the colour wheel (yellow, orange, red, pink, purple, light blue, teal): a neighbouring index is a related hue.
  CORAL=[[1,.84,.30],[1,.56,.20],[.94,.30,.26],[1,.50,.66],[.70,.40,.94],[.40,.72,1],[.22,.82,.70]],REEF_ROCK=[[.55,.52,.47],[.46,.45,.43],[.60,.55,.48]],
  PEBBLE=[[.55,.55,.52],[.45,.43,.40],[.66,.62,.55],[.38,.40,.40]];
-const aqFlow=[0,0,-1],aqZ=new Float32Array(50);
+const aqFlow=[0,0,-1],aqZ=new Float32Array(50);let aqWF=0; // v9 wonder flags of the column being decorated (see gWF)
 // Reef and kelp zones are broad, so each chunk samples them on a 4-block grid and interpolates (two fbm per corner, not per column).
 function aquaZones(x0,z0){for(let j=0;j<5;j++)for(let i=0;i<5;i++){const x=x0+i*4,z=z0+j*4;aqZ[j*5+i]=reefZone(x,z);aqZ[25+j*5+i]=kelpZone(x,z)}}
 function aquaZone(lx,lz,o){const u=lx/4,v=lz/4,i=Math.min(3,u|0),j=Math.min(3,v|0),fu=u-i,fv=v-j,k=o+j*5+i;
@@ -1679,6 +1986,9 @@ function emitAqua(w,wx,wz,fy,D,ft,kind,keep){
   if(r1<(.1+.3*meadow)*light+.06&&room>.35){emitAquaPlant(w,wx,fy,wz,0,pick(AQ_GRASS,r2),Math.min(room,.3+.45*r2),ox,oz,0);return}
   if(r1>.93&&room>.3){emitAquaPlant(w,wx,fy,wz,3,pick(AQ_MOSS,r2),.25+.25*r2,ox,oz,0);return}
   if(r1>.9)aquaPebble(w,wx,fy,wz,r2,r3);return}
+ // v9 trench floors: a meadow of seagrass and waterweed in the dim valley; its walls grow kelp.
+ if(aqWF&1){if(room>.35&&r1<.72){if(r2<.62)emitAquaPlant(w,wx,fy,wz,0,pick(AQ_GRASS,r3),Math.min(room,.4+.7*r2),ox,oz,0);else emitAquaPlant(w,wx,fy,wz,1,pick(AQ_WEED,r3),Math.min(room-.2,1.2+2.2*r3),ox,oz,0)}return}
+ if(aqWF&16&&rocky&&room>2&&r1<.3){emitAquaPlant(w,wx,fy,wz,2,pick(AQ_KELP,r3),Math.min(room-.2,2+r2*Math.min(8,D*.5)),ox,oz,0);return}
  // Sea: coral reefs in warm shallow stretches (dense cores, reef, a sparse fringe), kelp forests on deeper rock, seagrass meadows on
  // shallow sand, rock gardens here and there, sparse life in the deep.
  const reef=aquaZone(wx&15,wz&15,0)*smooth(1.2,3,D)*(1-smooth(10,16,D)),kz=aquaZone(wx&15,wz&15,25)*smooth(4,7,D)*(1-smooth(22,30,D))*(1-Math.min(1,reef*2));
@@ -1708,7 +2018,8 @@ function emitAqua(w,wx,wz,fy,D,ft,kind,keep){
  if(r1>.965)aquaPebble(w,wx,fy,wz,r2,r3);
  else if(r1>.94&&room>.3)emitAquaPlant(w,wx,fy,wz,3,pick(AQ_MOSS,r2),.22+.22*r2,ox,oz,0)}
 // Coral colour: neighbouring colonies share a hue family (8-block cells), with related and random hues mixed in.
-function coralColor(wx,wz,u,v){const f=Math.floor(aqh(wx>>3,wz>>3,21)*7),k=u<.5?f:u<.8?f+(v<.5?6:1):Math.floor(v*7),c=CORAL[k%7],b=.9+.2*aqh(wx*7+3,wz*11+5,22);
+// On a v9 reef hill the warm orange/red families turn pink and purple, so hills read pink, purple, blue, cyan and yellow.
+function coralColor(wx,wz,u,v){let f=Math.floor(aqh(wx>>3,wz>>3,21)*7);if(aqWF&2&&(f===1||f===2))f+=2;const k=u<.5?f:u<.8?f+(v<.5?6:1):Math.floor(v*7),c=CORAL[k%7],b=.9+.2*aqh(wx*7+3,wz*11+5,22);
  return[Math.min(1,c[0]*b),Math.min(1,c[1]*b),Math.min(1,c[2]*b)]}
 // One coral colony standing at y (the floor or a reef rock), at most room tall; core makes colonies bigger.
 // Shapes: 0 branching, 1 round, 2 table, 3 finger, 4 small and colourful, 5 tube.
@@ -1786,7 +2097,7 @@ function bakeGlow(cx,cz,near){let any=false;
 const occ=t=>t!==0&&t!==9&&t!==10;
 const FACE=faces.map(f=>{const st=[1,PA,PW],axes=[0,1,2].filter(a=>!f.n[a]);return{off:f.n[0]+f.n[1]*PA+f.n[2]*PW,dcol:f.n[0]+f.n[2]*PW,dy:f.n[1],n:f.n,l:f.l,v:f.v,uv:f.v.map(v=>faceUV(v,f)),
  ao:f.v.map(v=>{const oa=(v[axes[0]]?1:-1)*st[axes[0]],ob=(v[axes[1]]?1:-1)*st[axes[1]];return[oa,ob,oa+ob]})}});
-const LOG_TOP=rgb('#b9955d'),BIRCH_TOP=rgb('#d8cfa8'),WHITE=[1,1,1];
+const LOG_TOP=rgb('#b9955d'),BIRCH_TOP=rgb('#d8cfa8'),WHITE=[1,1,1],ZERO2=[0,0],wfl=[0,0];
 // ---- Water surface data, per corner of the sea-level water surface so every value blends smoothly across blocks:
 // depth (mean of the four columns, land = 0), shore nearness (distance to land up to 3.5 blocks), sandy bed share,
 // exposure to the open sea, and river flow. Only the mesh changes; terrain, water and saves are untouched.
@@ -1810,7 +2121,7 @@ function waterFields(cx,cz,nb){const x0=cx*CHUNK,z0=cz*CHUNK,fl=[0,0];
   let best=WR*WR;for(let dz=-WR;dz<WR;dz++)for(let dx=-WR;dx<WR;dx++)if(wLand[k+dz*WG+dx]){const ex=dx<0?-dx-1:dx,ez=dz<0?-dz-1:dz,q=ex*ex+ez*ez;if(q<best)best=q}
   wf.shore[c]=Math.max(0,1-Math.sqrt(best)/3.5);
   let L=.5;if(GRAND){const u=i/8,v=j/8,a=Math.min(1,Math.floor(u)),b=Math.min(1,Math.floor(v)),fu=u-a,fv=v-b;
-   L=(wLg[b*3+a]*(1-fu)+wLg[b*3+a+1]*fu)*(1-fv)+(wLg[b*3+3+a]*(1-fu)+wLg[b*3+a+4]*fu)*fv;riverFlow(x0+i,z0+j,L,fl)}
+   L=(wLg[b*3+a]*(1-fu)+wLg[b*3+a+1]*fu)*(1-fv)+(wLg[b*3+3+a]*(1-fu)+wLg[b*3+a+4]*fu)*fv;riverFlow(x0+i,z0+j,L,fl);if(WON)wonderFlow(x0+i,z0+j,fl)}
   wf.ex[c]=GRAND?1-smooth(-.15,.55,L):.5;wf.fx[c]=fl[0];wf.fz[c]=fl[1]}}
 function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)return;const stamp=perfEnabled?performance.now():0;
  const x0=cx*CHUNK,z0=cz*CHUNK,info=GRAND?columnInfo(cx,cz):null,near=[];
@@ -1855,7 +2166,9 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
     if(water&&fi===2&&y===SEA){if(!wfReady){waterFields(cx,cz,nb);wfReady=true}
      for(let k=0;k<4;k++){const v=F.v[k],c=(z+v[2])*WC+x+v[0];vert(w,wx+v[0],y+1-drop,wz+v[2],wf.dep[c]/30,wf.shore[c],wf.sand[c],wf.fx[c],wf.fz[c],code+wf.ex[c]*.45)}}
     else if(water){let d=1,q=p-PA;while(pad[q]===10&&d<30){d++;q-=PA}
-     for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0;vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],d/30,shore,pad[q]===6?1:0,0,0,code)}}
+     // v9 streams above the sea: the surface drifts toward the falls
+     const pf=WON&&fi===2&&y>SEA?(wfl[0]=wfl[1]=0,wonderFlow(wx,wz,wfl),wfl):ZERO2;
+     for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0;vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],d/30,shore,pad[q]===6?1:0,pf[0],pf[1],code)}}
     else for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=sh[kk];vert(w,wx+v[0],y+v[1],wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0],F.uv[kk][1],code)}}
    if(t===1&&!pad[p+PA]){const ps=roofs[(z+1)*PW+x+1]>y+1;
     if(VEG&&info)emitMeadow(opaqueW,wx,wz,y+1,k,info,gcol,ps,y+2<H&&!pad[p+2*PA],keep);
@@ -1867,7 +2180,7 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
  // Underwater flora: one decoration per open-water floor column (scanned down from the sea surface through the water).
  if(AQUA&&info&&info.wk){const ak=(lvl?.55:1)*(.3+.7*Q.plant);let zones=false;
   for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const k=z*16+x;if(!info.wk[k])continue;const col=(z+1)*PW+x+1;let y=SEA;if(pad[(y+1)*PA+col]!==10)continue;
-   while(y>1&&pad[(y+1)*PA+col]===10)y--;const ft=pad[(y+1)*PA+col];if(ft!==2&&ft!==3&&ft!==6)continue;if(!zones&&info.wk[k]===1){aquaZones(x0,z0);coralMounds(x0,z0);zones=true}
+   while(y>1&&pad[(y+1)*PA+col]===10)y--;const ft=pad[(y+1)*PA+col];if(ft!==2&&ft!==3&&ft!==6)continue;if(!zones&&info.wk[k]===1){aquaZones(x0,z0);coralMounds(x0,z0);zones=true}aqWF=info.wf?info.wf[k]:0;
    if(aqM.length&&info.wk[k]===1){const m=moundAt(x0+x,z0+z);if(m){if(m.ax===x0+x&&m.az===z0+z)emitMound(opaqueW,m);continue}}
    emitAqua(opaqueW,x0+x,z0+z,y+1,SEA-y,ft,info.wk[k],ak)}}
  // Sun shafts over reef cores: slanted pale columns from the surface down to the floor (one per 8x8 block cell at most; not on low quality).
@@ -1876,6 +2189,9 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
    let y=SEA;while(y>1&&pad[(y+1)*PA+col]===10)y--;const D=SEA-y;if(D<3||D>16||reefZone(wx,wz)*smooth(1.2,3,D)*(1-smooth(10,16,D))<.4)continue;
    const y0=y+1,y1=SEA+.85,cxm=wx+.5,czm=wz+.5,sx=-(y1-y0)*.34,sz=-(y1-y0)*.2,hw=2.3+1.6*aqh(wx,wz,44);
    for(const [ax,az] of[[1,0],[0,1]]){grow(waterW,36);vert(waterW,cxm+sx-ax*hw,y0,czm+sz-az*hw,1,1,1,0,0,30.4);vert(waterW,cxm-ax*hw,y1,czm-az*hw,1,1,1,0,1,30.4);vert(waterW,cxm+ax*hw,y1,czm+az*hw,1,1,1,1,1,30.4);vert(waterW,cxm+sx+ax*hw,y0,czm+sz+az*hw,1,1,1,1,0,30.4)}}}
+ aqWF=0;
+ // v9 falls: spray curtains and pool ripples at the foot of each fall whose sheet lies in this chunk (drawn in the water pass).
+ if(WON)for(const f of WF){if(f.t!==3)continue;const mx=f.x+f.dx*1.5,mz=f.z+f.dz*1.5;if(mx>=x0&&mx<x0+CHUNK&&mz>=z0&&mz<z0+CHUNK)emitFallsFx(waterW,f)}
  // Light shafts: each skylight chimney gets two crossed translucent quads from its mouth down to the floor or the lake (drawn in the water pass).
  if(CAVES){const cell=caveCell(cx>>4,cz>>4);if(cell)for(const cm of cell.chambers){const c=cm.chimney;if(!c||c.px<x0||c.px>=x0+CHUNK||c.pz<z0||c.pz>=z0+CHUNK)continue;
    const pc=(c.pz-z0+1)*PW+c.px-x0+1;let y=Math.min(H-2,Math.floor(c.top)+3);while(y>2&&!pad[(y+1)*PA+pc])y--;
@@ -1930,16 +2246,18 @@ const WATER_DEEP=[1,0,0];
 const STONE=defsRGB[3],DIRT=[.49,.36,.24],SAND=defsRGB[6],SNOW=defsRGB[12],CANOPY=[0,5,7,6,8,2];
 // Pure tile mesher: writes vertices into lw and returns bounds. Runs on the main thread or inside the LOD worker.
 function* tileMesh(s,x0,z0){
- const N=LOD_N,n=N+2,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n),ls=new Float32Array(n*n),os=new Float32Array(n*n);
+ const N=LOD_N,n=N+2,hs=new Int16Array(n*n),hum=new Float32Array(n*n),bir=new Float32Array(n*n),ls=new Float32Array(n*n),os=new Float32Array(n*n),wls=WON?new Int16Array(n*n):null,gss=WON?new Uint8Array(n*n):null;
  for(let j=0;j<n;j++){for(let i=0;i<n;i++){const x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1),k=j*n+i;
    if(x<0||z<0||x>=W||z>=W){hs[k]=VOID;continue}
-   if(GRAND){hs[k]=height4(x,z);ls[k]=gLand;os[k]=gOpen;hum[k]=humidity(x,z);bir[k]=birchiness(x,z)}else hs[k]=height(x,z)}
+   if(GRAND){hs[k]=height4(x,z);ls[k]=gLand;os[k]=gOpen;hum[k]=humidity(x,z);bir[k]=birchiness(x,z);if(wls){wls[k]=gSheet?SEA:gWL;gss[k]=gSurf}}else hs[k]=height(x,z)}
   if((j&3)===3)yield}
  const top=new Float32Array(n*n),gnd=new Float32Array(n*n),surf=new Uint8Array(n*n),can=new Uint8Array(n*n),dp=new Float32Array(n*n),sd=new Float32Array(n*n),tc=[],lc=[];
  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i,h=hs[k],x=x0+(i-1)*s+(s>>1),z=z0+(j-1)*s+(s>>1);
   if(h===VOID||h<SEA){top[k]=gnd[k]=SEA+.875;surf[k]=10;dp[k]=h===VOID?40:SEA-h;sd[k]=h===VOID?0:!GRAND||h>=SEA-12?1:0;continue}
+  // v9 streams above the sea: water at their own level (material 4, hidden under the near field like the land)
+  if(wls&&wls[k]>h){top[k]=gnd[k]=wls[k]+.875;surf[k]=10;dp[k]=wls[k]-h;sd[k]=1;continue}
   let sl=0;for(const nk of[k-1,k+1,k-n,k+n])if(nk>=0&&nk<n*n&&hs[nk]!==VOID)sl=Math.max(sl,Math.abs(h-hs[nk]));const slope=sl/s;
-  let su=GRAND?surface4(x,z,h,Math.round(slope*1.5)):h<=SEA+1?6:1,c=0;
+  let su=GRAND?surface4(x,z,h,Math.round(slope*1.5)):h<=SEA+1?6:1,c=0;if(gss&&gss[k])su=gss[k];
   if(VEG){
    // Same environment as the near field: forest density decides how many cells carry a canopy, flower patches tint the turf.
    const alt=h-SEA;vegEnv(x,z,h,Math.round(slope),0,ls[k],hum[k],os[k]);if(su===1&&E.bare>.4)su=2;surf[k]=su;
@@ -1966,7 +2284,10 @@ function* tileMesh(s,x0,z0){
  for(let j=1;j<=N;j++){for(let i=1;i<=N;i++){
   const k=j*n+i,xa=(i-1)*s,xb=i*s,za=(j-1)*s,zb=j*s,mt=top[k],su=surf[k];
   lgrow(4);if(mt>ymax)ymax=mt;if(mt<ymin)ymin=mt;
-  if(su===10){lvert(xa,mt,za,wc(k,k-1,k-n,k-n-1),1,17);lvert(xb,mt,za,wc(k,k+1,k-n,k-n+1),1,17);lvert(xb,mt,zb,wc(k,k+1,k+n,k+n+1),1,17);lvert(xa,mt,zb,wc(k,k-1,k+n,k+n-1),1,17);continue}
+  if(su===10){const pm=wls&&mt>SEA+1?20:17;lvert(xa,mt,za,wc(k,k-1,k-n,k-n-1),1,pm);lvert(xb,mt,za,wc(k,k+1,k-n,k-n+1),1,pm);lvert(xb,mt,zb,wc(k,k+1,k+n,k+n+1),1,pm);lvert(xa,mt,zb,wc(k,k-1,k+n,k+n-1),1,pm);
+   // A stream cell above lower ground shows its bank as rock, and as falling water where it spills toward lower water.
+   if(pm===20){const nks=[k+1,k-1,k+n,k-n];for(let d=0;d<4;d++){const nt=top[nks[d]];if(nt<mt-.5){const fall=surf[nks[d]]===10;wall(d,xa,xb,za,zb,Math.max(nt,mt-90),mt,fall?FALLS_COL:STONE,fall?FALLS_COL:STONE,1,fall?3:0)}}}
+   continue}
   const m=can[k]?2:0,c=can[k]?lc[k]:tc[k];lvert(xa,mt,za,c,1,m+16);lvert(xb,mt,za,c,1,m+16);lvert(xb,mt,zb,c,1,m+16);lvert(xa,mt,zb,c,1,m+16);
   const g=gnd[k],lightOf=[1,1,1,1],nks=[k+1,k-1,k+n,k-n],borders=[i===N,i===1,j===N,j===1];
   for(let d=0;d<4;d++){const nt=top[nks[d]],border=borders[d];let bottom;
@@ -1975,6 +2296,10 @@ function* tileMesh(s,x0,z0){
    if(can[k]&&mt>g){const lo=Math.max(bottom,g),f=Math.min(1,(mt-lo)/(mt-g)),c=lc[k];wall(d,xa,xb,za,zb,lo,mt,mix3(c,[c[0]*.3,c[1]*.34,c[2]*.3],f),c,lightOf[d]*.85,2)}
    if(bottom<g){const yt=Math.min(g,mt),tall=g-bottom>3.5,ct=su===1?mix3(tc[k],DIRT,.45):tc[k],cb=su===6?SAND:tall||su!==1?STONE:DIRT;wall(d,xa,xb,za,zb,bottom,yt,cb,ct,lightOf[d],0)}}}
   if((j&7)===7)yield}
+ // v9: falls sheets and rock solids are owned by the tile that holds their anchor, so each is drawn once at every LOD level.
+ if(WON){const X1=x0+N*s,Z1=z0+N*s;
+  for(const f of WF)if(f.t===3){const fx=f.x+f.dx,fz=f.z+f.dz;if(fx>=x0&&fx<X1&&fz>=z0&&fz<Z1){lodFalls(f,x0,z0);if(f.wu+1>ymax)ymax=f.wu+1}}
+  for(const f of WA)if(f.t===4&&f.kind!=='uwArch'&&f.x>=x0&&f.x<X1&&f.z>=z0&&f.z<Z1){const t=lodRock(f,x0,z0,s);if(t>ymax)ymax=t}}
  return{quads:lw.n/4,ymin:Math.max(0,Math.floor(ymin)),ymax:Math.ceil(ymax)+1}}
 function uploadTile(t,bytes,r){if(!renderReady)return;if(!t.buffer)t.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,t.buffer);gl.bufferData(gl.ARRAY_BUFFER,bytes,gl.STATIC_DRAW);t.quads=r.quads;t.ymin=r.ymin;t.ymax=r.ymax;t.bytes=bytes.byteLength;t.ready=true}
 function* buildTile(t){const r=yield* tileMesh(t.step,t.x0,t.z0);uploadTile(t,new Uint8Array(lw.buf,0,lw.n*12),r)}
@@ -2000,9 +2325,11 @@ function lodWorkerSource(){
  return `'use strict';const W=${W},H=${H},SEA=${SEA},ORIGIN=${ORIGIN},GRAND=${GRAND},VEG=${VEG},SCENIC=${SCENIC},terrainVersion=${terrainVersion},seed=${k(seed)},LOD_N=${LOD_N},VOID=${VOID};
 const perm=new Uint8Array(${k(Array.from(perm))}),defsRGB=${k(defsRGB)},CANOPY=${k(CANOPY)},STONE=${k(STONE)},DIRT=${k(DIRT)},SAND=${k(SAND)},SNOW=${k(SNOW)},WATER_DEEP=${k(WATER_DEEP)};
 const smooth=${smooth},mix3=${mix3},clamp01=${clamp01},f01=${f01},VEGK=${k(VEGK)},E=${k(E)},FP=${k(FP)};let gLand=0,gMount=0,gOpen=0;const PKC=new Float64Array(8*8*5).fill(NaN);
+let WON=${WON},gWL=SEA,gSheet=0,gSurf=0,gWF=0,snI=-1,snT=0,snD=0,NT=null;const CHUNK=${CHUNK},WB=${WB},WBN=${WBN},WF=${k(WF)},WA=${k(WA)},WBK=${k(WBK)},FALLS_COL=${k(FALLS_COL)},ROCK_TOP=${k(ROCK_TOP)},rockLod=new Map();
 const lw={buf:new ArrayBuffer(1<<20),n:0};lw.i16=new Int16Array(lw.buf);lw.u8=new Uint8Array(lw.buf);
 ${[rand,noise,height,grad,pn,fbm,rvf,peakBoost,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,lgrow,lvert,tileMesh,
- fieldClump,fieldGlade,fieldTone,fieldTall,fieldBare,forestDensity,grassColor5,leafColor5,flowerPatches,palettePick,vegEnv,pickSpecies,treeRng,treeAge].join('\n')}
+ fieldClump,fieldGlade,fieldTone,fieldTall,fieldBare,forestDensity,grassColor5,leafColor5,flowerPatches,palettePick,vegEnv,pickSpecies,treeRng,treeAge,
+ wonderH,canyonH,seaFloorH,fallsH,segNear,chainQ,rockIn,vn3,lodFalls,lodRock].join('\n')}
 onmessage=e=>{const{id,step,x0,z0,measure}=e.data,start=measure?performance.now():0,it=tileMesh(step,x0,z0);let r;while(!(r=it.next()).done);const bytes=lw.u8.slice(0,lw.n*12);postMessage({id,bytes,r:r.value,ms:measure?performance.now()-start:0},[bytes.buffer])};`}
 let lodWorker=null,lodPending=new Map(),lodNextId=1;
 function startLodWorker(){
@@ -2130,12 +2457,63 @@ function nextSpot(){
   const step=()=>{const t0=performance.now();try{while(performance.now()-t0<8)if(it.next().done){
     // Interleave the kinds so consecutive presses show different landscapes.
     const kinds=['cliff','summit','valley','river'].map(k=>out.spots.filter(s=>s.kind===k));spotList=[];for(let i=0;i<3;i++)for(const l of kinds)if(l[i])spotList.push(l[i]);
+    spotList.push(...wonderTour()); // v9 wonders come after the classic spots, so their order is unchanged
     spotBusy=false;btn.textContent='絶景スポットへ';return nextSpot()}}catch(e){console.warn('Spot search failed:',e);spotBusy=false;btn.textContent='絶景スポットへ';return}
    setTimeout(step,0)};step();return}
  if(!spotList.length){toast('この世界では絶景スポットが見つかりませんでした');return}
- spotIdx=(spotIdx+1)%spotList.length;const s=spotList[spotIdx],c=clearSpot(s);
+ spotIdx=(spotIdx+1)%spotList.length;const s=spotList[spotIdx];
+ if(s.w){visitWonder(s.w);toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${s.w.label}`);return}
+ const c=clearSpot(s);
  flying=false;player.x=c.x+.5;player.z=c.z+.5;player.y=c.y+.02;vy=0;yaw=s.yaw;pitch=s.kind==='cliff'?-.3:-.1;streamChunks(true);dirty=true;play();
  toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${SPOT_KINDS[s.kind]}（標高${s.h-SEA}m）`)}
+// ---- v9 wonders on the tour and found on foot. The tour interleaves the kinds; each visit picks a viewpoint that frames the wonder
+// (downstream of a fall, on a canyon rim, through a rock window, beside a sea-floor arch) and finds real footing there.
+function wonderTour(){const order=['falls','canyon','arch','seaArch','reefHill','hoodoo','bridge','uwArch','trench','drop'],by=order.map(k=>WLIST.filter(s=>s.kind===k)),out=[];
+ for(let i=0;i<8;i++)for(const l of by)if(l[i])out.push({w:l[i]});return out}
+function standNear(x,z,R){const wood=t=>t===4||t===5||t===13||t===14||t===15||t===16;
+ for(let r=0;r<=R;r+=3)for(let d=0;d<(r?12:1);d++){const X=Math.floor(x+Math.cos(d*.5236)*r),Z=Math.floor(z+Math.sin(d*.5236)*r);if(X<4||Z<4||X>=W-4||Z>=W-4)continue;
+  let y=H-3;while(y>1&&get(X,y,Z)===0)y--;const t=get(X,y,Z);if(t===10||wood(t))continue;const p={x:X+.5,y:y+1.02,z:Z+.5};if(!collides(p))return p}
+ return null}
+// Blocks in the way between an eye and a target (water and air are clear; the last few blocks belong to the target itself).
+function sightCost(x,y,z,tx,ty,tz){const dx=tx-x,dy=ty-y,dz=tz-z,L=Math.hypot(dx,dy,dz),n=Math.floor((L-5)/1.5);let c=0;
+ for(let i=1;i<=n;i++){const k=i*1.5/L,t=get(Math.floor(x+dx*k),Math.floor(y+dy*k),Math.floor(z+dz*k));if(t&&t!==10)c++}return c}
+function wonderView(s){const f=s.f,C=[];
+ if(s.uw){ // swimming in open water beside it: beside an arch (across its opening), above a reef hill, along a trench, on the shelf facing a drop-off
+  if(s.kind==='uwArch'){const g=surface(f.x,f.z,SEA);for(const sd of[1,-1])for(const k of[1,1.3])C.push([f.x-f.az*sd*(f.span*.75+4)*k,f.z+f.ax*sd*(f.span*.75+4)*k,f.x,g+4,f.z])}
+  else if(s.kind==='reefHill'){for(let i=0;i<8;i++){const a=i*.785+s.id;C.push([f.x+Math.cos(a)*(f.r+5),f.z+Math.sin(a)*(f.r+5),f.x,f.top+1,f.z])}}
+  else if(s.kind==='trench'){const P=f.P,i=Math.floor(P.length/2);for(const j of[i-2,i-1,i+1]){const a=P[Math.max(0,j)],c=P[Math.min(P.length-1,j+3)];C.push([a[0],a[1],c[0],a[5]+2,c[1]])}}
+  else{for(const k of[10,16])for(const o of[0,-30,30]){const bx=f.x+f.tx*o,bz=f.z+f.tz*o;C.push([bx-f.nx*k,bz-f.nz*k,bx+f.nx*8,f.deep+4,bz+f.nz*8])}}
+  let best=null;
+  for(const c of C){if(get(Math.floor(c[0]),SEA,Math.floor(c[1]))!==10)continue;const bed=surface(c[0],c[1],SEA),y=Math.min(SEA-2.2,Math.max(bed+2,s.kind==='trench'?SEA-6:c[3]-1));
+   if(get(Math.floor(c[0]),Math.floor(y),Math.floor(c[1]))!==10||get(Math.floor(c[0]),Math.floor(y)+1,Math.floor(c[1]))!==10)continue;
+   const cost=sightCost(c[0],y+1.62,c[1],c[2],c[3],c[4]);if(!best||cost<best.cost)best={x:c[0],y,z:c[1],tx:c[2],ty:c[3],tz:c[4],fly:false,cost};if(!cost)break}
+  if(best)return best;return{x:s.x+.5,z:s.z+.5,y:SEA-2.2,tx:s.x,tz:s.z+10,ty:SEA-8,fly:false}}
+ // candidate stands [x, z, look-at x, y, z]; the one with the clearest view wins (hovering over water only when allowed)
+ let hover=false;
+ if(s.kind==='falls'){const d=f.pr+10+f.h*.35,tx=f.x+f.dx,tz=f.z+f.dz,ty=(SEA+f.wu)/2;for(const k of[1,1.4,.75])for(const o of[0,.35,-.35])C.push([f.px+(f.dx-f.dz*o)*d*k,f.pz+(f.dz+f.dx*o)*d*k,tx,ty,tz])}
+ else if(s.kind==='canyon'){hover=true; // on a rim at the deepest stretch, looking down the canyon along its river
+  const P=f.P,n=P.length;let i=Math.floor(n*.3),best=-1;for(let j=2;j<Math.min(n-6,n*.7);j++)if(P[j][4]>best){best=P[j][4];i=j}
+  for(const j of[i,i-2,i+2])for(const sd of[1,-1]){const a=P[Math.max(0,j)],b=P[Math.max(1,j+1)],c=P[Math.min(n-1,j+5)],ex=b[0]-a[0],ez=b[1]-a[1],l=Math.hypot(ex,ez)||1;C.push([a[0]-ez/l*sd*(a[4]+3),a[1]+ex/l*sd*(a[4]+3),c[0],SEA+8,c[1]])}}
+ else if(s.kind==='bridge'){for(const d of[48,-48,70,-70])for(const sd of[1,-1])C.push([f.x+f.cx*d+f.ax*sd*(f.wt+5),f.z+f.cz*d+f.az*sd*(f.wt+5),f.x,SEA+f.h-4,f.z])}
+ else if(s.kind==='hoodoo'){for(const k of[1,1.35,.8])for(const sd of[1,-1]){const d=(f.h*1.3+10)*k;C.push([f.x+f.ax*d*sd,f.z+f.az*d*sd,f.x,f.hy,f.z])}}
+ else if(s.kind==='seaArch'){hover=true;for(let i=0;i<12;i++){const a=i*.5236;for(const r of[30,42])C.push([f.x+Math.cos(a)*r,f.z+Math.sin(a)*r,f.x,SEA+f.h*.5,f.z])}}
+ else{const g=height4(Math.round(f.x),Math.round(f.z));for(const k of[1,1.35])for(const sd of[1,-1])for(const o of[0,.45]){const d=(f.span*.9+12)*k,px=-f.az*sd,pz=f.ax*sd;C.push([f.x+(px+f.ax*o)*d,f.z+(pz+f.az*o)*d,f.x,g+f.h*.6,f.z])}}
+ let best=null;
+ for(const c of C){const p=standNear(c[0],c[1],6),opts=[];if(p)opts.push({x:p.x,y:p.y,z:p.z,fly:false,pen:0});
+  if(hover)opts.push({x:p?p.x:c[0],z:p?p.z:c[1],y:(p?p.y:Math.max(SEA+1,terrainH(Math.floor(c[0]),Math.floor(c[1]))+1))+5,fly:true,pen:4});
+  for(const o of opts){const cost=o.pen+10*sightCost(o.x,o.y+1.62,o.z,c[2],c[3],c[4]);if(!best||cost<best.cost)best={x:o.x,y:o.y,z:o.z,tx:c[2],ty:c[3],tz:c[4],fly:o.fly,cost}}
+  if(best&&best.cost===0)break}
+ if(best)return best;const c=C[0];return{x:c[0],z:c[1],y:Math.max(SEA+3,terrainH(Math.floor(c[0]),Math.floor(c[1]))+4),tx:c[2],ty:c[3],tz:c[4],fly:true}}
+function visitWonder(s){const v=wonderView(s);flying=v.fly;player.x=v.x;player.y=v.y;player.z=v.z;vy=0;yaw=Math.atan2(v.tx-v.x,v.tz-v.z);
+ pitch=Math.max(-.7,Math.min(.6,Math.atan2(v.ty-(v.y+1.62),Math.hypot(v.tx-v.x,v.tz-v.z)+.01)));streamChunks(true);dirty=true;play()}
+// Finding one on foot: the first time the player comes near a wonder (under water for the sea-floor ones) a short note names it.
+// Found wonders are remembered per world seed on this device (outside the save, so saves stay unchanged).
+let wonderFound=null,wonderNext=0;const WONDER_FOUND_KEY='jocraft2-wonders-';
+function wonderTick(now){if(!WON||!WLIST.length||now<wonderNext)return;wonderNext=now+700;
+ if(!wonderFound){wonderFound=new Set();try{const a=JSON.parse(localStorage.getItem(WONDER_FOUND_KEY+seed)||'[]');if(Array.isArray(a))for(const i of a)if(Number.isInteger(i))wonderFound.add(i)}catch(e){}}
+ for(const s of WLIST){if(wonderFound.has(s.id)||(s.uw&&player.y>SEA+1))continue;if(wonderDist(s,player.x,player.z)>wonderReach(s))continue;
+  wonderFound.add(s.id);try{localStorage.setItem(WONDER_FOUND_KEY+seed,JSON.stringify([...wonderFound]))}catch(e){}
+  toast(`✨ 絶景を発見：${s.label}（${wonderFound.size}/${WLIST.length}）`);break}}
 let caveList=null,caveIdx=-1,caveBusy=false;
 function nextCave(){
  if(!CAVES){toast('洞窟は「新しい世界」から作られる世界にあります');return}
@@ -2464,7 +2842,9 @@ function fishWater(X,Z){if(peek(X,SEA,Z)!==10)return null;const ci=columns.get((
  let y=SEA;while(y>1){const t=peek(X,y,Z);if(t<0)return null;if(t!==10)break;y--}const D=SEA-y;if(D<1)return null;return{kind:ci.wk[k],D,bed:y+1,ft:peek(X,y,Z)}}
 function fishCellTags(X,Z,w){const t={};if(w.kind===2){t.river=1;return t}if(w.kind===3){t.lake=1;return t}
  const rz=reefZone(X,Z)*smooth(1.2,3,w.D)*(1-smooth(10,16,w.D));if(rz>.2)t.reef=rz;if(rz>.4)t.core=smooth(.4,.65,rz);
- if(w.D<8&&w.ft===6)t.shallow=1;if(w.D>=5&&w.D<20)t.sea=1;if(w.D>=16)t.deep=1;if(w.ft===3)t.rock=1;if(w.ft===6&&w.D>=2&&w.D<14)t.sand=1;return t}
+ if(w.D<8&&w.ft===6)t.shallow=1;if(w.D>=5&&w.D<20)t.sea=1;if(w.D>=16)t.deep=1;if(w.ft===3)t.rock=1;if(w.ft===6&&w.D>=2&&w.D<14)t.sand=1;
+ // v9: trench floors are deep, dim and home to rare fish; undersea walls are rock habitat.
+ if(WON){const ci=columns.get((X>>4)+','+(Z>>4)),fw=ci&&ci.wf?ci.wf[(Z&15)*16+(X&15)]:0;if(fw&1){t.trench=1;t.deep=1}if(fw&16)t.rock=1}return t}
 // The school a cell holds (deterministic), or null. Reef cells hold a second school (layer 1), so a reef is busier than open sea.
 function fishCellPlan(ci,cj,ly=0){const R=(a,b)=>aqh(ci+ly*7919,cj,a*31+b);let X=0,Z=0,w=null,tags=null,best=-1;
  // Four fixed candidate points; the wettest reef point wins (else the first wet one), so reefs draw schools to them.
@@ -2833,7 +3213,7 @@ function frame(now){
  if(now-lastCompassUpdate>=100){if(!paused||!compassHUD.classList.contains('hidden'))updateCompass();lastCompassUpdate=now}
  if(eggIconQueue.length&&!$('eggs').classList.contains('hidden'))scheduleEggIcons();
  if(bench)benchStep(raw,dt);
- if(!paused){time+=dt;update(dt);animateWorld(dt);advanceDay(dt)}
+ if(!paused){time+=dt;update(dt);animateWorld(dt);advanceDay(dt);wonderTick(now)}
  else if(titleOpen){time+=dt*.65;updateLife(dt*.65,titleCamera())} // Keep the background grass, water, clouds and creatures alive.
  // Wind alternates between calm spells and gusty periods; grass, leaves and clouds share it.
  windStr=Math.min(1,Math.max(0,.45+.55*Math.sin(time*.07)*Math.sin(time*.031+1.7)+.25*Math.sin(time*.19)));cloudDrift+=dt*(.5+windStr*1.6);
@@ -2884,5 +3264,5 @@ function finishBench(){const f=bench.frames.slice().sort((a,b)=>a-b),n=f.length|
  panel.appendChild(pre);panel.appendChild(copy);panel.appendChild(close);wrap.appendChild(panel);(document.body||{appendChild(){}}).appendChild(wrap)}
 if(BENCH)startBench();
 requestAnimationFrame(frame);
-window.Nisekura={get performanceProfile(){return perfEnabled?JSON.parse(JSON.stringify(perfStats)):null},get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,get cows(){return life.filter(c=>c.sp===COW)},life,LIFE_SPECIES,animateWorld,vertexSource,fragmentSource,waterFragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height};
+window.Nisekura={get performanceProfile(){return perfEnabled?JSON.parse(JSON.stringify(perfStats)):null},get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,get cows(){return life.filter(c=>c.sp===COW)},life,LIFE_SPECIES,animateWorld,vertexSource,fragmentSource,waterFragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height,get wonders(){return WLIST},wonderData:()=>({WF,WA})};
 </script></html>
