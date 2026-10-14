@@ -10,9 +10,9 @@ function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)
 // ---- New GRAND VISTA world: basics, saves, physics.
 const t0=Date.now();const a=boot();console.log(`boot new world: ${Date.now()-t0} ms`);
 assert(a.triangles>0);assert(!a.api.collides(a.api.player),'spawn must be clear');assert.equal(a.api.get(32,0,32),11);assert(a.api.collides({x:32.5,y:.5,z:32.5}));assert(a.api.collides({x:-1,y:25,z:30}));
-assert.equal(run(a,'terrainVersion'),6);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
+assert.equal(run(a,'terrainVersion'),7);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
 a.api.edit(30,30,30,8);assert(a.api.save());const b=boot(a.storage['nisekura-v1']);assert.equal(b.api.get(30,30,30),8,'world edit survives reload');assert(!b.api.collides(b.api.player));
-assert.equal(run(b,'terrainVersion'),6,'v6 save reloads as v6');
+assert.equal(run(b,'terrainVersion'),7,'v7 save reloads as v7');
 run(b,'paused=false;for(let i=0;i<120;i++)update(1/60)');assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(run(b,'ground'));
 console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
@@ -122,7 +122,7 @@ resetTest.windowEvents.pagehide();
 assert.equal(resetTest.storage['nisekura-v1'],undefined,'unload callbacks must not restore deleted saves');
 assert.equal(run(resetTest,'save()'),false,'autosave must remain disabled until navigation completes');
 const afterReset=boot(resetTest.storage['nisekura-v1']);
-assert.equal(run(afterReset,'terrainVersion'),6,'reset must activate new terrain generator');
+assert.equal(run(afterReset,'terrainVersion'),7,'reset must activate new terrain generator');
 assert.equal(run(afterReset,'SEA'),62,'new world sea level is 62');
 assert.equal(run(afterReset,'H'),192,'new world height is 192');
 console.log('PASS: new world reset survives blur, visibility and pagehide without resurrecting legacy terrain');
@@ -493,22 +493,22 @@ const SEA_=62;
  d.c.confirm=()=>true;assert(run(d,'recoverWorld()'));assert.equal(d.storage[K],legacy);assert.equal(d.storage[A],bad,'corrupt original retained verbatim for export');
  const noBackup=boot(bad);assert.equal(run(noBackup,'recoverWorld()'),false);assert.equal(noBackup.storage[K],bad);noBackup.nodes.reset.onclick();assert.equal(noBackup.storage[K],bad);
  const valid=boot(legacy);valid.api.save();let altered=JSON.parse(valid.storage[K]);altered.seed++;const damaged=boot(JSON.stringify(altered));assert(run(damaged,'storageBlocked'));assert.equal(damaged.api.save(),false);
- for(const patch of [{terrainVersion:7},{changes:[[1,999]]},{changes:[[1]]},{inventory:{'__proto__':1,'999':1}},{life:{mode:'all',eggs:[['unknown',1,1,1,0,1]]}},{player:{x:NaN,y:20,z:30}}]){valid.c.patch=patch;assert.throws(()=>run(valid,'encodeSave({...snapshot(),...patch})'))}
+ for(const patch of [{terrainVersion:8},{changes:[[1,999]]},{changes:[[1]]},{inventory:{'__proto__':1,'999':1}},{life:{mode:'all',eggs:[['unknown',1,1,1,0,1]]}},{player:{x:NaN,y:20,z:30}}]){valid.c.patch=patch;assert.throws(()=>run(valid,'encodeSave({...snapshot(),...patch})'))}
  valid.storage[K]=legacy;assert.equal(valid.api.save(),false,'different tab must not be overwritten');assert.equal(valid.storage[K],legacy);
  console.log('PASS: corruption, checksum mismatch, missing backup, rejected schema, explicit recovery and other-tab protection');
 }
 {
  // Exact baseline from the same generator, including vegetation, water and cross-chunk leaves.
- for(const version of [1,2,3,4,5,6]){
+ for(const version of [1,2,3,4,5,6,7]){
   const d=boot(JSON.stringify({version:1,terrainVersion:version,seed:73219,changes:[],inventory:{}}));
   run(d,`for(const [cx,cz]of [[2,2],[63,46]]){const base=generateChunk(cx,cz),types=new Set();for(let y=0;y<H;y++)for(let z=cz*16;z<cz*16+16;z++)for(let x=cx*16;x<cx*16+16;x++){const t=base[localIdx(x,y,z)];if(types.has(t))continue;types.add(t);edit(x,y,z,t===8?7:8);edit(x,y,z,t);if(changes.has(idx(x,y,z)))throw Error('redundant edit retained: '+t);if(get(x,y,z)!==t)throw Error('baseline changed')}}`);
   assert.equal(run(d,'changes.size'),0);d.api.edit(40,30,40,8);d.api.edit(40,30,40,8);assert.equal(run(d,'changes.size'),1);assert.equal(run(d,'changeIndex.get(chunkKey(40,40)).length'),1);assert(d.api.save());const reload=boot(d.storage['nisekura-v1']);assert.equal(reload.api.get(40,30,40),8);assert.equal(run(reload,'terrainVersion'),version);
  }
- console.log('PASS: v1–v6 exact terrain/vegetation/water edit undo, unique indices, building roundtrips');
+ console.log('PASS: v1–v7 exact terrain/vegetation/water edit undo, unique indices, building roundtrips');
 }
 {
  const K='nisekura-v1',A=K+'-protected',d=boot(legacy);d.api.edit(30,30,30,9);d.nodes.reset.onclick();assert.equal(d.storage[K],undefined);assert.equal(JSON.parse(d.storage[A]).changes.find(e=>e[0]===30+2048*(30+2048*30))[1],9,'reset checkpoints unsaved construction');
- const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),6,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
+ const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),7,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
  const failed=boot(legacy);failed.c.localStorage.setItem=()=>{throw Error('QuotaExceededError')};failed.nodes.reset.onclick();assert.equal(failed.storage[K],legacy);assert.equal(run(failed,'resettingWorld'),false);
  const auto=boot(legacy);run(auto,'paused=false;frame(16001)');assert(auto.storage[K]);assert(JSON.parse(auto.storage[K]).integrity);run(auto,'dayTime=.64');auto.c.document.hidden=true;auto.events.visibilitychange();assert.equal(JSON.parse(auto.storage[K]).dayTime,.64);
  run(auto,'dayTime=.65');auto.windowEvents.pagehide();assert.equal(JSON.parse(auto.storage[K]).dayTime,.65);
@@ -592,3 +592,120 @@ const SEA_=62;
  let uploads=0;d.gl.bufferData=()=>uploads++;run(d,'hit={x:30,y:30,z:30};for(let i=0;i<60;i++)drawOutline()');assert.equal(uploads,1);run(d,'hit.x++;drawOutline()');assert.equal(uploads,2);assert(run(d,'outlineData.every(Number.isFinite)'));
  console.log('PASS: distant AI elapsed-time remainder and cached outline geometry');
 }
+
+// ---- Phase 11: caves (terrainVersion 7) and untouched v6 worlds.
+{const hashStep=(h,v)=>Math.imul(h^v,16777619);
+ // v6 worlds keep their exact terrain, blocks, near meshes and far tiles (recorded from the release before caves existed).
+ const v6=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:6,seed:73219,changes:[],inventory:{}})),r6=c=>run(v6,c);
+ assert.equal(run(v6,'CAVES'),false);assert.equal(JSON.stringify(v6.api.vista),'{"x":992,"z":736,"yaw":0,"eye":121.5}');
+ assert.equal(r6(`(()=>{let h=2166136261;for(let x=64;x<2048;x+=37)for(let z=64;z<2048;z+=41){h^=height4(x,z);h=Math.imul(h,16777619)}return h>>>0})()`),3097239738,'v6 heights');
+ const blk=[[960,704,64],[1100,500,64],[500,1500,64],[1180,900,64],[300,300,64],[1650,700,64]].map(([x0,z0,n])=>{let h=2166136261;for(let x=x0;x<x0+n;x++)for(let z=z0;z<z0+n;z++)for(let y=30;y<180;y++)h=hashStep(h,v6.api.get(x,y,z));return h>>>0});
+ assert.deepEqual(blk,[3401685464,3341635826,684155341,925267210,157621921,409286778],'v6 blocks are byte-identical');
+ const meshes=[[62,48],[56,62],[74,40]].map(([cx,cz])=>{r6(`rebuild(${cx},${cz})`);return JSON.parse(r6(`(()=>{let h=2166136261;for(const w of[opaqueW,waterW]){const a=w.a;for(let i=0;i<w.n;i++){h^=Math.round(a[i]*1000);h=Math.imul(h,16777619)}}return JSON.stringify({h:h>>>0,n:opaqueW.n+waterW.n})})()`))});
+ assert.deepEqual(meshes,[{h:3466480933,n:42480},{h:763661516,n:34236},{h:3022605093,n:18828}],'v6 near meshes are identical (no cave bits)');
+ const tiles=[[8,512,1024],[2,960,704],[16,1536,0]].map(([s,x,z])=>JSON.parse(r6(`(()=>{const it=tileMesh(${s},${x},${z});let q;while(!(q=it.next()).done);let h=2166136261;for(let i=0;i<lw.n*12;i++){h^=lw.u8[i];h=Math.imul(h,16777619)}return JSON.stringify({h:h>>>0,n:lw.n})})()`)));
+ assert.deepEqual(tiles,[{h:4013535438,n:14232},{h:2852765177,n:24328},{h:2652048814,n:4180}],'v6 far tiles are identical');
+ run(v6,'nextCave()');assert.equal(run(v6,'caveList'),null,'v6 worlds have no cave search');
+ console.log('PASS: v6 worlds keep identical terrain, blocks, near meshes and far tiles (no caves generated for them)')}
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ assert.equal(R('CAVES'),true);
+ // Caves exist, in several kinds, and are the same on every run for a seed.
+ const info=J(`(()=>{const out=[];for(let i=0;i<8;i++)for(let j=0;j<8;j++){const c=caveCell(i,j);if(c)out.push({i,j,ent:c.entrances.length,kinds:c.chambers.map(h=>h.kind),sph:c.sph.length,bridges:c.fill.length})}return out})()`);
+ const kinds=new Set(info.flatMap(c=>c.kinds));
+ assert(info.length>=10&&info.length<=50,`cave cells ${info.length}/64`);assert(info.every(c=>c.ent>=1),'every system has a mouth');
+ for(const k of['hall','lake','cavern','crystal','pocket'])assert(kinds.has(k),'chamber kind '+k);
+ assert(info.some(c=>c.bridges>0),'rock bridges exist');
+ const crystals=info.reduce((n,c)=>n+c.kinds.filter(k=>k==='crystal').length,0);assert(crystals>=1&&crystals<=8,`crystal caves are rare (${crystals})`);
+ const sig=()=>R(`(()=>{let h=2166136261;for(const [i,j] of[[2,2],[3,2],[1,3]]){const c=caveCell(i,j);if(!c)continue;for(const s of c.sph){h^=Math.round(s[0]*8)+Math.round(s[1]*8)*7+Math.round(s[2]*8)*13;h=Math.imul(h,16777619)}}return h>>>0})()`);
+ const s1=sig();R('caveCells.clear()');assert.equal(sig(),s1,'cave cells are a pure function of the seed');
+ const e=boot();assert.equal(run(e,`(()=>{let h=2166136261;for(const [i,j] of[[2,2],[3,2],[1,3]]){const c=caveCell(i,j);if(!c)continue;for(const s of c.sph){h^=Math.round(s[0]*8)+Math.round(s[1]*8)*7+Math.round(s[2]*8)*13;h=Math.imul(h,16777619)}}return h>>>0})()`),s1,'a second boot builds the same caves');
+ // Chunk data is identical when generated again (after the cache is dropped) and edits survive.
+ const chunkSig=(x,z)=>R(`(()=>{const a=generateChunk(${x},${z});let h=2166136261;for(let i=0;i<a.length;i++){h^=a[i];h=Math.imul(h,16777619)}return h>>>0})()`);
+ const target=J(`(()=>{const c=caveCell(2,2);const L=c.chambers.find(h=>h.kind==='lake')||c.chambers[0];return{x:Math.floor(L.x/16),z:Math.floor(L.z/16)}})()`);
+ const g1=chunkSig(target.x,target.z);R('blocks.clear();columns.clear();caveCells.clear()');assert.equal(chunkSig(target.x,target.z),g1,'a regenerated cave chunk is identical');
+ // Surface integrity: outside the mouths and chimneys, the top three blocks of every column stay solid, so no holes appear on the surface.
+ const surf=J(`(()=>{let holes=0,cols=0,carved=0,chunksChecked=0;
+  for(const [i,j] of[[2,2],[3,2],[1,3],[2,1]]){const cell=caveCell(i,j);if(!cell)continue;
+   cell.buckets.forEach((b,k)=>{if(!b||!(b.lobes.length||b.sph.length))return;const cx=i*16+k%16,cz=j*16+Math.floor(k/16),info=columnInfo(cx,cz),data=generateChunk(cx,cz);chunksChecked++;
+    for(let z=0;z<16;z++)for(let x=0;x<16;x++){const wx=cx*16+x,wz=cz*16+z,h=info.h[z*16+x];if(h<=SEA)continue;
+     if(cell.open.some(o=>Math.hypot(wx-o.x,wz-o.z)<o.r+2))continue;cols++;
+     for(let y=h-2;y<=h;y++){const t=data[localIdx(wx,y,wz)];if(t===0||t===10){holes++;break}}}
+    for(let y=7;y<H-2;y++)for(let z=0;z<16;z++)for(let x=0;x<16;x++)if(data[(y*16+z)*16+x]===0&&y<info.h[z*16+x]-3)carved++})}
+  return{holes,cols,carved,chunksChecked}})()`);
+ assert(surf.chunksChecked>=20&&surf.carved>20000,`cave chunks checked (${surf.chunksChecked}, ${surf.carved} carved voxels)`);assert.equal(surf.holes,0,`no holes in the ${surf.cols} surface columns above caves`);
+ // Mouths are open to the outside and lead to a chamber through connected air.
+ const conn=J(`(()=>{const res=[];for(const [i,j] of[[2,2],[3,2],[1,3],[3,1],[1,4],[2,4]]){const cell=caveCell(i,j);if(!cell)continue;
+   for(const e of cell.entrances){const start=e.p0.map(Math.floor);
+    const ch=cell.chambers[e.chamber];const goal=(x,y,z)=>ch.lobes.some(L=>((x-L.x)/L.rx)**2+((y-L.y)/L.ry)**2+((z-L.z)/L.rz)**2<.35);
+    const seen=new Set(),key=(x,y,z)=>(y*2048+z)*2048+x;let ok=false,n=0,found=get(...start)===0;
+    // breadth-first through air that lies under the natural surface (the first few blocks at the mouth excepted), so the open sky does not count
+    const q=[[...start]];seen.add(key(...start));let qi=0;
+    const under=(X,Y,Z)=>Y<=columnInfo(X>>4,Z>>4).h[(Z&15)*16+(X&15)]-2||Math.hypot(X-start[0],Z-start[2])<10;
+    while(qi<q.length&&n<400000&&!ok&&found){const [x,y,z]=q[qi++];n++;if(goal(x,y,z)){ok=true;break}
+     for(const [dx,dy,dz] of[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){const X=x+dx,Y=y+dy,Z=z+dz;if(Y<2||Y>=H-1)continue;const k=key(X,Y,Z);if(seen.has(k))continue;seen.add(k);const t=get(X,Y,Z);if((t===0||t===10)&&under(X,Y,Z))q.push([X,Y,Z])}}
+    res.push({found,ok,n,kind:ch.kind})}}
+   return res})()`);
+ assert(conn.length>=8,`mouths tested (${conn.length})`);assert(conn.every(c=>c.found),'every mouth is open air');assert(conn.every(c=>c.ok),'every mouth connects through air to its chamber: '+JSON.stringify(conn.filter(c=>!c.ok)));
+ console.log(`PASS: caves: ${info.length} cells, kinds ${[...kinds].join('/')}, ${crystals} crystal caves, deterministic, no surface holes (${surf.cols} columns), ${conn.length} mouths connect to chambers`)}
+{// Caves: lakes, crystals and light in the mesh, the underground factor, edits and saves, the title button.
+ const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ const find=kind=>J(`(()=>{for(let i=0;i<8;i++)for(let j=0;j<8;j++){const c=caveCell(i,j);if(!c)continue;const k=c.chambers.find(h=>h.kind==='${kind}');if(k)return{x:k.x,y:k.y,z:k.z,rx:k.rx,rz:k.rz,ry:k.ry,view:k.view,i,j}}return null})()`);
+ const lake=find('lake'),crys=find('crystal'),hall=find('hall');assert(lake&&crys&&hall,'a lake, a crystal cave and a hall exist');
+ // Lake: still water at sea level, a sand/stone bed, a dry balcony; no open water walls (water meets rock or water on its sides).
+ const lk=J(`(()=>{let water=0,exposed=0,sand=0,top=0;const x0=${Math.floor(lake.x)}-${Math.ceil(lake.rx)},z0=${Math.floor(lake.z)}-${Math.ceil(lake.rz)};
+  for(let x=x0;x<=x0+${Math.ceil(lake.rx*2)};x++)for(let z=z0;z<=z0+${Math.ceil(lake.rz*2)};z++){for(let y=20;y<=SEA+1;y++){if(get(x,y,z)!==10)continue;water++;if(y===SEA)top++;
+    for(const [dx,dz] of[[1,0],[-1,0],[0,1],[0,-1]]){if(get(x+dx,y,z+dz)===0)exposed++}
+    if(get(x,y-1,z)===6)sand++}}
+  return{water,exposed,sand,top}})()`);
+ assert(lk.water>3000&&lk.top>500,`underground lake has water (${lk.water} voxels, ${lk.top} on the surface)`);assert(lk.exposed<lk.water*.01,`water is walled in by rock (${lk.exposed} open sides)`);assert(lk.sand>20,'lake bed has sand patches');
+ const lakeChunk={x:Math.floor(lake.x/16),z:Math.floor(lake.z/16)};R(`rebuild(${lakeChunk.x},${lakeChunk.z})`);
+ const mesh=J(`(()=>{const out={water:waterW.n/9,opaque:opaqueW.n/9,bad:0,dark:new Array(8).fill(0),glow:0,maxHi:0};for(const w of[opaqueW,waterW]){for(let i=0;i<w.n;i+=9){const m=w.a[i+8],hi=Math.floor(m/1024),dk=hi%8,gl=Math.floor(hi/8)%8,tint=Math.floor(hi/64);if(!(Number.isFinite(m)&&tint<=3&&dk<=7&&gl<=7))out.bad++;out.dark[dk]++;if(gl)out.glow++;out.maxHi=Math.max(out.maxHi,hi)}}return out})()`);
+ assert.equal(mesh.bad,0,'every packed vertex code is valid');assert(mesh.water>10,'the lake chunk has water faces');assert(mesh.dark[7]>0&&mesh.dark[0]>0||mesh.dark.slice(4).some(v=>v>0),`cave faces are darkened (${mesh.dark})`);
+ // Crystals: blocks, bake and glow bits.
+ const cc={x:Math.floor(crys.x/16),z:Math.floor(crys.z/16)};
+ const cr=J(`(()=>{let n=0,chunks=0,glowFaces=0,sources=0,tints=new Set();for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const cx=${cc.x}+dx,cz=${cc.z}+dz,data=voxelChunk(cx,cz);let here=0;for(let i=0;i<data.length;i++)if(data[i]>=26&&data[i]<=28)here++;n+=here;if(here)chunks++;
+   if(here){sources+=glowSources(cx,cz,data).length/4;rebuild(cx,cz);for(let i=0;i<opaqueW.n;i+=9){const hi=Math.floor(opaqueW.a[i+8]/1024),gl=Math.floor(hi/8)%8;if(gl){glowFaces++;tints.add(Math.floor(hi/64))}}}}
+  return{n,chunks,glowFaces,sources,tints:[...tints]}})()`);
+ assert(cr.n>150&&cr.chunks>=2,`crystal cave has crystals (${cr.n} blocks in ${cr.chunks} chunks)`);assert(cr.glowFaces>200,`crystal light is baked into nearby faces (${cr.glowFaces})`);assert(cr.tints.length>=1&&cr.tints.every(t=>t>=1&&t<=3),'glow tints are 1..3');
+ // Decoration: stalactites hang from ceilings, stalagmites stand on floors, in the halls.
+ const dec=J(`(()=>{let hang=0,stand=0;const x0=${Math.floor(hall.x)}-24,z0=${Math.floor(hall.z)}-24;for(let x=x0;x<x0+48;x++)for(let z=z0;z<z0+48;z++)for(let y=12;y<150;y++){if(get(x,y,z)!==3)continue;const a=get(x,y+1,z),b=get(x,y-1,z);if(b===0&&get(x,y-2,z)===0&&a===3&&get(x,y+2,z)===3&&get(x+1,y,z)===0&&get(x-1,y,z)===0)hang++;if(a===0&&get(x,y+2,z)===0&&b===3&&get(x,y-2,z)===3&&get(x+1,y,z)===0&&get(x-1,y,z)===0)stand++}return{hang,stand}})()`);
+ assert(dec.hang+dec.stand>5,`stalactites and stalagmites exist (${dec.hang}/${dec.stand})`);
+ // Underground factor: the surface, a hut on the surface and the inside of a hall.
+ const V=d.api.vista;R(`paused=false;spawn();streamChunks(true);pkX=1e9;caveF=0`);assert.equal(R('cavePoll()'),0,'on the surface');
+ const hx=Math.floor(player_x=d.api.player.x),hz=Math.floor(d.api.player.z),hy=Math.floor(d.api.player.y);
+ for(let x=hx-2;x<=hx+2;x++)for(let z=hz-2;z<=hz+2;z++){for(let y=hy;y<=hy+3;y++)if(Math.abs(x-hx)===2||Math.abs(z-hz)===2)d.api.edit(x,y,z,7);d.api.edit(x,hy+4,z,7)}
+ R('pkX=1e9');assert.equal(R('cavePoll()'),0,'inside a house on the surface is not underground');
+ const hv=J(`(()=>{const L=${JSON.stringify(lake)};const c=caveStand(L.view.x,L.view.y+1.5,L.view.z);return c})()`);assert(hv,'there is a place to stand on the lake balcony');
+ R(`player.x=${hv.x};player.z=${hv.z};player.y=${hv.y};streamChunks(true);for(let i=0;i<30;i++)streamChunks();pkX=1e9`);const deep=R('cavePoll()');assert(deep>.9,`inside the lake cave the factor is ${deep.toFixed(2)}`);
+ R('caveF=1;caveRaw=1;updateCave(.016,false)');assert(R('caveF')>.99);R('for(let i=0;i<20;i++)updateCave(.2,false)');assert(R('caveUnder'),'underground mode turns on');assert(R('nearN()')<=4,'near range shrinks underground');
+ R('caveRaw=0;caveF=0;caveUnder=false;streamDirty=true');
+ // The title button teleports to safe spots in order and the player can walk on.
+ R('paused=true;flying=false;nextCave()');const spots=R('caveList.length');assert(spots>=8,`cave spots found (${spots})`);
+ const seen=new Set();for(let i=0;i<spots+1;i++){R('nextCave()');const s=JSON.parse(R('JSON.stringify({k:caveList[caveIdx].kind,col:collides(player),paused,y:player.y,x:player.x,z:player.z})'));assert(!s.col,'spot is not inside rock: '+JSON.stringify(s));assert.equal(s.paused,false);seen.add(s.k);R('paused=true')}
+ assert.equal(seen.size,4,'entrance, hall, lake and crystal spots are visited');
+ // Standing in a cave: gravity keeps the player on the floor, flying works, blocks can be mined and placed, edits survive a save and reload.
+ R('paused=false;update(.05)');for(let i=0;i<60;i++)R('update(1/60)');assert(!R('collides(player)'),'player rests on the cave floor');
+ const px=Math.floor(d.api.player.x),py=Math.floor(d.api.player.y),pz=Math.floor(d.api.player.z);R(`yaw=0;pitch=-1.2`);const hit=R('ray()');
+ if(hit){R('mine()');assert.equal(d.api.get(hit.x,hit.y,hit.z),0,'a cave block can be mined')}
+ d.api.edit(px,py+3,pz,27);assert.equal(d.api.get(px,py+3,pz),27,'a crystal block can be placed');assert(R(`glowChunks.has(chunkKey(${px},${pz}))`),'placing a crystal marks its chunk as glowing');
+ const srcHas=()=>R(`(()=>{const l=glowSources(${px>>4},${pz>>4},voxelChunk(${px>>4},${pz>>4}));for(let i=0;i<l.length;i+=4)if(l[i]===${px}&&l[i+1]===${py+3}&&l[i+2]===${pz})return true;return false})()`);
+ assert.equal(srcHas(),true,'the placed crystal is a light source');d.api.edit(px,py+3,pz,0);assert.equal(srcHas(),false,'removing it drops it from the light sources');
+ R('toggleFlight()');R('keys.Space=true;for(let i=0;i<30;i++)update(1/60);delete keys.Space');assert(R('flying')&&!R('collides(player)'),'flying inside a cave');
+ d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),7);
+ assert.equal(run(re,`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),R(`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),'reloading does not change the caves');
+ // Save format: new block ids are accepted, the unused plant-material ids are not, and future versions are rejected.
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},false]]){
+  const t=()=>run(d,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
+ console.log(`PASS: caves: lake ${lk.water} water voxels (${lk.exposed} open sides), ${cr.n} crystals lighting ${cr.glowFaces} faces, ${dec.hang}/${dec.stand} stalactites/stalagmites, underground factor ${deep.toFixed(2)}, ${spots} spots visited, edits/save/validation`)}
+{// Underground life: dark-loving monsters appear on cave floors only, and the surface is left alone while the player is below.
+ const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ const spot=J(`(()=>{for(let i=0;i<8;i++)for(let j=0;j<8;j++){const c=caveCell(i,j);if(!c)continue;const h=c.chambers.find(k=>k.kind==='hall'&&k.view);if(h)return{x:h.view.x,y:h.view.y,z:h.view.z}}return null})()`);
+ const f=J(`caveStand(${spot.x},${spot.y+1.5},${spot.z})`);assert(f);
+ R(`paused=false;life.length=0;lifeMode='all';player.x=${f.x};player.y=${f.y};player.z=${f.z};streamChunks(true);for(let i=0;i<60;i++)streamChunks();caveRaw=caveF=1;caveUnder=true;streamDirty=true;for(let i=0;i<10;i++)streamChunks()`);
+ R('for(let k=0;k<400;k++)updateLife(.1,player)');
+ const m=J(`life.map(c=>({id:c.sp.id,cat:c.sp.cat,x:c.x,y:c.y,z:c.z,sh:surfaceAt(Math.floor(c.x),Math.floor(c.z)),inside:peek(Math.floor(c.x),Math.floor(c.y),Math.floor(c.z)),floor:peek(Math.floor(c.x),Math.floor(c.y)-1,Math.floor(c.z))}))`);
+ assert(m.length>=1&&m.length<=8,`cave monsters appear in small numbers (${m.length})`);
+ assert(m.every(c=>c.cat==='monster'&&['crawler','spider','slime','skeleton'].includes(c.id)),'only dark-loving monsters: '+m.map(c=>c.id));
+ assert(m.every(c=>c.sh-c.y>=6),'they live underground, not on the surface');assert(m.every(c=>c.inside<=0||c.inside===undefined||c.inside===0),'none are inside rock');
+ R('lifeMode="animals";life.length=0;for(let k=0;k<200;k++)updateLife(.1,player)');assert.equal(R('life.length'),0,'animals-only mode keeps caves quiet');
+ console.log(`PASS: cave creatures: ${m.map(c=>c.id).join('/')} on cave floors, none on the surface, quiet in animals-only mode`)}

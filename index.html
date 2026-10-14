@@ -153,7 +153,7 @@ body:has(#eggs:not(.hidden)) .top,body:has(#eggs:not(.hidden)) #stick,body:has(#
 body:has(#eggs:not(.hidden)) #compass{display:none!important}
 @media(max-height:480px){#eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px)}#eggGrid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))}#eggGrid .egg{min-height:68px}#eggGrid .egg canvas{width:38px;height:38px}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>LIVING WORLD · v10.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>UNDERGROUND · v11.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"><div id="compassHeading"></div></div>
  <div id="compassInfo"><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -162,17 +162,18 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
  <div class="title-menu">
   <button id="play" class="title-button">シングルプレイ</button>
   <div class="title-pair"><button id="mode" class="title-button">モード：素材集め</button><button id="quality" class="title-button">画質：標準</button></div>
-  <div class="title-pair"><button id="home" class="title-button">出発地点へ戻る</button><button id="spots" class="title-button">絶景スポットへ</button></div>
-  <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
-  <div class="title-pair"><button id="hudMode" class="title-button" aria-pressed="false">HUD：通常</button><button id="hudDetails" class="title-button" aria-pressed="false">詳細情報：OFF</button></div>
-  <div class="title-pair"><button id="lifeMenu" class="title-button">生き物：すべて</button><button id="photoMenu" class="title-button">スクショモード</button></div>
+  <div class="title-pair"><button id="spots" class="title-button">絶景スポットへ</button><button id="caves" class="title-button">洞窟探検へ</button></div>
+  <div class="title-pair"><button id="home" class="title-button">出発地点へ戻る</button><button id="save" class="title-button">世界を保存</button></div>
+  <div class="title-pair"><button id="reset" class="title-button">新しい世界</button><button id="hudMode" class="title-button" aria-pressed="false">HUD：通常</button></div>
+  <div class="title-pair"><button id="hudDetails" class="title-button" aria-pressed="false">詳細情報：OFF</button><button id="lifeMenu" class="title-button">生き物：すべて</button></div>
+  <button id="photoMenu" class="title-button">スクショモード</button>
   <div class="title-pair"><button id="exportWorld" class="title-button">ワールドをバックアップ</button><button id="importWorld" class="title-button">バックアップから復元</button></div>
 <input id="importFile" type="file" accept=".json,application/json" hidden>
 <details class="title-help"><summary>保存データの復旧</summary><button id="recoverWorld" class="title-button">保存データを復旧（直前の正常セーブ）</button><button id="restoreProtected" class="title-button">切り替え前の世界に戻す</button><button id="exportProtected" class="title-button">退避データを書き出す</button></details>
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v10.0</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v11.0</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -189,7 +190,7 @@ if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてく�
 // The world is generated on demand. Near 16x16 columns are real voxels; everything farther is a light LOD mesh.
 const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
 const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
-const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341']];
+const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341'],null,null,null,null,null,null,null,null,null,['青い結晶','#4d8cff'],['紫の結晶','#b45cff'],['翠の結晶','#38f09a'],['光ゴケ','#3fbf9a']];
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
 const slots=[1,2,3,4,6,7,8,9];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
@@ -210,9 +211,9 @@ function validateSave(d){
  const obj=v=>v&&typeof v==='object'&&!Array.isArray(v),bad=()=>{throw Error('セーブ形式・内容が不正、または未対応のバージョンです')};
  if(!obj(d)||d.version!==1||!Number.isFinite(d.seed)||!Array.isArray(d.changes)||!obj(d.inventory))bad();
  const tv=d.terrainVersion??1,w=d.worldWidth??64,h=d.worldHeight??40;
- if(!Number.isInteger(tv)||tv<1||tv>6||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
- for(const e of d.changes)if(!Array.isArray(e)||e.length!==2||!Number.isSafeInteger(e[0])||e[0]<0||e[0]>=w*w*h||!Number.isInteger(e[1])||e[1]<0||e[1]>=defs.length)bad();
- for(const [k,v]of Object.entries(d.inventory))if(!/^[1-9]\d*$/.test(k)||+k>=defs.length||!Number.isSafeInteger(v)||v<0)bad();
+ if(!Number.isInteger(tv)||tv<1||tv>7||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
+ for(const e of d.changes)if(!Array.isArray(e)||e.length!==2||!Number.isSafeInteger(e[0])||e[0]<0||e[0]>=w*w*h||!Number.isInteger(e[1])||e[1]<0||e[1]>=defs.length||e[1]&&!defs[e[1]])bad();
+ for(const [k,v]of Object.entries(d.inventory))if(!/^[1-9]\d*$/.test(k)||+k>=defs.length||!defs[+k]||!Number.isSafeInteger(v)||v<0)bad();
  for(const k of ['creative','flying'])if(d[k]!==undefined&&typeof d[k]!=='boolean')bad();
  for(const k of ['yaw','pitch','dayTime'])if(d[k]!==undefined&&!Number.isFinite(d[k]))bad();
  if(d.player!==undefined&&(!obj(d.player)||!['x','y','z'].every(k=>Number.isFinite(d.player[k]))||d.player.x<0||d.player.x>=2048||d.player.z<0||d.player.z>=2048||d.player.y<0||d.player.y>=(tv>=4?192:96)))bad();
@@ -229,7 +230,10 @@ try{expectedRaw=localStorage.getItem(KEY);if(expectedRaw!==null){saved=decodeSav
 // Saved worlds keep the generator and height they were created with. New worlds use GRAND VISTA terrain (v4).
 // v5 adds the natural vegetation system; v4 worlds keep their original trees, grass and flowers.
 // v6 adds scenic landforms (sea cliffs, landmark peaks, gorges, river plains); v4/v5 worlds keep their exact terrain.
-const terrainVersion=saved?.version===1?(saved.terrainVersion||1):6,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6;
+// v7 adds caves (entrances, tunnels, halls, underground lakes, crystal caves); v4-v6 worlds keep their exact terrain.
+const terrainVersion=saved?.version===1?(saved.terrainVersion||1):7,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
+const glowChunks=new Set(),glowCache=new Map(); // chunks that contain crystals or moss (for the lighting bake)
+let caveF=0,caveT=0,caveRaw=0,caveUnder=false; // how enclosed the camera is (see updateCave)
 const H=GRAND?192:96,SEA=GRAND?62:10,CHUNK_SIZE=CHUNK*CHUNK*H;
 // Quality presets: near = voxel radius in chunks, far = LOD view distance in blocks, split = LOD detail factor.
 const QUALITY={low:{label:'低',near:3,far:640,split:1.8,dpr:1,budget:4,lodCap:140,plant:.4,plantNear:2,fade:40,water:0,sky:0,cloudR:520},standard:{label:'標準',near:5,far:1150,split:2.4,dpr:1.5,budget:6,lodCap:220,plant:.75,plantNear:3,fade:72,water:1,sky:1,cloudR:760},high:{label:'高',near:7,far:1800,split:3,dpr:2,budget:8,lodCap:320,plant:1,plantNear:5,fade:110,water:2,sky:2,cloudR:1000}};
@@ -243,7 +247,7 @@ const chunkKey=(x,z)=>Math.floor(x/CHUNK)+','+Math.floor(z/CHUNK);
 const localIdx=(x,y,z)=>(y*CHUNK+(z&15))*CHUNK+(x&15);
 let lastCX=-1,lastCZ=-1,lastData=null;
 function get(x,y,z){if(!inside(x,y,z))return 0;const cx=x>>4,cz=z>>4;if(cx!==lastCX||cz!==lastCZ||!lastData){lastData=voxelChunk(cx,cz);lastCX=cx;lastCZ=cz}return lastData[localIdx(x,y,z)]}
-function set(x,y,z,t){if(!inside(x,y,z))return;const i=idx(x,y,z),key=chunkKey(x,z);if(!changes.has(i)){let list=changeIndex.get(key);if(!list)changeIndex.set(key,list=[]);list.push(i)}changes.set(i,t);const data=blocks.get(key);if(data)data[localIdx(x,y,z)]=t}
+function set(x,y,z,t){if(!inside(x,y,z))return;const i=idx(x,y,z),key=chunkKey(x,z);if(!changes.has(i)){let list=changeIndex.get(key);if(!list)changeIndex.set(key,list=[]);list.push(i)}changes.set(i,t);const data=blocks.get(key);if(data)data[localIdx(x,y,z)]=t;if(CAVES){if(t>=26&&t<=29)glowChunks.add(key);if(glowChunks.has(key))glowCache.delete(key)}}
 function solid(x,y,z){const t=get(x,y,z);return t!==0&&t!==10}
 function rand(x,z){let n=Math.imul(x+seed,374761393)^Math.imul(z,668265263);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295}
 function noise(x,z,s){const a=Math.floor(x/s),b=Math.floor(z/s);let u=x/s-a,v=z/s-b;u=u*u*(3-2*u);v=v*v*(3-2*v);return(rand(a,b)*(1-u)+rand(a+1,b)*u)*(1-v)+(rand(a,b+1)*(1-u)+rand(a+1,b+1)*u)*v}
@@ -492,6 +496,7 @@ function columnInfo(cx,cz){const key=cx+','+cz;let c=columns.get(key);if(c)retur
   c.h[k]=h;c.slope[k]=Math.min(255,s);c.hum[k]=humidity(x0+x,z0+z);c.birch[k]=birchiness(x0+x,z0+z);c.surf[k]=surface4(x0+x,z0+z,h,s);
   if(VEG){vegEnv(x0+x,z0+z,h,s,Math.max(-1,Math.min(1,(hh[p-P]-hh[p+P])*.35)),ll[p],c.hum[k],oo[p]);
    c.dens[k]=E.dens;c.shrub[k]=E.shrub;c.gd[k]=E.gd;c.tl[k]=E.tl;c.dry[k]=E.dry;c.lush[k]=E.lush;c.fc[k]=E.fc;c.fp[k]=E.fp;if(c.surf[k]===1&&E.bare>.4)c.surf[k]=2}}
+ if(CAVES&&VEG){const cell=caveCell(cx>>4,cz>>4);if(cell)for(const o of cell.open)for(let z=0;z<16;z++)for(let x=0;x<16;x++){const d=Math.hypot(x0+x-o.x,z0+z-o.z);if(d>=o.r*1.4)continue;const f=smooth(o.r*.6,o.r*1.4,d),k=z*16+x;c.dens[k]*=f;c.shrub[k]*=f;c.fc[k]*=f;c.tl[k]*=f;c.gd[k]*=.3+.7*f}}
  columns.set(key,c);return c}
 // The scenic evaluation point: a hill near the coast that sees both open sea and high mountains.
 function findVista(){
@@ -566,6 +571,238 @@ function* scanSpots(out){
    res.push(c)}}
  out.spots=res;out.done=true}
 const vista=GRAND?findVista():null;
+// ---- Caves (terrainVersion >= 7). A cave system is a pure function of (seed, cell): each 256x256 cell holds a few chambers (halls, lakes,
+// crystal caves), tunnels that wander down from hillside mouths, pockets, shafts, bridges and a skylight chimney. Chunks ask their cell for the
+// primitives that touch them and carve those out of the solid rock, so generation never needs a neighbouring chunk and the world stays the same
+// 16x16x192 voxel arrays. Everything stays 3+ blocks under the surface except the mouths and chimneys, which are cut on purpose.
+const CAVE_CELL=256,CAVE_Y0=6,CAVE_CRUST=3,CAVE_LAKE_Y=SEA,B_CRYSTAL0=26,B_MOSS=29;
+const caveCells=new Map();
+const isGlowBlock=t=>t>=26&&t<=29;
+// Smooth 3D value noise in 0..1 from a seeded 64^3 lattice (wrapping), about ten times cheaper than hashing every corner.
+let NT=null;
+function vn3(x,y,z){if(!NT){NT=new Float32Array(262144);const r=treeRng(7,9,303);for(let i=0;i<NT.length;i++)NT[i]=r()}
+ const X=Math.floor(x),Y=Math.floor(y),Z=Math.floor(z),fx=x-X,fy=y-Y,fz=z-Z,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),w=fz*fz*(3-2*fz),x0=X&63,x1=(X+1)&63,y0=(Y&63)<<6,y1=((Y+1)&63)<<6,z0=(Z&63)<<12,z1=((Z+1)&63)<<12;
+ const a=NT[x0+y0+z0],b=NT[x1+y0+z0],c=NT[x0+y1+z0],d=NT[x1+y1+z0],e=NT[x0+y0+z1],f=NT[x1+y0+z1],g=NT[x0+y1+z1],h=NT[x1+y1+z1];
+ return((a+(b-a)*u)*(1-v)+(c+(d-c)*u)*v)*(1-w)+((e+(f-e)*u)*(1-v)+(g+(h-g)*u)*v)*w}
+function caveCell(ci,cj){if(ci<0||cj<0||ci>=W/CAVE_CELL||cj>=W/CAVE_CELL)return null;const key=ci*64+cj;let c=caveCells.get(key);if(c!==undefined)return c;
+ c=buildCaveCell(ci,cj);if(caveCells.size>=24)caveCells.delete(caveCells.keys().next().value);caveCells.set(key,c);return c}
+function buildCaveCell(ci,cj){
+ const R=treeRng(ci*131+17,cj*197+29,101),X0=ci*CAVE_CELL,Z0=cj*CAVE_CELL,hc=new Map();
+ const ht=(x,z)=>{x=Math.round(x);z=Math.round(z);const k=x*4099+z;let h=hc.get(k);if(h===undefined){h=height4(x,z);hc.set(k,h)}return h};
+ // 1. Mouths: steep hillsides that keep rising behind them, on dry land, away from the start hill.
+ const cand=[];
+ for(let a=0;a<7;a++)for(let b=0;b<7;b++){
+  const x=Math.round(X0+22+(a+R()*.85)*(212/7)),z=Math.round(Z0+22+(b+R()*.85)*(212/7)),h=ht(x,z);
+  if(h<SEA+14||h>SEA+100)continue;
+  const gx=(ht(x+4,z)-ht(x-4,z))/8,gz=(ht(x,z+4)-ht(x,z-4))/8,g=Math.hypot(gx,gz);if(g<.45)continue;
+  const dx=gx/g,dz=gz/g,h1=ht(x+dx*12,z+dz*12),h2=ht(x+dx*24,z+dz*24);
+  if(h1<h+6||h2<h1-1||ht(x-dx*10,z-dz*10)<SEA+4)continue;
+  // the approach must be walkable: no steeper than about 45 degrees for the 12 blocks in front of the mouth
+  if(h-ht(x-dx*6,z-dz*6)>6.5||h-ht(x-dx*12,z-dz*12)>12.5)continue;
+  if(vista&&Math.hypot(x-vista.x,z-vista.z)<44)continue;
+  cand.push({x,z,h,dx,dz,score:g+R()*.5})}
+ cand.sort((p,q)=>q.score-p.score);const ent=[];
+ for(const c of cand){if(ent.length>=3)break;if(ent.every(e=>Math.hypot(e.x-c.x,e.z-c.z)>70))ent.push(c)}
+ if(!ent.length)return null;
+ // 2. Chambers.
+ const chs=[],lim=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+ const ring=(cx,cz,rx,rz)=>{let m=ht(cx,cz);for(let a=0;a<8;a++)m=Math.min(m,ht(cx+Math.cos(a*.785)*rx*.9,cz+Math.sin(a*.785)*rz*.9));return m};
+ const want=2+(R()<.6?1:0)+(R()<.3?1:0),forceCrystal=rand(ci*31+5,cj*17+9)<.16;let tries=0;
+ while(chs.length<want&&tries++<50){
+  const roll=R();let kind=!chs.some(c=>c.kind==='crystal')&&(roll<.03||forceCrystal&&!chs.length)?'crystal':roll<.3?'lake':roll<.7?'hall':'cavern';
+  let rx,rz,ry;
+  if(kind==='hall'){rx=24+R()*18;rz=20+R()*16;ry=13+R()*9}else if(kind==='lake'){rx=22+R()*14;rz=20+R()*12;ry=11+R()*4}
+  else if(kind==='crystal'){rx=18+R()*8;rz=16+R()*8;ry=9+R()*5}else{rx=14+R()*10;rz=13+R()*9;ry=8+R()*5}
+  const mx=Math.max(rx,rz)*1.35+8;
+  const cx=X0+mx+R()*(CAVE_CELL-2*mx),cz=Z0+mx+R()*(CAVE_CELL-2*mx);
+  if(ent.some(e=>Math.hypot(e.x-cx,e.z-cz)<rx*.8+14))continue;
+  let cy=0,ok=false;
+  for(let t=0;t<3&&!ok;t++){const hm=ring(cx,cz,rx,rz);
+   if(kind==='lake'){cy=CAVE_LAKE_Y+8;ok=hm>=cy+ry*1.2+9;if(!ok){rx*=.85;rz*=.85}}
+   else{const hi=hm-10-ry*1.2,lo=12+ry*1.2;if(hi>=lo){cy=lo+(hi-lo)*(.1+R()*.75);ok=true}else{ry*=.8;rx*=.85;rz*=.85}}}
+  if(!ok)continue;
+  if(chs.some(o=>Math.hypot(o.x-cx,o.z-cz)<(o.rx+rx)*.8&&Math.abs(o.y-cy)<o.ry+ry))continue;
+  const ch={kind,x:cx,y:cy,z:cz,rx,ry,rz,lobes:[{x:cx,y:cy,z:cz,rx,ry,rz}],entries:[],view:null,balc:null};
+  if(kind==='hall'||kind==='crystal'||kind==='cavern'){const n=kind==='cavern'?1:2;for(let i=0;i<n;i++){const a=R()*6.283,d=(.35+R()*.3)*rx;
+    ch.lobes.push({x:cx+Math.cos(a)*d,y:cy+(R()-.5)*ry*.9,z:cz+Math.sin(a)*d*rz/rx,rx:rx*(.45+R()*.3),ry:ry*(.55+R()*.35),rz:rz*(.45+R()*.3)})}}
+  if(kind==='lake'){ch.lobes.push({x:cx+(R()-.5)*rx*.3,y:CAVE_LAKE_Y-6,z:cz+(R()-.5)*rz*.3,rx:rx*.62,ry:9,rz:rz*.6});
+   const a=R()*6.283;ch.lobes.push({x:cx+Math.cos(a)*rx*.6,y:cy+2,z:cz+Math.sin(a)*rz*.6,rx:rx*.4,ry:ry*.7,rz:rz*.4})}
+  chs.push(ch)}
+ if(!chs.length)return null;
+ // 3. Tunnels, as chains of overlapping spheres steered toward a target with wander, a slope limit and a ceiling.
+ const sph=[],fill=[],open=[],entrances=[];
+ const lakes=chs.filter(c=>c.kind==='lake');
+ const worm=(sx,sy,sz,tx,ty,tz,o)=>{const path=[];let x=sx,y=sy,z=sz,hx=o.hx!==undefined?o.hx:tx-sx,hz=o.hz!==undefined?o.hz:tz-sz,hy=0;const hl=Math.hypot(hx,hz)||1;hx/=hl;hz/=hl;
+  // the slope allowed grows with the drop to be made (up to a steep stair-like ramp), so a deep chamber can always be reached
+  const sa=R()*90,dh0=Math.hypot(tx-sx,tz-sz)||1,slope=o.slope||Math.min(.9,Math.max(.42,1.3*Math.abs(ty-sy)/dh0)),r0=o.r||2.5+R()*1.3;let bulge=0,travelled=0;
+  for(let s=0;s<700;s++){
+   const dx=tx-x,dy=ty-y,dz=tz-z,d=Math.hypot(dx,dy,dz);if(d<2.4)break;
+   const pull=lim((travelled-(o.straight||0))/18,0,1),ux=dx/d,uy=dy/d,uz=dz/d,wa=(vn3(x*.035+sa,y*.05,z*.035)-.5)*2,wb=(vn3(x*.035,y*.05+sa,z*.035+17.3)-.5)*2,wd=(o.wander===undefined?.85:o.wander)*Math.min(1,d/36);
+   const nhx=hx*.8+ux*.2*pull-hz*wa*.28*wd,nhz=hz*.8+uz*.2*pull+hx*wa*.28*wd;hx=nhx;hz=nhz;hy=hy*.8+uy*.2*pull+wb*.1*wd;
+   if(o.dive&&s<o.ent)hy=-o.dive*Math.hypot(hx,hz); // a mouth slopes down into the hill so the rock above it thickens quickly
+   let hxz=Math.hypot(hx,hz)||1;hy=lim(hy,-slope*hxz,slope*hxz);const hn=Math.hypot(hx,hy,hz);hx/=hn;hy/=hn;hz/=hn;
+   x=lim(x+hx*2,X0+10,X0+CAVE_CELL-10);y+=hy*2;z=lim(z+hz*2,Z0+10,Z0+CAVE_CELL-10);travelled+=2;
+   if(bulge>0)bulge--;else if(R()<.025)bulge=3+Math.floor(R()*4);
+   let r=r0+(vn3(s*.09+sa,0,sa)-.5)*1.5+(bulge?1.5:0);r=Math.max(o.min||2.1,r);
+   const isEnt=o.ent&&s<(o.ent);
+   // keep under the surface, easing down early where it falls away ahead; never more than 1.3 blocks per step, so the tunnel stays connected
+   if(!isEnt){const hs=ht(x,z),cap=Math.min(hs,ht(x+hx*8,z+hz*8),ht(x+hx*16,z+hz*16))-r-4.5;if(y>cap)y+=Math.max(cap-y,-1.3);const hard=hs-CAVE_CRUST-r*.5;if(y>hard)y=hard}
+   y=Math.max(y,CAVE_Y0+4+r);
+   for(const L of lakes)if(Math.hypot((x-L.x)/L.rx,(z-L.z)/L.rz)<1.35)y=Math.max(y,CAVE_LAKE_Y+r+2.5);
+   sph.push([x,y,z,r,isEnt?1:0]);path.push([x,y,z,r])}
+  // Safety net: if the walk ended short of its target, finish with a straight steep passage so no tunnel is ever cut off.
+  {const dx=tx-x,dy=ty-y,dz=tz-z,d=Math.hypot(dx,dy,dz);if(d>2.4){const n=Math.ceil(d/1.8),r=Math.max(2.4,r0);for(let k=1;k<=n;k++){const t=k/n;sph.push([x+dx*t,y+dy*t,z+dz*t,r,0]);path.push([x+dx*t,y+dy*t,z+dz*t,r])}}}
+  return path};
+ // Where a tunnel meets a chamber: the wall (hall) or the balcony (lake) on the side it arrives from.
+ const entryOf=(ch,fx,fz)=>{const a=Math.atan2(fz-ch.z,fx-ch.x),k=ch.kind==='lake'?.6:.8,y=ch.kind==='lake'?CAVE_LAKE_Y+8.6:ch.y+ch.ry*.08;
+  return{x:ch.x+Math.cos(a)*ch.rx*k,y,z:ch.z+Math.sin(a)*ch.rz*k,a}};
+ const pushEntry=(ch,e,path)=>{ch.entries.push(e.a);
+  if(!ch.view&&path.length>5){const p=ch.kind==='lake'?[e.x,e.y-1.4]:path[path.length-4];ch.view={x:p[0],y:p[1],z:ch.kind==='lake'?e.z:p[2],yaw:Math.atan2(ch.x-p[0],ch.z-(ch.kind==='lake'?e.z:p[2]))}}
+  if(ch.kind==='lake'&&!ch.balc)ch.balc={ang:e.a,ylim:CAVE_LAKE_Y+6}};
+ const startOf=(ch,tx,tz)=>entryOf(ch,tx,tz);
+ // Mouths -> chambers (nearest unconnected first), then chamber chains, a loop, shafts and side pockets.
+ const near=(x,z,list)=>list.slice().sort((p,q)=>Math.hypot(p.x-x,p.z-z)-Math.hypot(q.x-x,q.z-z));
+ ent.forEach((e,i)=>{const ch=near(e.x,e.z,chs)[i%chs.length];
+  const sx=e.x-e.dx*1.5,sz=e.z-e.dz*1.5,sy=ht(sx,sz)+2.4,en=entryOf(ch,e.x,e.z); // the floor of the mouth meets the ground
+  const path=worm(sx,sy,sz,en.x,Math.max(en.y,CAVE_Y0+10),en.z,{hx:e.dx,hz:e.dz,ent:10,straight:16,r:3.2,dive:.42});pushEntry(ch,en,path);
+  entrances.push({x:e.x,z:e.z,y:e.h,dx:e.dx,dz:e.dz,chamber:chs.indexOf(ch),p0:path.length?path[0].slice(0,3):null});open.push({x:e.x,z:e.z,r:9})});
+ const sorted=chs.slice().sort((p,q)=>p.x-q.x);
+ const link=(A,B,steep)=>{const a=startOf(A,B.x,B.z),b=entryOf(B,A.x,A.z),dv=Math.abs(a.y-b.y),dh=Math.hypot(a.x-b.x,a.z-b.z),shaft=steep||dv>dh*.45;
+  const sy=A.kind==='lake'?Math.max(a.y,CAVE_LAKE_Y+8):a.y;
+  const path=worm(a.x,sy,a.z,b.x,Math.max(b.y,CAVE_Y0+10),b.z,{slope:shaft?1.5:0,r:shaft?3.8+R()*1:2.4+R()*1.4,wander:shaft?.3:.9,min:shaft?3:2.1});
+  pushEntry(B,b,path);A.entries.push(a.a);if(!A.view)pushEntry(A,a,path.slice().reverse())};
+ for(let i=0;i+1<sorted.length;i++)link(sorted[i],sorted[i+1],false);
+ if(sorted.length>=3&&R()<.6)link(sorted[sorted.length-1],sorted[0],false);
+ // Pockets: small side caverns reached by a branch off an existing tunnel.
+ const nPocket=1+Math.floor(R()*3);
+ for(let p=0;p<nPocket&&sph.length>40;p++){const s=sph[10+Math.floor(R()*(sph.length-20))],a=R()*6.283,d=30+R()*35,r=6+R()*6;
+  const px=lim(s[0]+Math.cos(a)*d,X0+r*1.4+10,X0+CAVE_CELL-r*1.4-10),pz=lim(s[2]+Math.sin(a)*d,Z0+r*1.4+10,Z0+CAVE_CELL-r*1.4-10),hm=ring(px,pz,r,r);
+  const py=lim(s[1]+(R()-.5)*18,12+r*1.2,hm-10-r*1.2);if(hm-10-r*1.2<12+r*1.2||chs.some(c=>Math.hypot(c.x-px,c.z-pz)<c.rx+r+6))continue;
+  const pk={kind:'pocket',x:px,y:py,z:pz,rx:r,ry:r*.75,rz:r,lobes:[{x:px,y:py,z:pz,rx:r,ry:r*.75,rz:r}],entries:[],view:null,balc:null};
+  if(lakes.some(L=>Math.hypot((px-L.x)/L.rx,(pz-L.z)/L.rz)<1.5))continue;
+  const en=entryOf(pk,s[0],s[2]),path=worm(s[0],s[1],s[2],en.x,py,en.z,{r:2.3+R()*.8,wander:.9});pushEntry(pk,en,path);chs.push(pk)}
+ // Natural rock bridges across the halls, away from where tunnels arrive.
+ for(const ch of chs){
+  if(ch.kind==='hall'&&ch.rx>=28&&R()<.75){let best=null;for(let t=0;t<12;t++){const a=R()*3.14159,dmin=Math.min(...ch.entries.flatMap(e=>[Math.abs(Math.atan2(Math.sin(a-e),Math.cos(a-e))),Math.abs(Math.atan2(Math.sin(a+3.14159-e),Math.cos(a+3.14159-e)))]),9);if(!best||dmin>best.d)best={a,d:dmin}}
+   if(best&&best.d>.8){const a=best.a,y0=ch.y-ch.ry*.34,n=Math.ceil(ch.rx*2.6/2);
+    for(let i=0;i<=n;i++){const t=i/n,k=(t-.5)*2.5;fill.push([ch.x+Math.cos(a)*ch.rx*k,y0+Math.sin(t*Math.PI)*5.5,ch.z+Math.sin(a)*ch.rz*k,3.1,1.7])}}}
+  // A skylight chimney from the ceiling up the hillside, only where the surface there is steep rock.
+  if((ch.kind==='lake'||(ch.kind==='hall'&&R()<.5))&&!ch.chimney){let bp=null;
+   for(let t=0;t<14;t++){const a=R()*6.283,d=R()*ch.rx*.55,px=Math.round(ch.x+Math.cos(a)*d),pz=Math.round(ch.z+Math.sin(a)*d*ch.rz/ch.rx),h=ht(px,pz),
+     g=Math.hypot(ht(px+3,pz)-ht(px-3,pz),ht(px,pz+3)-ht(px,pz-3))/6,top=ch.y+ch.ry*.78;
+    if(g>=.8&&h-top<=52&&h-top>=8&&h>SEA+8&&(!bp||g>bp.g))bp={px,pz,h,g,top}}
+   if(bp){ch.chimney=bp;let x=bp.px,z=bp.pz;for(let y=bp.top;y<=bp.h+2;y+=2){x+=(R()-.5)*.8;z+=(R()-.5)*.8;sph.push([x,y,z,2.2-.5*(y-bp.top)/(bp.h-bp.top+1)*.6,y>=bp.h-9?1:0])}
+    open.push({x:bp.px,z:bp.pz,r:8})}}}
+ // 4. Bucket everything by the chunk it touches (index = local chunk z*16+x inside the cell).
+ const per=CAVE_CELL/CHUNK,buckets=new Array(per*per).fill(null);
+ const put=(kind,item,x0,x1,z0,z1)=>{const a=Math.max(0,Math.floor((x0-X0)/CHUNK)),b=Math.min(per-1,Math.floor((x1-X0)/CHUNK)),c=Math.max(0,Math.floor((z0-Z0)/CHUNK)),d=Math.min(per-1,Math.floor((z1-Z0)/CHUNK));
+  for(let j=c;j<=d;j++)for(let i=a;i<=b;i++){const k=j*per+i;(buckets[k]||(buckets[k]={lobes:[],sph:[],fill:[],ch:[]}))[kind].push(item)}};
+ chs.forEach((ch,i)=>{let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const L of ch.lobes){const e=1.32;put('lobes',[L,ch],L.x-L.rx*e,L.x+L.rx*e,L.z-L.rz*e,L.z+L.rz*e);x0=Math.min(x0,L.x-L.rx*1.32);x1=Math.max(x1,L.x+L.rx*1.32);z0=Math.min(z0,L.z-L.rz*1.32);z1=Math.max(z1,L.z+L.rz*1.32)}
+  ch.box=[x0,x1,z0,z1];put('ch',ch,x0,x1,z0,z1)});
+ for(const s of sph){const e=s[3]*1.35+1;put('sph',s,s[0]-e,s[0]+e,s[2]-e,s[2]+e)}
+ for(const f of fill){const e=f[3]*1.1+1;put('fill',f,f[0]-e,f[0]+e,f[2]-e,f[2]+e)}
+ return{ci,cj,chambers:chs,entrances,open,buckets,sph,fill}}
+// Carve one chunk. Returns true when the chunk has cave space (the caller then decorates and lights it).
+function carveCaves(data,cx,cz,info){
+ const cell=caveCell(cx>>4,cz>>4);if(!cell)return false;const b=cell.buckets[(cz&15)*16+(cx&15)];if(!b)return false;
+ const x0=cx*CHUNK,z0=cz*CHUNK,hmax=info.h;let carved=0;
+ // Below the water line near a lake only that lake's own hollow is carved, so its water is always walled in by rock.
+ const lakes=b.ch.filter(c=>c.kind==='lake'),walled=(x,y,z,own)=>{if(y>CAVE_LAKE_Y||!lakes.length)return false;for(const Lk of lakes){if(Lk===own)continue;for(const lb of Lk.lobes)if(((x+.5-lb.x)/lb.rx)**2+((z+.5-lb.z)/lb.rz)**2<1.25)return true}return false};
+ for(const [L,ch] of b.lobes){const ex=1.32,xa=Math.max(x0,Math.floor(L.x-L.rx*ex)),xb=Math.min(x0+CHUNK-1,Math.ceil(L.x+L.rx*ex)),za=Math.max(z0,Math.floor(L.z-L.rz*ex)),zb=Math.min(z0+CHUNK-1,Math.ceil(L.z+L.rz*ex));
+  const ya=Math.max(CAVE_Y0,Math.floor(L.y-L.ry*1.5)),yb=Math.min(H-2,Math.ceil(L.y+L.ry*1.5)),balc=ch.balc&&ch.lobes[0]===L?ch.balc:null;
+  for(let z=za;z<=zb;z++)for(let x=xa;x<=xb;x++){const dxn=(x+.5-L.x)/L.rx,dzn=(z+.5-L.z)/L.rz,q2=dxn*dxn+dzn*dzn;if(q2>1.75)continue;
+   const k=(z-z0)*16+(x-x0),top=hmax[k]-CAVE_CRUST,fl=(vn3(x*.045,0,z*.045)-.5)*5;
+   let sector=false;if(balc&&q2>.25){const dd=Math.atan2(z+.5-L.z,x+.5-L.x)-balc.ang;sector=Math.abs(Math.atan2(Math.sin(dd),Math.cos(dd)))<.85}
+   for(let y=ya;y<=Math.min(yb,top);y++){const dyn=(y+.5-L.y+fl)/L.ry,q=q2+dyn*dyn;if(q>1.75)continue;
+    if(sector&&y<=balc.ylim)continue;
+    if(lakes.length&&walled(x,y,z,ch))continue;
+    const i=(y*CHUNK+(z-z0))*CHUNK+(x-x0),t=data[i];if(t===0||t===10||t===11)continue;
+    // the wall wobbles by at most +-0.54 in q (0.8 x (0.5 + 0.35 x 0.5)), so the noise is only needed near the surface of the hollow
+    if(q<.46){data[i]=0;carved++;continue}if(q>1.54)continue;
+    const n=vn3(x*.09,y*.11,z*.09)-.5+(vn3(x*.21,y*.25,z*.21)-.5)*.35;if(q<1+.8*n){data[i]=0;carved++}}}}
+ for(const s of b.sph){const r=s[3],e=Math.ceil(r*1.3)+1,xa=Math.max(x0,Math.floor(s[0])-e),xb=Math.min(x0+CHUNK-1,Math.floor(s[0])+e),za=Math.max(z0,Math.floor(s[2])-e),zb=Math.min(z0+CHUNK-1,Math.floor(s[2])+e),ya=Math.max(CAVE_Y0,Math.floor(s[1])-e),yb=Math.min(H-2,Math.floor(s[1])+e),r2=r*r*1.7,ent=s[4];
+  for(let z=za;z<=zb;z++)for(let x=xa;x<=xb;x++){const k=(z-z0)*16+(x-x0),top=ent?H-2:hmax[k]-CAVE_CRUST,ddx=x+.5-s[0],ddz=z+.5-s[2],h2=ddx*ddx+ddz*ddz;if(h2>r2)continue;
+   for(let y=ya;y<=Math.min(yb,top);y++){const ddy=y+.5-s[1],d2=h2+ddy*ddy*(ddy<0?.8:1);if(d2>r2)continue;
+    const i=(y*CHUNK+(z-z0))*CHUNK+(x-x0),t=data[i];if(t===0||t===10||t===11)continue;
+    if(lakes.length&&y<=CAVE_LAKE_Y&&walled(x,y,z,null))continue;
+    if(d2<r*r*.56){data[i]=0;carved++;continue}
+    const n=vn3(x*.12,y*.14,z*.12)-.5,rr=r*(1+.5*n);if(d2<rr*rr){data[i]=0;carved++}}}}
+ for(const f of b.fill){const e=Math.ceil(f[3]*1.1)+1,xa=Math.max(x0,Math.floor(f[0])-e),xb=Math.min(x0+CHUNK-1,Math.floor(f[0])+e),za=Math.max(z0,Math.floor(f[2])-e),zb=Math.min(z0+CHUNK-1,Math.floor(f[2])+e),ya=Math.max(CAVE_Y0,Math.floor(f[1]-f[4])-1),yb=Math.min(H-2,Math.ceil(f[1]+f[4]));
+  for(let z=za;z<=zb;z++)for(let x=xa;x<=xb;x++){const ddx=(x+.5-f[0])/f[3],ddz=(z+.5-f[2])/f[3];const h2=ddx*ddx+ddz*ddz;if(h2>1)continue;
+   for(let y=ya;y<=yb;y++){const ddy=(y+.5-f[1])/f[4];if(h2+ddy*ddy<1&&(vn3(x*.2,y*.25,z*.2)>.05)){const i=(y*CHUNK+(z-z0))*CHUNK+(x-x0);if(data[i]===0)data[i]=3}}}}
+ if(!carved&&!b.fill.length)return false;
+ // Lakes sit at sea level so the sea shader, shore foam and depth colours apply unchanged; the bed is sand and stone.
+ for(const ch of b.ch)if(ch.kind==='lake'){for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const wx=x0+x+.5,wz=z0+z+.5;let inside=false;for(const L of ch.lobes)if(((wx-L.x)/L.rx)**2+((wz-L.z)/L.rz)**2<1.04){inside=true;break}if(!inside)continue;
+   let lowest=-1;for(let y=CAVE_Y0;y<=CAVE_LAKE_Y;y++){const i=(y*CHUNK+z)*CHUNK+x;if(data[i]===0){data[i]=10;if(lowest<0)lowest=y}}
+   if(lowest>0){const i=((lowest-1)*CHUNK+z)*CHUNK+x;if(data[i]&&data[i]!==10&&data[i]!==11&&vn3(wx*.11,0,wz*.11)>.42)data[i]=6}}}
+ if(decorateCaves(data,b,cx,cz))glowChunks.add(cx+','+cz);
+ return true}
+// Chamber membership strength at a point: <1 inside a lobe (used to place decoration where the big spaces are).
+function chamberQ(b,x,y,z){let m=9;for(const ch of b.ch)for(const L of ch.lobes){const q=((x-L.x)/L.rx)**2+((y-L.y)/L.ry)**2+((z-L.z)/L.rz)**2;if(q<m)m=q}return m}
+// Stalactites, stalagmites, pillars, luminous moss and crystal clusters. Everything stays 2 blocks inside the chunk so no feature straddles a border.
+function decorateCaves(data,b,cx,cz){const x0=cx*CHUNK,z0=cz*CHUNK;let glow=false;
+ const crystal=b.ch.some(c=>c.kind==='crystal'),ix=(x,y,z)=>(y*CHUNK+z)*CHUNK+x,at=(x,y,z)=>data[ix(x,y,z)];
+ const hue=(wx,wz)=>1+Math.floor(vh(wx>>3,0,wz>>3,77)*3)%3;
+ for(let z=2;z<CHUNK-2;z++)for(let x=2;x<CHUNK-2;x++){const wx=x0+x,wz=z0+z;
+  for(let y=CAVE_Y0+1;y<H-8;y++){if(at(x,y,z)!==0)continue;
+   // vertical run of air starting at y
+   let y1=y;while(y1+1<H-4&&at(x,y1+1,z)===0)y1++;const n=y1-y+1,below=at(x,y-1,z),above=at(x,y1+1,z);
+   if(n>=3&&below&&below!==10&&below!==11&&above&&above!==10){
+    const q=chamberQ(b,wx+.5,(y+y1)/2,wz+.5),inCh=q<1.25,u=vh(wx,y,wz,5),u2=vh(wx,y,wz,6);
+    // pillar where floor and ceiling nearly meet
+    if(n>=6&&n<=18&&inCh&&u<.006){for(let yy=y;yy<=y1;yy++){const w=yy<y+2||yy>y1-2?1.5:.5;set3(data,x,yy,z,w)}}
+    else{
+     if(u<(inCh?.05:.012)){const L=1+Math.floor(Math.pow(u2,1.5)*Math.min(n-2,12));for(let t=0;t<L;t++)set3(data,x,y1-t,z,L>=6&&t<L*.4?1.5:L>=3&&t<L*.6?1:.5)}
+     if(vh(wx,y,wz,7)<(inCh?.035:.01)){const L=1+Math.floor(Math.pow(vh(wx,y,wz,8),1.7)*Math.min(n-2,9));for(let t=0;t<L;t++)set3(data,x,y+t,z,L>=5&&t<L*.4?1.5:L>=3&&t<L*.6?1:.5)}}
+    // luminous moss on some floors of the big spaces
+    if(inCh&&q<.95&&vn3(wx*.06,0,wz*.06)>.74&&vh(wx,y,wz,9)<.5&&at(x,y-1,z)===3){data[ix(x,y-1,z)]=B_MOSS;glow=true}
+    y=y1}
+   else y=y1}}
+ if(crystal)glow=growCrystals(data,b,x0,z0,hue)||glow;
+ return glow}
+// Plus-shaped (w>=1) or single-column spike block.
+function set3(data,x,y,z,w){const i=(y*CHUNK+z)*CHUNK+x;if(data[i]===0)data[i]=3;if(w>=1){for(const d of[-1,1]){const a=i+d,c=i+d*CHUNK;if(data[a]===0)data[a]=3;if(data[c]===0)data[c]=3}}}
+const CRY_DIRS=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+function growCrystals(data,b,x0,z0,hue){let any=false;const ix=(x,y,z)=>(y*CHUNK+z)*CHUNK+x;
+ const inRange=(x,y,z)=>x>=2&&z>=2&&x<CHUNK-2&&z<CHUNK-2&&y>CAVE_Y0&&y<H-6;
+ for(let z=2;z<CHUNK-2;z++)for(let x=2;x<CHUNK-2;x++){const wx=x0+x,wz=z0+z;
+  for(let y=CAVE_Y0+1;y<H-7;y++){if(data[ix(x,y,z)]!==0)continue;
+   for(let d=0;d<6;d++){const D=CRY_DIRS[d],sx=x-D[0],sy=y-D[1],sz=z-D[2];const sb=data[ix(sx,sy,sz)];if(!sb||sb===10||sb===11||isGlowBlock(sb))continue;
+    const u=vh(wx,y*7+d,wz,12);if(u>(d===3?.032:d===2?.046:.036))continue;
+    const q=chamberQ(b,wx+.5,y+.5,wz+.5);if(q>1.1)continue;
+    const colour=B_CRYSTAL0+(hue(wx,wz)-1),big=vh(wx,y,wz,13)<.07;
+    const L=big?9+Math.floor(vh(wx,y,wz,14)*12):2+Math.floor(Math.pow(vh(wx,y,wz,15),1.2)*6);
+    // main spire, then satellites leaning off the same wall
+    for(let t=0;t<L;t++){const px=x+D[0]*t,py=y+D[1]*t,pz=z+D[2]*t;if(!inRange(px,py,pz)||data[ix(px,py,pz)]!==0)break;data[ix(px,py,pz)]=colour;
+     if(t<L*.35&&L>=5){for(const e of CRY_DIRS){if(e[0]*D[0]+e[1]*D[1]+e[2]*D[2]!==0)continue;const ax=px+e[0],ay=py+e[1],az=pz+e[2];if(inRange(ax,ay,az)&&data[ix(ax,ay,az)]===0&&vh(ax,ay,az,16)<.55)data[ix(ax,ay,az)]=colour}}}
+    const T=[0,1,2].filter(a=>D[a]===0),sat=big?3:1+Math.floor(vh(wx,y,wz,17)*3);
+    for(let s=0;s<sat;s++){const off=[0,0,0];off[T[0]]=Math.floor(vh(wx,y,wz,20+s)*5)-2;off[T[1]]=Math.floor(vh(wx,y,wz,30+s)*5)-2;
+     const bx=x+off[0],by=y+off[1],bz=z+off[2];if(!inRange(bx,by,bz)||data[ix(bx,by,bz)]!==0)continue;
+     const sb2=data[ix(bx-D[0],by-D[1],bz-D[2])];if(!sb2||sb2===10||sb2===11||isGlowBlock(sb2))continue;
+     const SL=1+Math.floor(vh(wx,y,wz,50+s)*Math.max(2,L*.55));
+     for(let t=0;t<SL;t++){const px=bx+D[0]*t,py=by+D[1]*t,pz=bz+D[2]*t;if(!inRange(px,py,pz)||data[ix(px,py,pz)]!==0)break;data[ix(px,py,pz)]=colour}}
+    any=true;break}}}
+ return any}
+// Glow sources (crystals, moss) of one chunk, for the lighting bake in the mesher. Cached per chunk, dropped when a glow block is edited.
+// ---- Cave spots for the title button: mouths on the hillside, halls, lakes and crystal caves, each with a safe place to stand and a view.
+const CAVE_SPOT_KINDS={entrance:'洞窟の入口',hall:'巨大空洞',lake:'地底湖',crystal:'結晶洞窟'};
+// A place to stand near (x,y,z): the exact spot first, then the 7x7 columns around it, using the real collision test. Returns {x,y,z} or null.
+const CAVE_OFFS=(()=>{const l=[[0,0]];for(let r=1;r<=3;r++)for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++)if(Math.max(Math.abs(a),Math.abs(b))===r)l.push([a,b]);return l})();
+function caveStand(x,y,z){for(const [ox,oz] of CAVE_OFFS){const px=ox||oz?Math.floor(x)+ox+.5:x,pz=ox||oz?Math.floor(z)+oz+.5:z,X=Math.floor(px),Z=Math.floor(pz);
+  for(let yy=Math.floor(y)+2;yy>Math.max(2,Math.floor(y)-14);yy--){const f=get(X,yy-1,Z);if(f>0&&f!==10&&get(X,yy,Z)===0&&!collides({x:px,y:yy+.02,z:pz}))return{x:px,y:yy,z:pz}}}
+ return null}
+function* scanCaveSpots(out){const spots=[];
+ for(let ci=0;ci<W/CAVE_CELL;ci++)for(let cj=0;cj<W/CAVE_CELL;cj++){const cell=caveCell(ci,cj);if(!cell){yield;continue}
+  for(const e of cell.entrances){const x=Math.round(e.x-e.dx*8),z=Math.round(e.z-e.dz*8);spots.push({kind:'entrance',x:x+.5,y:height4(x,z)+1,z:z+.5,yaw:Math.atan2(e.dx,e.dz),score:e.y*.1,air:1})}
+  // y is approximate here (the tunnel floor); the exact footing is found when the player is sent there.
+  for(const ch of cell.chambers){if(!ch.view||ch.kind==='pocket')continue;
+   spots.push({kind:ch.kind==='lake'?'lake':ch.kind==='crystal'?'crystal':'hall',x:ch.view.x,y:ch.view.y-1.5,z:ch.view.z,yaw:ch.view.yaw,score:ch.rx*ch.ry*(ch.kind==='crystal'?4:ch.kind==='lake'?1.6:1),air:1})}
+  yield}
+ const res=[];for(const kind of Object.keys(CAVE_SPOT_KINDS)){const l=spots.filter(p=>p.kind===kind).sort((a,b)=>b.score-a.score),keep=[];for(const p of l){if(keep.length>=(kind==='entrance'?4:5))break;if(keep.every(k=>Math.hypot(k.x-p.x,k.z-p.z)>200))keep.push(p)}res.push(...keep)}
+ out.spots=res;out.done=true}
+function glowSources(cx,cz,data){const key=cx+','+cz;if(!glowChunks.has(key))return null;let l=glowCache.get(key);if(l)return l;l=[];
+ for(let y=CAVE_Y0;y<H;y++)for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const t=data[(y*CHUNK+z)*CHUNK+x];if(t>=26&&t<=29)l.push(cx*CHUNK+x,y,cz*CHUNK+z,t)}
+ if(glowCache.size>200)glowCache.clear();glowCache.set(key,l);return l}
 function voxelChunk(cx,cz){const key=cx+','+cz;let data=blocks.get(key);if(data)return data;const stamp=perfEnabled?performance.now():0;data=generateChunk(cx,cz);if(perfEnabled)perfSample('voxel',performance.now()-stamp);
  const list=changeIndex.get(key);if(list)for(const i of list){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));data[localIdx(x,y,z)]=changes.get(i)}
  blocks.set(key,data);return data}
@@ -588,7 +825,7 @@ function generateChunk(cx,cz){
   const info=columnInfo(cx,cz);
   for(let lz=0;lz<16;lz++)for(let lx=0;lx<16;lx++){const k=lz*16+lx,h=info.h[k],top=info.surf[k],sub=top===1||top===2?2:top===6?6:3;
    data[k]=11;const soil=SCENIC&&info.slope[k]>=2?2:4;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-soil?sub:3;for(let y=h+1;y<=SEA;y++)data[y*256+k]=10}
-  if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);return data}
+  if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);if(CAVES)carveCaves(data,cx,cz,info);return data}
   // One tree candidate per 5x5 cell; canopies reach three blocks into neighbouring chunks.
   for(let i=Math.floor((x0-3)/5);i<=Math.floor((x0+CHUNK+2)/5);i++)for(let j=Math.floor((z0-3)/5);j<=Math.floor((z0+CHUNK+2)/5);j++){
    const tx=i*5+Math.floor(rand(i*7+1,j*13+5)*5),tz=j*5+Math.floor(rand(i*11+3,j*3+17)*5);
@@ -634,15 +871,16 @@ float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);ret
 float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
 vec3 skyColor(vec3 d){float y=d.y;vec3 c=mix(horizonCol,zenithCol,sqrt(clamp(y,0.,1.)));float s=max(dot(d,sunDir),0.);
  c+=sunCol*(.18*pow(s,5.)+.45*pow(s,40.));return mix(c,horizonCol*.9,clamp(-y*4.,0.,1.));}
+vec3 caveGlow(float t){return t<1.5?vec3(.30,.55,1.):t<2.5?vec3(.72,.38,1.):vec3(.22,.95,.58);}
 // Light lost per block of water: red first, then green, so depth turns sand turquoise and then blue.
 const vec3 WABS=vec3(.22,.055,.038);
 vec3 underCol(float cd){float k=smoothstep(0.,26.,cd);return mix(vec3(.11,.42,.44),vec3(.03,.15,.33),k)*min(vec3(1.),ambCol*1.5+dirCol*.35);}
 vec3 fogMix(vec3 c,vec3 rel,float wy){float d=length(rel);vec3 dir=rel/max(d,.001);
  // Underwater (fogP.w = 1 + camera depth): colours shift toward blue-green with distance; light glows from the surface above.
  if(fogP.w>.5){float cd=fogP.w-1.,k=smoothstep(0.,26.,cd);vec3 u=underCol(cd)+dirCol*.07*pow(max(dir.y,0.),3.)*(1.-k);
-  return mix(c*exp(-WABS*d*.35),u,1.-exp(-d*mix(.045,.07,k)));}
+  u*=1.-.85*misc.w;return mix(c*exp(-WABS*d*.35),u,1.-exp(-d*mix(.045,.07,k)));}
  float f=1.-exp(-pow(d/fogP.x,1.6));f*=1.-.45*clamp((wy-${SEA+25}.)/140.,0.,1.);f=max(f,smoothstep(fogP.y,fogP.z,d));
- return mix(c,skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),clamp(f,0.,1.));}
+ return mix(c,mix(skyColor(normalize(vec3(dir.x,max(dir.y,0.)*.25+.01,dir.z))),vec3(.022,.03,.056),misc.w),clamp(f,0.,1.));}
 vec3 faceNormal(float f){return f<.5?vec3(1.,0.,0.):f<1.5?vec3(-1.,0.,0.):f<2.5?vec3(0.,1.,0.):f<3.5?vec3(0.,-1.,0.):f<4.5?vec3(0.,0.,1.):f<5.5?vec3(0.,0.,-1.):vec3(0.,1.,0.);}
 // Sun (or moon) direct light plus a sky/ground ambient. Faces under a roof keep only drifting canopy gaps.
 vec3 lighting(vec3 n,float shade,vec3 w,float soft){
@@ -700,14 +938,15 @@ vec2 waveSlope(vec2 p,float t,float fp,float amp){
  return s*amp;}
 // Surface shading for a pixel with view v, slope g, depth D and sandy bed share: rgb = reflection*F + in-scatter + sun glint,
 // a = how much the water hides what lies below (Fresnel plus haze along the path to the bed).
-vec4 waterShade(vec3 v,vec2 g,float D,float sand,float fp){
+vec4 waterShade(vec3 v,vec2 g,float D,float sand,float fp,float cav){
  vec3 nrm=normalize(vec3(-g.x,1.,-g.y));float F=min(.02+.98*pow(1.-max(dot(-v,nrm),0.),5.),.9);
  vec3 r=reflect(v,nrm);r.y=abs(r.y);float rough=smoothstep(.5,8.,fp),T=exp(-D/max(-v.y,.1)*.2);
  vec3 sc=mix(mix(vec3(.10,.45,.50),vec3(.18,.62,.63),sand),vec3(.025,.12,.30),smoothstep(1.,20.,D))*(ambCol+dirCol*max(dirLight.y,0.)*.8);
- vec3 glint=dirCol*pow(max(dot(r,dirLight),0.),mix(900.,60.,rough))*mix(1.7,.6,rough);
- vec3 refl=skyColor(r);
+ sc=mix(sc,mix(vec3(.09,.40,.38),vec3(.04,.18,.27),smoothstep(1.,20.,D)),cav); // underground lakes glow a faint emerald of their own
+ vec3 glint=dirCol*pow(max(dot(r,dirLight),0.),mix(900.,60.,rough))*mix(1.7,.6,rough)*(1.-cav);
+ vec3 refl=mix(skyColor(r),vec3(.03,.045,.07),cav);
  #ifndef WATER_LITE
- if(skyP.z>.5&&fp<60.){vec4 dk=skyDeck(r,fp>3.?-1.:0.);refl=mix(refl,dk.rgb,dk.a*.8);}  // clouds are mirrored in the sea (one octave far away)
+ if(skyP.z>.5&&fp<60.&&cav<.5){vec4 dk=skyDeck(r,fp>3.?-1.:0.);refl=mix(refl,dk.rgb,dk.a*.8);}  // clouds are mirrored in the sea (one octave far away)
  #endif
  return vec4(refl*F+(1.-F)*(1.-T)*sc+glint,F+(1.-F)*(1.-T));}`;
 const PRECISION=`#ifdef GL_FRAGMENT_PRECISION_HIGH
@@ -721,9 +960,9 @@ precision mediump float;
 const mainVS=wind=>`
 attribute vec3 aPos; attribute vec3 aColor; attribute vec2 aUV; attribute float aMat;
 uniform vec3 eye; uniform float yaw; uniform float pitch; uniform float aspect; uniform vec2 proj; uniform float clock; uniform float wind; uniform float fade;
-varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet;
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet; varying vec3 vCave;
 void main(){
-float code=aMat;float wet=step(511.5,code);code-=wet*512.;float shade=step(255.5,code);code-=shade*256.;vWet=wet;float face=floor((code+.5)/32.);float m=code-face*32.;
+float code=aMat;float cv=floor(code/1024.);code-=cv*1024.;vCave=vec3(mod(cv,8.)/7.,mod(floor(cv/8.),8.)/7.,floor(cv/64.));float wet=step(511.5,code);code-=wet*512.;float shade=step(255.5,code);code-=shade*256.;vWet=wet;float face=floor((code+.5)/32.);float m=code-face*32.;
 vec3 pos=aPos;
 ${wind?`// Plants (grass 15/20-22, flowers 17/23-25) bend from a fixed root; leaves (5) drift. Ground, trunks and animals stay still.
 if((m>14.5&&m<15.99)||(m>16.5&&m<17.99)||(m>19.5&&m<25.99)){
@@ -750,13 +989,14 @@ float yy=cos(pitch)*p.y-sin(pitch)*zz;float dd=sin(pitch)*p.y+cos(pitch)*zz;
 gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);col=aColor;uv=aUV;mat=m;rel=p;vClk=clock;vFace=face;vShade=shade;}`;
 // Pixel materials are evaluated in face-local UVs: no external texture/CDN requests.
 const fragmentSource=PRECISION+`
-varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet;
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet; varying vec3 vCave;
 uniform vec3 eyeF;`+SKY_GLSL+`
 void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.;vec3 w=rel+eyeF;
 if(mat<.5){c=col;}
 else if(mat<1.5){float fleck=step(.77,n);c=col*(.76+n*.40)+vec3(.025,.045,.008)*fleck;}
 else if(mat<2.5){float pebble=step(.84,n);c=mix(col*(.70+n*.5),col*1.32,pebble*.55);}
-else if(mat<3.5){vec2 r=floor((q+vec2(mod(floor(q.y/4.),2.)*3.,0.))/vec2(5.,4.));float seam=step(4.,mod(q.x+mod(floor(q.y/4.),2.)*3.,5.))+step(3.,mod(q.y,4.));c=col*(.80+hash(r)*.28+n*.14-seam*.13);}
+else if(mat<3.5){vec2 r=floor((q+vec2(mod(floor(q.y/4.),2.)*3.,0.))/vec2(5.,4.));float seam=step(4.,mod(q.x+mod(floor(q.y/4.),2.)*3.,5.))+step(3.,mod(q.y,4.));c=col*(.80+hash(r)*.28+n*.14-seam*.13);
+ if(vCave.x>.01||vCave.y>.01){float band=hash(vec2(floor(w.y/2.5),floor((w.x+w.z)/9.)));c=col*(.50+.34*band+.20*n+.12*step(.82,hash(floor(q/2.)+3.)))*vec3(.86,.92,1.1);}}
 else if(mat<4.5){float bark=hash(vec2(q.x,floor(q.y/5.)));c=col*(.56+bark*.62+n*.18);}
 else if(mat<5.5){float clump=hash(floor(q/2.));c=col*(.54+clump*.65+n*.18);}
 else if(mat<6.5){c=col*(.90+n*.16);if(n>.94)c*=.80;}
@@ -788,22 +1028,40 @@ else if(mat<21.5){float dx=abs(q.x-8.),w=(1.+5.*sin(clamp(q.y/14.,0.,1.)*3.1416)
 else if(mat<22.5){vec2 d=(q-vec2(7.5,5.5))/vec2(7.5,6.5);if(dot(d,d)>1.-.4*hash(q))discard;c=col*(.62+n*.35+uv.y*.2);}
 else if(mat<23.5){float hx=abs(q.x-7.5),cup=step(hx,1.2+1.6*sin(clamp((q.y-8.)/7.,0.,1.)*3.1416))*step(8.,q.y)*step(q.y,15.);if(q.y>13.&&mod(q.x,2.)<1.)cup=0.;float stem=step(abs(q.x-7.5),.6)*step(q.y,9.);if(max(cup,stem)<.5)discard;c=mix(vec3(.24,.44,.1),col*(.85+n*.25),cup);}
 else if(mat<24.5){float stem=step(abs(q.x-7.5),.6)*step(q.y,6.),sp=step(6.,q.y)*step(q.y,15.)*step(abs(q.x-7.5),q.y>12.?.6:1.6)*step(.3,hash(q));if(max(stem,sp)<.5)discard;c=mix(vec3(.24,.44,.1),col*(.82+n*.3),sp);}
-else{vec2 a=q-vec2(4.,9.),b=q-vec2(11.,11.),d=q-vec2(8.,6.);float head=min(1.,step(dot(a,a),3.)+step(dot(b,b),3.)+step(dot(d,d),2.5)),stem=step(abs(q.x-7.5),.6)*step(q.y,6.);if(max(head,stem)<.5)discard;c=mix(vec3(.26,.46,.12),col,head);}
+else if(mat<25.5){vec2 a=q-vec2(4.,9.),b=q-vec2(11.,11.),d=q-vec2(8.,6.);float head=min(1.,step(dot(a,a),3.)+step(dot(b,b),3.)+step(dot(d,d),2.5)),stem=step(abs(q.x-7.5),.6)*step(q.y,6.);if(max(head,stem)<.5)discard;c=mix(vec3(.26,.46,.12),col,head);}
+else if(mat<28.5){ // crystals: facets and ribs, always glowing
+ float f=hash(floor(q/4.)+mat),rib=step(.5,fract((q.x*.5+q.y*.35)/3.));c=mix(col*(.78+.5*f),col*1.55+vec3(.12),.32*rib+.22*step(.9,n));}
+else if(mat<29.5){ // luminous moss: soft patches with a few bright spores
+ float m=smoothstep(.25,.7,hash(floor(q/4.)+3.)*.6+n*.4);c=mix(col*.55,col*1.35+vec3(.03,.14,.09),m);if(n>.93)c=vec3(.75,1.,.9);}
+else discard;
 if(mat<9.5||mat>10.5){
  vec3 nrm=faceNormal(vFace);
  if(mat>17.5&&mat<18.5){}
+ else if(mat>25.5){}
  else if(vFace>6.5)c*=ambCol+dirCol*.5;
- else c*=lighting(nrm,vShade,w,step(6.,vFace));
+ else{vec3 Lt=lighting(nrm,vShade,w,step(6.,vFace));
+  if(vCave.x>.004||vCave.y>.004){
+   // Underground: the sky light baked into the face fades to a cool dark; crystals add their colour, and the player's lantern a warm pool.
+   float sk=1.-vCave.x;sk=sk*sk*(3.-2.*sk);vec3 cav=vec3(.33,.37,.48)*(.7+.3*nrm.y);Lt=mix(cav,Lt,sk);
+   float lamp=misc.w*vCave.x*(1.-smoothstep(3.,36.,length(rel)))*(.4+.6*max(dot(nrm,-normalize(rel)),0.));
+   Lt+=vec3(1.,.78,.5)*.8*lamp+caveGlow(vCave.z)*(vCave.y*vCave.y*1.7);}
+  c*=Lt;}
  // Faces under water: rippling sun caustics, then light loses red and green along its way down and back up to the eye.
- if(vWet>.5){float ds=max(${SEA}.88-w.y,0.);c+=caustic(w.xz+vec2(w.y*.3),vClk)*dirCol*(vFace>1.5&&vFace<2.5?.55:.25)*exp(-ds*.12)*smoothstep(.0,.25,dirLight.y)*(1.-.7*misc.x);
+ if(vWet>.5){float ds=max(${SEA}.88-w.y,0.);c+=caustic(w.xz+vec2(w.y*.3),vClk)*dirCol*(vFace>1.5&&vFace<2.5?.55:.25)*exp(-ds*.12)*smoothstep(.0,.25,dirLight.y)*(1.-.7*misc.x)*(1.-vCave.x);
   c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-normalize(rel).y,.1):0.)));}}
-gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
+vec3 fc=fogMix(c,rel,w.y);if(mat>25.5)fc=mix(fc,c,.6*(1.-smoothstep(50.,260.,length(rel))));
+gl_FragColor=vec4(fc,alpha);}`;
 // Translucent pass (water surfaces and glass) has its own program, so the heavy water code never weighs on terrain pixels.
 const waterFragmentSource=PRECISION+`
-varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet;
+varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet; varying vec3 vCave;
 uniform vec3 eyeF;`+SKY_GLSL+WATER_GLSL+`
 void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col;float alpha=1.;vec3 w=rel+eyeF;
-if(mat<9.5){float edge=step(.94,max(abs(uv.x-.5),abs(uv.y-.5))*2.);float shine=step(.91,mod(uv.x+uv.y,.9));c=mix(col*.70,vec3(.86,.96,1.),max(edge,shine*.65));alpha=.22+edge*.48+shine*.12;}
+if(mat>29.5){
+ // Light shaft from a skylight chimney: a soft column that fades at its edges and ends, streaked a little, only while the sun is up.
+ float edge=1.-abs(uv.x*2.-1.),sun=smoothstep(.12,.5,dirLight.y)*(1.-misc.x);
+ alpha=.5*smoothstep(0.,.55,edge)*smoothstep(0.,.18,uv.y)*smoothstep(1.,.78,uv.y)*sun*(.65+.35*vnoise(vec2(uv.x*7.+w.x*.3,w.y*.12-vClk*.06)));
+ c=vec3(1.,.93,.76)*1.5;if(alpha<.004)discard;gl_FragColor=vec4(c,alpha);return;}
+else if(mat<9.5){float edge=step(.94,max(abs(uv.x-.5),abs(uv.y-.5))*2.);float shine=step(.91,mod(uv.x+uv.y,.9));c=mix(col*.70,vec3(.86,.96,1.),max(edge,shine*.65));alpha=.22+edge*.48+shine*.12;}
 else{
  // Water: col.r = depth (0..1 for 0..30 blocks), col.g = shore nearness (1 at the land edge, 0 from 3.5 blocks out),
  // col.b = sandy bed share, uv = river flow (blocks/s), fract(mat) = exposure to the open sea. All are smooth per corner.
@@ -811,7 +1069,7 @@ else{
  if(rel.y>0.&&vFace>1.5&&vFace<2.5){
   // From below: the sky shows only inside Snell's window; outside it the surface mirrors the deep water.
   vec2 g=waveSlope(w.xz,vClk,d*.004,.6);float win=smoothstep(.62,.72,v.y+dot(g,v.xz)*.8);vec3 u=underCol(max(${SEA}.88-eyeF.y,0.));
-  c=mix(u*1.15,skyColor(normalize(vec3(v.x*1.5,max(v.y,.05),v.z*1.5)))+dirCol*pow(max(dot(v,dirLight),0.),24.)*.7,win);alpha=mix(.92,.7,win);}
+  c=mix(u*1.15,skyColor(normalize(vec3(v.x*1.5,max(v.y,.05),v.z*1.5)))+dirCol*pow(max(dot(v,dirLight),0.),24.)*.7,win*(1.-vCave.x));c*=1.-.8*vCave.x;alpha=mix(.92,.7,win);}
  else{
   float fp=d/(500.*max(abs(v.y),.04));
   // Open sea rolls; lakes, coves and rivers stay calm. Wind strength lifts every wave a little.
@@ -824,7 +1082,7 @@ else{
    vec3 na=noiseD(vec2(dot(pa,dir)*.7,dot(pa,nr)*2.2)),nb=noiseD(vec2(dot(pb,dir)*.7,dot(pb,nr)*2.2));
    vec2 lg=mix(na.yz,nb.yz,bl)*vec2(.7,2.2);g+=(dir*lg.x+nr*lg.y)*.035*(.5+sp)*clamp(1.6-fp*2.,0.,1.);}
   #endif
-  vec4 ws=waterShade(v,g,D,sand,fp);float a=ws.a;c=ws.rgb/max(a,.02);
+  vec4 ws=waterShade(v,g,D,sand,fp,vCave.x);float a=ws.a;c=ws.rgb/max(a,.02);
   // Shoreline: a thin wash line slides up and back, breakers roll in on exposed coasts, rocks fizz, river banks streak.
   // Every stretch of coast has its own timing, and foam only exists within a few blocks of land.
   float foam=0.;
@@ -838,7 +1096,7 @@ else{
    foam=max(max(edge,wash),max(brk*.85,rock*.7))*calm;
    if(sp>.02)foam=max(foam,smoothstep(.55,.9,s)*step(.7,vnoise((pq-uv*vClk)*vec2(2.3,2.3)))*.6);
    foam*=.85;}
-  c=mix(c,vec3(.95,.98,1.)*(ambCol+dirCol*.7),foam);alpha=mix(a,1.,foam*.85);}}
+  c=mix(c,vec3(.95,.98,1.)*(ambCol+dirCol*.7)*(1.-.85*vCave.x),foam);alpha=mix(a,1.,foam*.85);}}
 gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
 const vertexSource=mainVS(true),fallbackVertexSource=mainVS(false),liteWaterSource=waterFragmentSource.replace(PRECISION,PRECISION+'#define WATER_LITE\n');
 // Far LOD terrain: 16-bit positions relative to the tile origin, origin relative to the camera (precise far away).
@@ -861,7 +1119,7 @@ void main(){
  vec3 w=vRel+eyeF;float d=length(vRel);vec3 c=vCol;
  if(vMat>.5&&vMat<1.5){
   // Far water: vCol.r = depth (0..40 blocks), vCol.g = sandy bed share. The bed is not drawn here, so it is folded in analytically.
-  float D=vCol.r*40.;vec3 v=vRel/max(d,.001);float fp=d/(500.*max(abs(v.y),.03));vec4 ws=waterShade(v,waveSlope(w.xz,vClk,fp,1.),D,vCol.g,fp);
+  float D=vCol.r*40.;vec3 v=vRel/max(d,.001);float fp=d/(500.*max(abs(v.y),.03));vec4 ws=waterShade(v,waveSlope(w.xz,vClk,fp,1.),D,vCol.g,fp,0.);
   vec3 bed=mix(vec3(.40,.40,.38),vec3(.86,.80,.58),vCol.g)*(ambCol+dirCol*max(dirLight.y,0.))*exp(-WABS*(D+D/max(-v.y,.1)));
   c=ws.rgb+(1.-ws.a)*bed;}
  else{float n=hash(floor(w.xz-.01)+floor(w.y-.01)*17.);c*=1.+(n-.5)*.16*(1.-smoothstep(90.,380.,d));if(vMat>1.5)c*=.9+.14*hash(floor(w.xz*.5-.01)+3.7);
@@ -1038,7 +1296,7 @@ const LIFE_SPECIES=[
   ['head',0,25.4,4.15,3.2,1.2,.25,'#241b16','flat'],['head',.6,26,4.25,.6,.6,.2,'#d8d0b0','flat'],
   ['al',-5.4,14.5,0,2.6,10,2.6,'#8fa38a','rot',1],['al',-5.4,19.5,0,3,4.4,3,'#5b6440','fur',1],
   ['ll',-2,1,0,3,12,3,'#4a3f30','fur',1],['ll',-2,0,.6,3.2,1.4,4,'#2c2620','flat',1]]},
-{id:'skeleton',name:'スケルトン',group:'モンスター',cat:'monster',move:'walk',rig:'biped',sc:1,sp:1,run:2.2,h:1.95,r:.3,flee:0,herd:[1,1],hab:{night:2},voice:'rattle',keep:1,
+{id:'skeleton',name:'スケルトン',group:'モンスター',cat:'monster',move:'walk',rig:'biped',sc:1,sp:1,run:2.2,h:1.95,r:.3,flee:0,herd:[1,1],hab:{night:2,dark:.8},voice:'rattle',keep:1,
  bones:[['body','root',0,13,0],['head','body',0,25,0],['jaw','head',0,25.5,-1],['al','body',-4.5,23.5,0],['ll','root',-1.6,13,0]],
  parts:[['body',0,12,0,6,2,3,'#e6e0cc','bone'],['body',0,13.5,-1,1.4,10,1.4,'#e6e0cc','bone'],['body',0,16,0,7,1.1,3.6,'#e9e3cf','bone'],['body',0,18.2,0,7.4,1.1,3.8,'#e9e3cf','bone'],
   ['body',0,20.4,0,7.4,1.1,3.8,'#e9e3cf','bone'],['body',0,22.6,0,7,1.1,3.6,'#e9e3cf','bone'],['body',0,23.6,0,8,1,3,'#e6e0cc','bone'],
@@ -1047,13 +1305,13 @@ const LIFE_SPECIES=[
   ['al',-4.6,14,0,1.4,9.6,1.4,'#e6e0cc','bone',1],['al',-4.6,13,0,1.8,1.4,1.8,'#e6e0cc','bone',1],
   ['ar',4.6,10.4,1,2.2,2.6,2.2,'#ffb85a','glow'],['ar',4.6,13,1,2.6,.5,2.6,'#3a3024','flat'],['ar',4.6,9.9,1,2.6,.5,2.6,'#3a3024','flat'],
   ['ll',-1.6,1,0,1.6,12,1.6,'#e6e0cc','bone',1],['ll',-1.6,0,.6,2,1.2,3,'#e6e0cc','bone',1]]},
-{id:'spider',name:'オオグモ',group:'モンスター',cat:'monster',move:'walk',rig:'spider',sc:1,sp:1.4,run:3.6,h:.8,r:.55,flee:0,herd:[1,2],hab:{night:2},voice:'hiss',chase:1,
+{id:'spider',name:'オオグモ',group:'モンスター',cat:'monster',move:'walk',rig:'spider',sc:1,sp:1.4,run:3.6,h:.8,r:.55,flee:0,herd:[1,2],hab:{night:2,dark:1.2},voice:'hiss',chase:1,
  bones:[['body','root',0,5,0],['abd','body',0,6,-2],['l1','body',-2.5,5,3],['l2','body',-2.8,5,1],['l3','body',-2.8,5,-1],['l4','body',-2.5,5,-2.6]],
  parts:[['body',0,3.6,1.5,6,4,6,'#2b2333','fur'],['abd',0,3.4,-6,9,7,9,'#2b2333','fur'],['abd',0,10.4,-4,6,.3,1.4,'#e07a28','flat'],['abd',0,10.4,-7,6.6,.3,1.4,'#e07a28','flat'],['abd',0,8,-10.55,4,1.4,.3,'#e07a28','flat'],
   ['body',-1.4,6,4.55,1,1,.2,'#c58cff','glow',1],['body',-.5,6.9,4.55,.7,.7,.2,'#c58cff','glow',1],['body',-2.3,5.1,4.55,.6,.6,.2,'#c58cff','glow',1],['body',-.8,2.6,4.2,.8,1.6,.8,'#1a141c','flat',1],
   ['l1',-5.4,5.4,3.6,5.6,1.2,1.2,'#231c2a','fur',1],['l1',-8.6,0,4.8,1.1,6.6,1.1,'#231c2a','fur',1],['l2',-5.6,5.4,1,5.6,1.2,1.2,'#231c2a','fur',1],['l2',-9,0,1.4,1.1,6.6,1.1,'#231c2a','fur',1],
   ['l3',-5.6,5.4,-1,5.6,1.2,1.2,'#231c2a','fur',1],['l3',-9,0,-1.4,1.1,6.6,1.1,'#231c2a','fur',1],['l4',-5.4,5.4,-3.2,5.6,1.2,1.2,'#231c2a','fur',1],['l4',-8.6,0,-4.6,1.1,6.6,1.1,'#231c2a','fur',1]]},
-{id:'slime',name:'コハクスライム',group:'モンスター',cat:'monster',move:'hop',rig:'slime',sc:1,sp:1.2,run:2.2,h:.7,r:.35,flee:0,herd:[1,2],hab:{night:1.5},voice:'squish',chase:1,size:[.7,1.5],
+{id:'slime',name:'コハクスライム',group:'モンスター',cat:'monster',move:'hop',rig:'slime',sc:1,sp:1.2,run:2.2,h:.7,r:.35,flee:0,herd:[1,2],hab:{night:1.5,dark:1},voice:'squish',chase:1,size:[.7,1.5],
  bones:[['body','root',0,0,0]],
  parts:[['body',0,0,0,10,10,10,'#e8a93a','jelly'],['body',-2.2,5.4,5.05,1.8,2.4,.25,'#2a1a0a','flat',1],['body',-2.6,6.6,5.2,.7,.7,.15,'#fff6dc','flat',1],
   ['body',0,3.2,5.05,2,.7,.25,'#2a1a0a','flat'],['body',3.2,7.6,5.05,1,1,.2,'#ffd88a','flat'],['body',-3.4,2.2,5.05,.8,.8,.2,'#ffd88a','flat'],['body',-2,10,-1,3,1,3,'#f0b850','jelly']]},
@@ -1209,7 +1467,19 @@ function plantLevel(cx,cz){return centerCX===null||Math.max(Math.abs(cx-centerCX
 const FLOWERS=['#e84837','#f5e4df','#f4d03f','#8a7ee0','#f08bb5'].map(rgb),LEGACY_FLOWERS=[rgb('#e84837'),rgb('#f5e4df')],LEGACY_GRASS=rgb('#609c35');
 
 // ---- Voxel mesher. The 3x3 chunk neighbourhood is copied into a padded byte grid (floor and ceiling layers included).
-const PW=CHUNK+2,PA=PW*PW;let pad=new Uint8Array(PA*(H+2));const roofs=new Int16Array(PA),sh=new Float32Array(4);
+const PW=CHUNK+2,PA=PW*PW;let pad=new Uint8Array(PA*(H+2));const roofs=new Int16Array(PA),rroofs=new Int16Array(PA),sh=new Float32Array(4);
+// Cave lighting: rroofs = highest rock above each column (leaves and logs excluded); gbuf = crystal/moss light baked around the chunk (level | tint<<3).
+const GR=5,GW=CHUNK+2*GR,NB8=[-1,1,-PW,PW,-PW-1,-PW+1,PW-1,PW+1];let gbuf=null;
+function bakeGlow(cx,cz,near){let any=false;
+ for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const d=near[(dz+1)*3+dx+1];if(!d)continue;const l=glowSources(cx+dx,cz+dz,d);if(!l||!l.length)continue;
+  if(!any){if(!gbuf)gbuf=new Uint8Array(GW*GW*H);else gbuf.fill(0);any=true}
+  for(let i=0;i<l.length;i+=4){const t=l[i+3],moss=t===29,rad=moss?3:5,amp=moss?.55:1,tint=moss?3:t-25,x=l[i]-cx*CHUNK+GR,y=l[i+1],z=l[i+2]-cz*CHUNK+GR;
+   if(x<-rad||z<-rad||x>=GW+rad||z>=GW+rad)continue;
+   for(let ez=-rad;ez<=rad;ez++){const zz=z+ez;if(zz<0||zz>=GW)continue;for(let ex=-rad;ex<=rad;ex++){const xx=x+ex;if(xx<0||xx>=GW)continue;
+    for(let ey=-rad;ey<=rad;ey++){const yy=y+ey;if(yy<0||yy>=H)continue;const d2=ex*ex+ey*ey+ez*ez;if(d2>rad*rad)continue;
+     const v=Math.round(7*amp*Math.pow(1-Math.sqrt(d2)/rad,1.2));if(v<1)continue;const gi=(yy*GW+zz)*GW+xx;if(v>(gbuf[gi]&7))gbuf[gi]=v|(tint<<3)}}}}}
+ return any?gbuf:null}
+
 const occ=t=>t!==0&&t!==9&&t!==10;
 const FACE=faces.map(f=>{const st=[1,PA,PW],axes=[0,1,2].filter(a=>!f.n[a]);return{off:f.n[0]+f.n[1]*PA+f.n[2]*PW,dcol:f.n[0]+f.n[2]*PW,dy:f.n[1],n:f.n,l:f.l,v:f.v,uv:f.v.map(v=>faceUV(v,f)),
  ao:f.v.map(v=>{const oa=(v[axes[0]]?1:-1)*st[axes[0]],ob=(v[axes[1]]?1:-1)*st[axes[1]];return[oa,ob,oa+ob]})}});
@@ -1247,11 +1517,12 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
  let ymin=H,ymax=0;
  for(let pz=0;pz<PW;pz++)for(let px=0;px<PW;px++){
   const wx=x0+px-1,wz=z0+pz-1,src=near[((wz>>4)-cz+1)*3+((wx>>4)-cx+1)],lz=wz&15,lx=wx&15,col=pz*PW+px,inner=px>0&&pz>0&&px<PW-1&&pz<PW-1;
-  let roof=-1,open=H,top=0;pad[col]=11;pad[(H+1)*PA+col]=0;
-  if(src){for(let y=0;y<H;y++){const t=src[(y<<8)|(lz<<4)|lx];pad[(y+1)*PA+col]=t;if(t){top=y;if(occ(t))roof=y;else if(open===H)open=y}else if(open===H)open=y}}
+  let roof=-1,rr=-1,open=H,top=0;pad[col]=11;pad[(H+1)*PA+col]=0;
+  if(src){for(let y=0;y<H;y++){const t=src[(y<<8)|(lz<<4)|lx];pad[(y+1)*PA+col]=t;if(t){top=y;if(occ(t)){roof=y;if(t!==4&&t!==5&&(t<13||t>16))rr=y}else if(open===H)open=y}else if(open===H)open=y}}
   else{for(let y=0;y<H;y++)pad[(y+1)*PA+col]=0;open=0}
-  roofs[col]=roof;if(open<ymin)ymin=open;if(inner&&top>ymax)ymax=top}
+  roofs[col]=roof;rroofs[col]=rr;if(open<ymin)ymin=open;if(inner&&top>ymax)ymax=top}
  opaqueW.n=0;waterW.n=0;
+ const gb=CAVES&&glowChunks.size?bakeGlow(cx,cz,near):null;
  const ystart=Math.max(0,ymin-1),grassSide=[0,0,0],lvl=VEG?plantLevel(cx,cz):0,keep=Q.plant*(lvl?.35:1);let gcol=defsRGB[1],lcol=defsRGB[5],lc14=lcol,lc15=lcol,lc16=lcol;
  for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){
   const wx=x0+x,wz=z0+z,k=z*16+x;
@@ -1270,7 +1541,12 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
     else if(t===4||t===13){if(F.n[1]){mat=13;c=t===13?BIRCH_TOP:LOG_TOP}else if(t===13||(!GRAND&&rand(wx*9,wz*7)>.62)){mat=14;c=WHITE}}
     else if(t===5)c=lcol;else if(t===14||t===15||t===16){mat=5;c=t===14?lc14:t===15?lc15:lc16}else if(t===12)mat=19;
     // Faces whose open neighbour lies under a roof (canopy, overhang) lose direct sunlight in the shader.
-    const shaded=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy,pa=p+F.off,code=mat+32*fi+(shaded?256:0)+(!water&&nt===10?512:0);
+    const shaded=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy,pa=p+F.off;let cb=0;
+    // Cave light: how much rock lies above the open cell in front of this face (spread one column sideways), plus baked crystal glow.
+    if(CAVES){const nc=(z+1)*PW+x+1+F.dcol,ay=y+F.dy;let dep=rroofs[nc]-ay;
+     if(dep>1){for(let o=0;o<8;o++){const dn=rroofs[nc+NB8[o]]-ay+2;if(dn<dep)dep=dn}if(dep>1)cb=1024*Math.min(7,Math.round(7*smooth(1,22,dep)))}
+     if(gb&&ay>=0&&ay<H){const gv=gb[(ay*GW+z+F.n[2]+GR)*GW+x+F.n[0]+GR];if(gv)cb+=8192*(gv&7)+65536*(gv>>3)}}
+    const code=mat+32*fi+(shaded?256:0)+(!water&&nt===10?512:0)+cb;
     for(let q=0;q<4;q++){const ao=F.ao[q],a1=occ(pad[pa+ao[0]]),a2=occ(pad[pa+ao[1]]),a3=occ(pad[pa+ao[2]]);sh[q]=1-(a1&&a2?3:a1+a2+a3)*.13}
     const flip=sh[0]+sh[2]<sh[1]+sh[3],w=water||t===9?waterW:opaqueW,drop=water&&!pad[p+PA]?.12:0;grow(w,36);
     if(water&&fi===2&&y===SEA){if(!wfReady){waterFields(cx,cz,nb);wfReady=true}
@@ -1285,6 +1561,11 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
      else if(r1<fp+.16+.26*(1-forest))emitPlant(opaqueW,wx,y+1,wz,false,[gcol[0]*.86,gcol[1]*.9,gcol[2]*.8],.6+rand(wz,wx)*.3,ps)}
     else if(rand(wx*23,wz*11)>.61){const fl=rand(wx*3,wz*19)>.86;emitPlant(opaqueW,wx,y+1,wz,fl,fl?LEGACY_FLOWERS[rand(wx,wz)>.5?0:1]:LEGACY_GRASS,fl?.7:.65+rand(wz,wx)*.25,ps)}}
   }}
+ // Light shafts: each skylight chimney gets two crossed translucent quads from its mouth down to the floor or the lake (drawn in the water pass).
+ if(CAVES){const cell=caveCell(cx>>4,cz>>4);if(cell)for(const cm of cell.chambers){const c=cm.chimney;if(!c||c.px<x0||c.px>=x0+CHUNK||c.pz<z0||c.pz>=z0+CHUNK)continue;
+   const pc=(c.pz-z0+1)*PW+c.px-x0+1;let y=Math.min(H-2,Math.floor(c.top)+3);while(y>2&&!pad[(y+1)*PA+pc])y--;
+   const y0=y+1,y1=c.top+5,cxm=c.px+.5,czm=c.pz+.5;
+   if(y1-y0>4)for(const [ax,az] of[[1,0],[0,1]]){grow(waterW,36);const hw=3.2;vert(waterW,cxm-ax*hw,y0,czm-az*hw,1,1,1,0,0,30);vert(waterW,cxm-ax*hw,y1,czm-az*hw,1,1,1,0,1,30);vert(waterW,cxm+ax*hw,y1,czm+az*hw,1,1,1,1,1,30);vert(waterW,cxm+ax*hw,y0,czm+az*hw,1,1,1,1,0,30)}}}
  const key=cx+','+cz;let ch=chunks.get(key);if(!ch){ch={buffer:gl.createBuffer(),water:gl.createBuffer(),cx,cz};chunks.set(key,ch)}
  ch.quads=opaqueW.n/36;ch.waterQuads=waterW.n/36;ch.ymin=ystart;ch.ymax=ymax+2;ch.plantLvl=lvl;
  gl.bindBuffer(gl.ARRAY_BUFFER,ch.buffer);gl.bufferData(gl.ARRAY_BUFFER,opaqueW.a.subarray(0,opaqueW.n),gl.STATIC_DRAW);
@@ -1293,11 +1574,12 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
 // ---- Near-field streaming. Chunks load in square rings; only complete rings are drawn, LOD covers the rest.
 let relevelQueue=[],chunkQueue=[],centerCX=null,centerCZ=null,readyR=-1,streamDirty=true;
 const chunkInWorld=(x,z)=>x>=0&&z>=0&&x<CHUNKS&&z<CHUNKS;
-function computeReady(){const R=Q.near+1;readyR=-1;for(let r=0;r<=R;r++){for(let i=-r;i<=r;i++)for(const [x,z]of[[centerCX+i,centerCZ-r],[centerCX+i,centerCZ+r],[centerCX-r,centerCZ+i],[centerCX+r,centerCZ+i]])if(chunkInWorld(x,z)&&!chunks.has(x+','+z))return;readyR=r}}
+const CAVE_NEAR=4,nearN=()=>caveUnder?Math.min(Q.near,CAVE_NEAR):Q.near;
+function computeReady(){const R=nearN()+1;readyR=-1;for(let r=0;r<=R;r++){for(let i=-r;i<=r;i++)for(const [x,z]of[[centerCX+i,centerCZ-r],[centerCX+i,centerCZ+r],[centerCX-r,centerCZ+i],[centerCX+r,centerCZ+i]])if(chunkInWorld(x,z)&&!chunks.has(x+','+z))return;readyR=r}}
 function isTitleOpen(){return paused&&!$('menu').classList.contains('hidden')}
 function currentFocus(){return isTitleOpen()?titleCamera():player}
 function streamChunks(initial=false){
- const f=currentFocus(),cx=Math.floor(f.x/CHUNK),cz=Math.floor(f.z/CHUNK),R=Q.near+1;
+ const f=currentFocus(),cx=Math.floor(f.x/CHUNK),cz=Math.floor(f.z/CHUNK),R=nearN()+1;
  if(cx!==centerCX||cz!==centerCZ||initial||streamDirty){centerCX=cx;centerCZ=cz;streamDirty=false;
   const cheb=(x,z)=>Math.max(Math.abs(x-cx),Math.abs(z-cz));
   for(const [key,ch]of chunks)if(cheb(ch.cx,ch.cz)>R+1){gl.deleteBuffer(ch.buffer);gl.deleteBuffer(ch.water);chunks.delete(key)}
@@ -1494,7 +1776,7 @@ function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInp
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
 function play(){if(storageBlocked){toast('セーブを保護中です。保存データの復旧を選んでください');return}paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
 function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
-$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(resettingWorld||benchLock)return;if(storageBlocked){toast('元データを保護中です。先に復旧またはバックアップしてください');return}
+$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('caves').onclick=nextCave;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(resettingWorld||benchLock)return;if(storageBlocked){toast('元データを保護中です。先に復旧またはバックアップしてください');return}
  if(!confirm('現在の世界を退避して、新しい世界を作成しますか？端末故障に備え、先に「ワールドをバックアップ」でファイル保存をおすすめします。'))return;
  try{checkCurrent();if(!protectCurrent(encodeSave(snapshot())))return;resettingWorld=true;localStorage.removeItem(KEY);
  try{sessionStorage.removeItem('nisekura-playing')}catch(e){}location.href=location.pathname+'?seed='+Math.floor(Math.random()*1000000)
@@ -1537,6 +1819,20 @@ function nextSpot(){
  spotIdx=(spotIdx+1)%spotList.length;const s=spotList[spotIdx],c=clearSpot(s);
  flying=false;player.x=c.x+.5;player.z=c.z+.5;player.y=c.y+.02;vy=0;yaw=s.yaw;pitch=s.kind==='cliff'?-.3:-.1;streamChunks(true);dirty=true;play();
  toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${SPOT_KINDS[s.kind]}（標高${s.h-SEA}m）`)}
+let caveList=null,caveIdx=-1,caveBusy=false;
+function nextCave(){
+ if(!CAVES){toast('洞窟は「新しい世界」から作られる世界にあります');return}
+ if(caveBusy)return;
+ if(!caveList){caveBusy=true;const out={},it=scanCaveSpots(out),btn=$('caves');btn.textContent='探索中…';
+  const step=()=>{const t0=performance.now();try{while(performance.now()-t0<8)if(it.next().done){
+    const kinds=Object.keys(CAVE_SPOT_KINDS).map(k=>out.spots.filter(p=>p.kind===k));caveList=[];for(let i=0;i<5;i++)for(const l of kinds)if(l[i])caveList.push(l[i]);
+    caveBusy=false;btn.textContent='洞窟探検へ';return nextCave()}}catch(e){console.warn('Cave search failed:',e);caveBusy=false;btn.textContent='洞窟探検へ';return}
+   setTimeout(step,0)};step();return}
+ if(!caveList.length){toast('この世界には洞窟が見つかりませんでした');return}
+ caveIdx=(caveIdx+1)%caveList.length;const p=caveList[caveIdx];
+ if(p.air){const f=caveStand(p.x,p.y+(p.kind==='entrance'?.5:1.5),p.z);if(f){p.x=f.x;p.y=f.y;p.z=f.z}p.air=0}
+ flying=false;player.x=p.x;player.z=p.z;player.y=p.y+.02;vy=0;yaw=p.yaw;pitch=p.kind==='entrance'?-.05:-.12;streamChunks(true);caveRaw=caveF=p.kind==='entrance'?0:1;caveT=.3;dirty=true;play();
+ toast(`洞窟 ${caveIdx+1}/${caveList.length}：${CAVE_SPOT_KINDS[p.kind]}`)}
 function surface(x,z,from=H-3){for(let y=Math.min(H-3,Math.floor(from));y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
 function cuboid(w,x,y,z,sx,sy,sz,color,mat=0,transform=null){const c=typeof color==='string'?rgb(color):color;faces.forEach((f,fi)=>{grow(w,36);const code=mat+32*fi;for(const v of f.v){const p=[x+v[0]*sx,y+v[1]*sy,z+v[2]*sz],q=transform?transform(p):p,uv=faceUV(v,f);vert(w,q[0],q[1],q[2],c[0],c[1],c[2],uv[0],uv[1],code)}})}
@@ -1597,8 +1893,20 @@ function lifePick(cat,hab,night,dark){let tot=0;const ok=[];
   if(cat==='monster'){if(lifeMode!=='all')continue;w=dark?(sp.hab.dark||0)+(night?sp.hab.night||0:0)*.3:night&&hab!=='sea'&&hab!=='river'&&hab!=='shallow'&&hab!=='reef'?sp.hab.night||0:0}
   else w=sp.hab[hab]||0;if(sp.deep&&cat==='water')w=w;if(w>0){ok.push([sp,w]);tot+=w}}
  let r=Math.random()*tot;for(const [sp,w] of ok)if((r-=w)<=0)return sp;return null}
+// Underground: no surface spawns; a few dark-loving monsters appear on cave floors 18-52 blocks away, out of sight (they only watch and follow).
+function caveSpawn(focus){if(lifeMode!=='all'||readyR<1)return;
+ let n=0;for(const c of life)if(!c.manual&&c.sp.cat==='monster')n++;if(n>=Math.min(7,Math.floor(lifeCap()*.22)))return;
+ pkX=1e9;
+ for(let a=0;a<6;a++){const ang=Math.random()*6.283,d=18+Math.random()*34,X=Math.floor(focus.x+Math.sin(ang)*d),Z=Math.floor(focus.z+Math.cos(ang)*d),Y=Math.floor(focus.y+(Math.random()-.5)*16);
+  if(peek(X,Y,Z)<0)continue;let y=Y;while(y>Math.max(3,Y-14)&&peek(X,y,Z)===0)y--;
+  const f=peek(X,y,Z);if(f<=0||f===10)continue;const gy=y+1;if(peek(X,gy,Z)!==0||peek(X,gy+1,Z)!==0||peek(X,gy+2,Z)!==0)continue;
+  const sh=surfaceAt(X,Z);if(sh<0||sh-gy<10)continue;
+  if(lifeF&&d<36&&sphereVisible(lifeF,X+.5,gy+1,Z+.5,3))continue;
+  const sp=lifePick('monster','cave',false,true);if(!sp)continue;
+  const c=lifeNew(sp,X+.5,sp.move==='float'?gy+1.4:gy,Z+.5,false);c.hx=X+.5;c.hz=Z+.5;return}}
 function lifeSpawnTick(focus,night){
  if(lifeMode==='off'||readyR<1)return;
+ if(CAVES&&caveUnder){caveSpawn(focus);return}
  const cap=lifeCap(),cnt={land:0,water:0,bird:0,monster:0};let total=0;for(const c of life)if(!c.manual){cnt[c.sp.cat]++;total++}
  if(total>=cap)return;
  const cats=['land','water','bird','monster'].filter(k=>cnt[k]<cap*LIFE_SHARE[k]&&(k!=='monster'||lifeMode==='all'));if(!cats.length)return;
@@ -1989,17 +2297,30 @@ function sunFromTime(t){const a=(t-.25)*Math.PI*2;return norm([Math.cos(a),Math.
 function environment(titleOpen,cam){if(!titleOpen)return skyEnv(sunFromTime(dayTime));
  // The title keeps a low golden sun beside the scenic view.
  const a=cam.yaw+.95,e=.16;return skyEnv([Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)])}
-function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,0);if(u.skyP)gl.uniform4f(u.skyP,cloudDrift%40000,.5+.22*Math.sin(time*.0031+1.3)+.12*Math.sin(time*.0113),Q.sky,0)}
+function setEnv(u,env,fog){gl.uniform3fv(u.sunDir,env.sun);gl.uniform3fv(u.zenithCol,env.zenith);gl.uniform3fv(u.horizonCol,env.horizon);gl.uniform3fv(u.sunCol,env.sunCol);gl.uniform4fv(u.fogP,fog);gl.uniform3fv(u.dirLight,env.dir);gl.uniform3fv(u.dirCol,env.dirCol);gl.uniform3fv(u.ambCol,env.amb);gl.uniform4f(u.misc,env.night,time%1000,windStr,caveF);if(u.skyP)gl.uniform4f(u.skyP,cloudDrift%40000,.5+.22*Math.sin(time*.0031+1.3)+.12*Math.sin(time*.0113),Q.sky,0)}
 function setView(u,cam,aspect,near,far){gl.uniform1f(u.yaw,cam.yaw);gl.uniform1f(u.pitch,cam.pitch);gl.uniform1f(u.aspect,aspect);gl.uniform2f(u.proj,(far+near)/(far-near),2*far*near/(far-near));gl.uniform1f(u.clock,time%3600);if(u.fade)gl.uniform1f(u.fade,Q.fade);if(u.wq)gl.uniform1f(u.wq,u===lodU?(Q.water>1?1:0):Q.water);if(u.wind)gl.uniform1f(u.wind,windStr)}
 // Same as underCol() in the shaders: the colour water fades to at the camera's depth.
 function underColor(env,cd){const k=smooth(0,26,cd),c=mix3([.11,.42,.44],[.03,.15,.33],k);return c.map((v,i)=>v*Math.min(1,env.amb[i]*1.5+env.dirCol[i]*.35))}
 const visibleChunks=[];
+// ---- Underground state. caveF (0..1) says how enclosed the camera is: rays out of the camera escape to open air or hit rock, and the
+// camera must also be well below the natural surface, so houses and forests never count. It drives fog, the lantern and the far-view cut.
+const CAVE_DIRS=(()=>{const d=[[0,1,0,2]];for(let i=0;i<5;i++){const a=i*1.2566,e=.87;d.push([Math.cos(a)*Math.cos(e),Math.sin(e),Math.sin(a)*Math.cos(e),1])}for(let i=0;i<8;i++){const a=i*.7854,e=.17;d.push([Math.cos(a)*Math.cos(e),Math.sin(e),Math.sin(a)*Math.cos(e),1])}return d})();
+function surfaceAt(x,z){const ci=columns.get((x>>4)+','+(z>>4));return ci?ci.h[(z&15)*16+(x&15)]:-1}
+function cavePoll(){const ex=player.x,ey=player.y+1.62,ez=player.z,sh=surfaceAt(Math.floor(ex),Math.floor(ez)),depth=sh<0?0:sh-ey;if(depth<3)return 0;
+ pkX=1e9;let esc=0,tot=0;
+ for(const [dx,dy,dz,wt] of CAVE_DIRS){tot+=wt;let x=ex,y=ey,z=ez;
+  for(let s=0;s<20;s++){x+=dx*2.5;y+=dy*2.5;z+=dz*2.5;const X=Math.floor(x),Y=Math.floor(y),Z=Math.floor(z);if(Y>=H-1){esc+=wt;break}const t=peek(X,Y,Z);if(t<0)break;if(t>0&&t!==10)break;const hs=surfaceAt(X,Z);if(hs>=0&&Y>hs+1){esc+=wt;break}}}
+ return(1-smooth(.05,.55,esc/tot))*smooth(3,16,depth)}
+function updateCave(dt,title){if(!CAVES)return;
+ if((caveT-=dt)<=0){caveT=.2;caveRaw=title||paused&&!photoMode?0:cavePoll()}
+ caveF+=(caveRaw-caveF)*Math.min(1,dt*3.5);if(caveF<.002&&caveRaw===0)caveF=0;
+ const u=caveUnder?caveF>.45:caveF>.85;if(u!==caveUnder){caveUnder=u;streamDirty=true}}
 function render(cam,titleOpen,w,h){
  const aspect=w/h,F=makeFrustum(cam,aspect),underwater=!titleOpen&&get(Math.floor(cam.x),Math.floor(cam.y),Math.floor(cam.z))===10,env=environment(titleOpen,cam);
- const far=lodOK?Q.far:(Q.near+1)*CHUNK,cd=Math.max(0,SEA+.88-cam.y),fog=[far*.6,far*.8,far*.97,underwater?1+cd:0];
- gl.clearColor(...(underwater?underColor(env,cd):env.horizon),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ const far=lodOK?Q.far:(Q.near+1)*CHUNK,cd=Math.max(0,SEA+.88-cam.y),cf=caveF,ck=1-cf,fog=[far*.6*ck+70*cf,far*.8*ck+140*cf,far*.97*ck+190*cf,underwater?1+cd:0];
+ gl.clearColor(...(underwater?underColor(env,cd).map(v=>v*(1-.85*cf)):env.horizon.map((v,i)=>v*ck+[.022,.03,.056][i]*cf)),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
  // Underwater the fog closes within a few dozen blocks, so the far pass is skipped there.
- if(lodOK&&!underwater){
+ if(lodOK&&!underwater&&cf<.98){
   // Far pass: sky, LOD terrain, ocean beyond the world and clouds, with its own depth range.
   lodFrame++;lodDraw.length=0;lodRequests.length=0;for(let x=0;x<W;x+=512)for(let z=0;z<W;z+=512)lodVisit(512,x,z,F);
   const farNear=readyR>=1?2:.25,farFar=Q.far*1.15;
@@ -2090,6 +2411,7 @@ function frame(now){
  else if(titleOpen){time+=dt*.65;updateLife(dt*.65,titleCamera())} // Keep the background grass, water, clouds and creatures alive.
  // Wind alternates between calm spells and gusty periods; grass, leaves and clouds share it.
  windStr=Math.min(1,Math.max(0,.45+.55*Math.sin(time*.07)*Math.sin(time*.031+1.7)+.25*Math.sin(time*.19)));cloudDrift+=dt*(.5+windStr*1.6);
+ updateCave(dt,titleOpen);
  const buildStart=performance.now();streamChunks();const buildMs=performance.now()-buildStart;
  // Title's intentional 30 Hz cap and streaming spikes must not be mistaken for sustained GPU pressure.
  const ratio=Math.min(devicePixelRatio||1,Q.dpr)*renderScale,w=Math.max(1,Math.floor(innerWidth*ratio)),h=Math.max(1,Math.floor(innerHeight*ratio));
