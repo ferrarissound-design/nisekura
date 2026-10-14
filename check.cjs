@@ -16,6 +16,23 @@ assert.equal(run(b,'terrainVersion'),6,'v6 save reloads as v6');
 run(b,'paused=false;for(let i=0;i<120;i++)update(1/60)');assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(run(b,'ground'));
 console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
+// ---- Mobile browser zoom prevention: keep game gestures and menu scrolling working.
+assert.match(fs.readFileSync(__dirname+'/index.html','utf8'),/<meta name="viewport" content="[^"]*user-scalable=no/);
+assert.match(fs.readFileSync(__dirname+'/index.html','utf8'),/#world\\{touch-action:none\\}/);
+const zoomEvent=(props={})=>({cancelable:true,defaultPrevented:false,...props,preventDefault(){this.defaultPrevented=true}});
+for(const eventName of ['gesturestart','gesturechange','dblclick']){
+ const e=zoomEvent();a.events[eventName](e);assert(e.defaultPrevented,eventName+' must not zoom the page');
+}
+const twoFingers=zoomEvent({touches:[{},{}]});a.events.touchmove(twoFingers);
+assert(twoFingers.defaultPrevented,'pinch must not zoom the page');
+const oneFinger=zoomEvent({touches:[{}]});a.events.touchmove(oneFinger);
+assert(!oneFinger.defaultPrevented,'single-finger look/swipe and menu scrolling must work');
+const pinchTrackpad=zoomEvent({ctrlKey:true});a.events.wheel(pinchTrackpad);
+assert(pinchTrackpad.defaultPrevented,'trackpad pinch must not zoom the page');
+const ordinaryWheel=zoomEvent({ctrlKey:false});a.events.wheel(ordinaryWheel);
+assert(!ordinaryWheel.defaultPrevented,'ordinary wheel gestures must remain available');
+console.log('PASS: iOS pinch/double-tap and trackpad zoom prevented; normal gestures preserved');
+
 // ---- Compass headings, route home, title/menu state and world-edge warnings.
 assert.equal(run(a,'compassBearing(0,-10)'),0,'-Z is north');
 assert.equal(run(a,'compassBearing(10,0)'),90,'+X is east');
