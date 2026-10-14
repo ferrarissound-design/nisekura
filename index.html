@@ -39,12 +39,12 @@ body:has(#menu:not(.hidden)) .top,body:has(#menu:not(.hidden)) #cross,
 body:has(#menu:not(.hidden)) #target,body:has(#menu:not(.hidden)) #hint,
 body:has(#menu:not(.hidden)) #stick,body:has(#menu:not(.hidden)) .actions,
 body:has(#menu:not(.hidden)) #bar{display:none}
-.title-stage{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(16px,5vh,44px);overflow-y:auto;touch-action:pan-y;padding:12px 0}
-.title-logo{position:relative;width:max-content;max-width:100%;text-align:center;transform:rotate(-1.5deg);padding:0 12px 22px}
+.title-stage{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;gap:clamp(16px,5vh,44px);overflow-y:auto;touch-action:pan-y;padding:12px 0}
+.title-logo{flex-shrink:0;position:relative;width:max-content;max-width:100%;text-align:center;transform:rotate(-1.5deg);padding:0 12px 22px}
 .title-logo h1{position:relative;display:block;margin:0;font-family:Impact,'Arial Black',system-ui,sans-serif;font-size:clamp(46px,10.2vw,94px);line-height:1.03;letter-spacing:-.045em;font-weight:1000;color:#e8eaeb;background:linear-gradient(#fff 0%,#eceeee 26%,#b8c0c3 53%,#edf0ee 56%,#8b9696 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:clamp(1.5px,.36vw,3.5px) #242729;paint-order:stroke fill;filter:drop-shadow(0 6px 0 #181b1c) drop-shadow(0 9px 0 #0b0e0d) drop-shadow(4px 11px 1px #0008)}
 .title-logo .edition{display:block;margin-top:7px;font:bold clamp(10px,2.4vw,18px)/1 Impact,'Arial Black',system-ui,sans-serif;letter-spacing:.22em;text-shadow:2px 3px 0 #101010,0 0 7px #000}
 .title-logo .splash{position:absolute;right:-9%;bottom:4px;transform:rotate(-16deg);color:#ffea48;font-weight:900;font-size:clamp(10px,2.3vw,17px);white-space:nowrap;text-shadow:2px 2px #49370c,0 0 4px #000}
-.title-menu{display:flex;flex-direction:column;gap:7px;width:min(356px,83vw);max-width:100%}
+.title-menu{flex-shrink:0;display:flex;flex-direction:column;gap:7px;width:min(356px,83vw);max-width:100%}
 #menu .title-button{display:block;width:100%;margin:0;padding:0 8px;height:43px;min-height:0;border-radius:1px;border:2px solid #17191a;background:linear-gradient(180deg,#a7a7a7,#828282 46%,#737373 52%,#969696);box-shadow:inset 2px 2px 0 #d4d4d4,inset -2px -2px 0 #4e4e4e,0 3px 0 #0008;color:#f5f5f5;text-shadow:1px 2px 1px #333;font-size:15px;font-weight:650;text-align:center;touch-action:manipulation}
 #menu .title-button:hover{background:linear-gradient(#bac4ab,#859d7c)}
 #menu .title-button:active{background:linear-gradient(#607858,#a0b497);box-shadow:inset 2px 2px 0 #32472e,inset -2px -2px 0 #d4e5c6}
@@ -57,7 +57,7 @@ body:has(#menu:not(.hidden)) #bar{display:none}
 .title-help[open]{background:#101b18df;padding:7px 11px;border:1px solid #ffffff5c;max-height:35vh;overflow-y:auto;touch-action:pan-y}
 .title-help p{color:#f0f4ef;font-size:11px;line-height:1.65;margin:6px 0}
 .title-footer{flex-shrink:0;display:flex;gap:12px;align-items:center;justify-content:space-between;width:100%;font:11px/1.4 monospace;color:#f7f9f8;text-shadow:1px 2px 2px #000;padding:5px 4px}
-.title-footer #saveInfo{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%}
+.title-footer #saveInfo{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:normal;max-width:70%}
 @media(max-height:520px){
  .title-stage{gap:clamp(7px,2vh,14px);padding:3px 0}
  .title-logo{padding-bottom:8px}
@@ -166,6 +166,9 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
   <div class="title-pair"><button id="save" class="title-button">世界を保存</button><button id="reset" class="title-button">新しい世界</button></div>
   <div class="title-pair"><button id="hudMode" class="title-button" aria-pressed="false">HUD：通常</button><button id="hudDetails" class="title-button" aria-pressed="false">詳細情報：OFF</button></div>
   <div class="title-pair"><button id="lifeMenu" class="title-button">生き物：すべて</button><button id="photoMenu" class="title-button">スクショモード</button></div>
+  <div class="title-pair"><button id="exportWorld" class="title-button">ワールドをバックアップ</button><button id="importWorld" class="title-button">バックアップから復元</button></div>
+<input id="importFile" type="file" accept=".json,application/json" hidden>
+<details class="title-help"><summary>保存データの復旧</summary><button id="recoverWorld" class="title-button">保存データを復旧（直前の正常セーブ）</button><button id="restoreProtected" class="title-button">切り替え前の世界に戻す</button><button id="exportProtected" class="title-button">退避データを書き出す</button></details>
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
@@ -196,7 +199,29 @@ const HUD_KEY='jocraft2-hud';
 let hudMinimal=false,hudDetails=false,photoMode=false;
 try{const pref=JSON.parse(localStorage.getItem(HUD_KEY));hudMinimal=pref?.minimal===true;hudDetails=pref?.details===true}catch(e){}
 const player={x:32.5,y:25,z:32.5},keys={},joy={x:0,y:0};let saved=null;
-try{saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1){if(Number.isFinite(saved.dayTime))dayTime=((saved.dayTime%1)+1)%1;if(Number.isFinite(saved.seed))seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){}
+// Keep the v1 payload readable by older releases. Never replace unreadable input automatically.
+const BACKUP_KEY=KEY+'-backup',ARCHIVE_KEY=KEY+'-protected',MAX_SAVE_CHARS=12*1024*1024;
+let storageBlocked=false,expectedRaw=null,saving=false,lastPayload='',saveQueued=false;
+function validateSave(d){
+ const obj=v=>v&&typeof v==='object'&&!Array.isArray(v),bad=()=>{throw Error('セーブ形式・内容が不正、または未対応のバージョンです')};
+ if(!obj(d)||d.version!==1||!Number.isFinite(d.seed)||!Array.isArray(d.changes)||!obj(d.inventory))bad();
+ const tv=d.terrainVersion??1,w=d.worldWidth??64,h=d.worldHeight??40;
+ if(!Number.isInteger(tv)||tv<1||tv>6||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
+ for(const e of d.changes)if(!Array.isArray(e)||e.length!==2||!Number.isSafeInteger(e[0])||e[0]<0||e[0]>=w*w*h||!Number.isInteger(e[1])||e[1]<0||e[1]>=defs.length)bad();
+ for(const [k,v]of Object.entries(d.inventory))if(!/^[1-9]\d*$/.test(k)||+k>=defs.length||!Number.isSafeInteger(v)||v<0)bad();
+ for(const k of ['creative','flying'])if(d[k]!==undefined&&typeof d[k]!=='boolean')bad();
+ for(const k of ['yaw','pitch','dayTime'])if(d[k]!==undefined&&!Number.isFinite(d[k]))bad();
+ if(d.player!==undefined&&(!obj(d.player)||!['x','y','z'].every(k=>Number.isFinite(d.player[k]))||d.player.x<0||d.player.x>=2048||d.player.z<0||d.player.z>=2048||d.player.y<0||d.player.y>=(tv>=4?192:96)))bad();
+ if(d.life!==undefined){if(!obj(d.life)||!['all','animals','off'].includes(d.life.mode)||!Array.isArray(d.life.eggs)||d.life.eggs.length>80)bad();
+ const ids='cow pig sheep chicken horse deer fox rabbit wolf squirrel goat eagle songbird gull starling aji tai ayu clown tang turtle dolphin squid zombie skeleton spider slime bomb wisp crawler'.split(' ');
+ for(const e of d.life.eggs)if(!Array.isArray(e)||e.length!==6||!ids.includes(e[0])||!e.slice(1).every(Number.isFinite)||e[1]<0||e[1]>=2048||e[3]<0||e[3]>=2048||e[2]<0||e[2]>=(tv>=4?192:96)||e[5]<.5||e[5]>2)bad();}
+ if(d.settings!==undefined){if(!obj(d.settings))bad();for(const k of ['hudMinimal','hudDetails','lifeVoices'])if(typeof d.settings[k]!=='boolean')bad();if(!['low','standard','high'].includes(d.settings.qualityName)||!Number.isInteger(d.settings.selected)||d.settings.selected<0||d.settings.selected>=8||!Number.isInteger(d.settings.eggSp)||d.settings.eggSp< -1||d.settings.eggSp>=30)bad();}
+ return d;
+}
+function checksum(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
+function decodeSave(raw){if(typeof raw!=='string'||raw.length>MAX_SAVE_CHARS)throw Error('ファイルが大きすぎます');const d=JSON.parse(raw);if(d?.integrity!==undefined){const {integrity,...payload}=d;if(integrity!==checksum(JSON.stringify(payload)))throw Error('セーブの整合性を確認できません')}return validateSave(d)}
+function encodeSave(d){validateSave(d);const {integrity,...payload}=d,body=JSON.stringify(payload),raw=JSON.stringify({...payload,integrity:checksum(body)});decodeSave(raw);return raw}
+try{expectedRaw=localStorage.getItem(KEY);if(expectedRaw!==null){saved=decodeSave(expectedRaw);if(Number.isFinite(saved.dayTime))dayTime=((saved.dayTime%1)+1)%1;seed=saved.seed;creative=!!saved.creative;flying=!!saved.flying;Object.assign(inventory,saved.inventory)}}catch(e){saved=null;storageBlocked=true;$('saveInfo').textContent='セーブを読み込めません。元データを保護中。「保存データを復旧」を選んでください。'}
 // Saved worlds keep the generator and height they were created with. New worlds use GRAND VISTA terrain (v4).
 // v5 adds the natural vegetation system; v4 worlds keep their original trees, grass and flowers.
 // v6 adds scenic landforms (sea cliffs, landmark peaks, gorges, river plains); v4/v5 worlds keep their exact terrain.
@@ -1404,7 +1429,10 @@ if(lodOK)startLodWorker();
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();contextLost=true;renderReady=false});
 canvas.addEventListener('webglcontextrestored',()=>{contextLost=false;chunks.clear();lodTiles.clear();lodJob=null;for(const t of lodPending.values())t.building=false;lodPending.clear();try{initRenderer()}catch(e){console.error(e)}streamDirty=true;streamChunks(true)});
 streamChunks(true);
-function edit(x,y,z,t){set(x,y,z,t);dirty=true;const near=new Set();for(const dx of[-1,0,1])for(const dz of[-1,0,1])near.add(chunkKey(x+dx,z+dz));for(const c of near)if(chunks.has(c))rebuild(...c.split(',').map(Number))}
+const originalChunks=new Map();
+function compactEdit(x,y,z,t){if(!inside(x,y,z))return;const key=chunkKey(x,z);let data=originalChunks.get(key);if(!data){data=generateChunk(x>>4,z>>4);if(originalChunks.size>=4)originalChunks.delete(originalChunks.keys().next().value);originalChunks.set(key,data)}
+ if(data[localIdx(x,y,z)]===t){const i=idx(x,y,z);changes.delete(i);const list=changeIndex.get(key);if(list){const at=list.indexOf(i);if(at>=0)list.splice(at,1);if(!list.length)changeIndex.delete(key)}}}
+function edit(x,y,z,t){set(x,y,z,t);compactEdit(x,y,z,t);dirty=true;const near=new Set();for(const dx of[-1,0,1])for(const dz of[-1,0,1])near.add(chunkKey(x+dx,z+dz));for(const c of near)if(chunks.has(c))rebuild(...c.split(',').map(Number))}
 function collides(p){if(p.x<.3||p.z<.3||p.x>W-.3||p.z>W-.3||p.y<1||p.y+1.8>=H)return true;for(let x=Math.floor(p.x-.29);x<=Math.floor(p.x+.29);x++)for(let y=Math.floor(p.y+.001);y<=Math.floor(p.y+1.79);y++)for(let z=Math.floor(p.z-.29);z<=Math.floor(p.z+.29);z++)if(solid(x,y,z))return true;return false}
 if(collides(player))spawn();
 function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
@@ -1412,10 +1440,33 @@ let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performanc
 function refresh(){const bar=$('bar');bar.innerHTML='';slots.forEach((t,i)=>{const b=document.createElement('button');b.className=i===selected&&eggSp<0?'selected':'';b.innerHTML=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
 function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
-function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
+function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
 function jump(){if(flying||photoMode)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
 function toggleFlight(){if(paused||suspended||photoMode)return;flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
-function save(){if(resettingWorld||benchLock)return false;try{localStorage.setItem(KEY,JSON.stringify({version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player,yaw,pitch,dayTime,life:lifeSave()}));dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true}catch(e){$('saveInfo').textContent='保存できません。ブラウザの保存容量・設定を確認してください';return false}}
+function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected,eggSp}}}
+function saveFailure(e){$('saveInfo').textContent='保存失敗：'+e.message+'。元の保存は保護されています。ファイルへのバックアップを試してください';toast('保存できません。メニューの保存状況を確認してください')}
+function checkCurrent(){if(localStorage.getItem(KEY)!==expectedRaw)throw Error('別タブで保存が変更されました。再読み込みしてください')}
+function save(){if(resettingWorld||benchLock||storageBlocked||saving)return false;saving=true;
+ try{checkCurrent();const payload=JSON.stringify(snapshot());if(payload===lastPayload){dirty=false;return true}const raw=encodeSave(JSON.parse(payload));
+ // setItem is atomic on failure. Backup MUST succeed before touching the current save.
+ if(expectedRaw!==null){decodeSave(expectedRaw);localStorage.setItem(BACKUP_KEY,expectedRaw)}
+ localStorage.setItem(KEY,raw);expectedRaw=raw;lastPayload=payload;dirty=false;$('saveInfo').textContent='保存済み '+new Date().toLocaleTimeString('ja-JP');return true;
+ }catch(e){saveFailure(e);return false}finally{saving=false}}
+function queueSave(){if(saveQueued)return;saveQueued=true;const job=()=>{saveQueued=false;save()};if(typeof requestIdleCallback==='function')requestIdleCallback(job,{timeout:2000});else if(typeof setTimeout==='function')setTimeout(job,0);else job()}
+// One protected checkpoint, separate from the rotating previous-good save.
+function protectCurrent(raw,preserveTarget=null){const prev=localStorage.getItem(ARCHIVE_KEY);if(prev!==null&&prev!==raw&&!confirm('前回の切り替え前データを今回の退避データで置き換えます。必要なら先に「退避データを書き出す」で保存してください。続けますか？'))return false;if(prev!==null&&prev===preserveTarget){decodeSave(prev);localStorage.setItem(BACKUP_KEY,prev)}localStorage.setItem(ARCHIVE_KEY,raw);return true}
+function switchWorld(raw){if(resettingWorld||benchLock)return false;decodeSave(raw);checkCurrent();
+ const current=storageBlocked?expectedRaw:encodeSave(snapshot());if(current!==null&&!protectCurrent(current,raw))return false;
+ resettingWorld=true;try{localStorage.setItem(KEY,raw);expectedRaw=raw;rememberPlaying(false);location.href=location.pathname;return true}catch(e){resettingWorld=false;throw e}}
+function importWorld(raw){try{const d=decodeSave(raw);if(!confirm('バックアップの世界（シード '+d.seed+' / 地形 v'+(d.terrainVersion??1)+' / 変更 '+d.changes.length+'件）に切り替えますか？現在の世界を退避してから復元します。'))return false;return switchWorld(raw)}catch(e){saveFailure(e);return false}}
+function recoverWorld(){try{const raw=localStorage.getItem(BACKUP_KEY);if(raw===null)throw Error('直前の正常セーブがありません。ファイルから復元できます');return importWorld(raw)}catch(e){saveFailure(e);return false}}
+function downloadSave(raw,name){const blob=new Blob([raw],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.textContent='バックアップを保存';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
+function exportWorld(){try{const raw=storageBlocked?expectedRaw:encodeSave(snapshot());if(raw===null)throw Error('書き出せるデータがありません');downloadSave(raw,'JOCRAFT2-'+seed+'-'+Date.now()+'.json');toast('ファイルの保存先を確認してください')}catch(e){saveFailure(e)}}
+$('exportWorld').onclick=exportWorld;$('importWorld').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{const file=e.target.files?.[0];try{if(!file)return;if(file.size>MAX_SAVE_CHARS)throw Error('ファイルが大きすぎます');importWorld(await file.text())}catch(err){saveFailure(err)}finally{e.target.value=''}};
+$('recoverWorld').onclick=recoverWorld;
+$('restoreProtected').onclick=()=>{try{const raw=localStorage.getItem(ARCHIVE_KEY);if(raw===null)throw Error('退避データがありません');importWorld(raw)}catch(e){saveFailure(e)}};
+$('exportProtected').onclick=()=>{try{const raw=localStorage.getItem(ARCHIVE_KEY);if(raw===null)throw Error('退避データがありません');downloadSave(raw,'JOCRAFT2-protected-'+Date.now()+'.json')}catch(e){saveFailure(e)}};
 function clearInput(){for(const k in keys)delete keys[k];joy.x=joy.y=0;$('knob').style.transform='';mineHeld=placeHeld=riseHeld=descendHeld=false;lookId=stickId=null}
 function applyHUD(){
  document.body.classList.toggle('hud-minimal',hudMinimal);document.body.classList.toggle('hud-details',hudDetails);
@@ -1436,14 +1487,13 @@ $('photoBtn').onclick=$('photoMenu').onclick=()=>setPhotoMode(true);$('photoExit
 applyHUD();
 function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInput();document.exitPointerLock?.();$('eggs').classList.add('hidden');$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
-function play(){paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
+function play(){if(storageBlocked){toast('セーブを保護中です。保存データの復旧を選んでください');return}paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
 function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
-$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(!confirm('今の世界を消して新しく作りますか？'))return;
- // Prevent blur/visibilitychange/pagehide from restoring the deleted world while navigating.
- resettingWorld=true;
- try{localStorage.removeItem(KEY)}catch(e){resettingWorld=false;toast('セーブを消去できません。ブラウザの保存設定を確認してください');return}
- try{sessionStorage.removeItem('nisekura-playing')}catch(e){}
- location.href=location.pathname+'?seed='+Math.floor(Math.random()*1000000)
+$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(resettingWorld||benchLock)return;if(storageBlocked){toast('元データを保護中です。先に復旧またはバックアップしてください');return}
+ if(!confirm('現在の世界を退避して、新しい世界を作成しますか？端末故障に備え、先に「ワールドをバックアップ」でファイル保存をおすすめします。'))return;
+ try{checkCurrent();if(!protectCurrent(encodeSave(snapshot())))return;resettingWorld=true;localStorage.removeItem(KEY);
+ try{sessionStorage.removeItem('nisekura-playing')}catch(e){}location.href=location.pathname+'?seed='+Math.floor(Math.random()*1000000)
+ }catch(e){resettingWorld=false;saveFailure(e)}
 };
 $('craftBtn').onclick=()=>{if(photoMode)return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('craft').classList.remove('hidden')};$('closeCraft').onclick=play;const recipes={plank:[4,1,7,4],brick:[3,3,8,4],glass:[6,2,9,2]};document.querySelectorAll('[data-recipe]').forEach(b=>b.onclick=()=>{const[a,n,c,m]=recipes[b.dataset.recipe];if(!creative&&(inventory[a]||0)<n){toast('材料が足りないよ');b.textContent='材料不足 — '+defs[a][0]+' '+n+' 必要';return}if(!creative)inventory[a]-=n;inventory[c]=(inventory[c]||0)+m;dirty=true;refresh();toast(defs[c][0]+'を'+m+'個つくった');b.textContent=defs[a][0]+' '+n+' → '+defs[c][0]+' '+m+' ✓'});
 let mineHeld=false,placeHeld=false,actionClock=0,lookId=null,stickId=null,lx=0,ly=0;
@@ -2028,9 +2078,10 @@ function frame(now){
  frames++;fpsTime+=raw;
  if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}
  $('hint').style.opacity=now>toastUntil?'0':'1';
- if(now-lastSave>15000&&!paused){save();lastSave=now}
+ if(now-lastSave>15000&&!paused){queueSave();lastSave=now}
  requestAnimationFrame(frame)
 }
+if(saved?.settings){const q=saved.settings;qualityName=q.qualityName;Q=QUALITY[qualityName];hudMinimal=q.hudMinimal;hudDetails=q.hudDetails;lifeVoices=q.lifeVoices;selected=q.selected;eggSp=q.eggSp;applyHUD();streamDirty=true}
 refresh();
 try{if(!BENCH&&saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');streamChunks(true);toast('前のプレイを再開した')}}catch(e){}
 // ---- Benchmark (?bench): a fixed 33 s flight (orbit over the vista, then a low pass toward the coast).
