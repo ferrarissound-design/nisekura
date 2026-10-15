@@ -1873,13 +1873,13 @@ const LIFE_SPECIES=[
 // v16 cave monsters (survival only, never natural elsewhere and not in the spawn-egg book: their group is not listed).
 {id:'caveSpider',name:'洞窟グモ',group:'洞窟',cat:'monster',move:'walk',rig:'spider',sc:1,sp:1.9,run:4.3,h:.65,r:.45,flee:0,herd:[1,1],hab:{},cave:1,voice:'hiss',size:[.72,.86],
  bones:[['body','root',0,5,0],['abd','body',0,6,-2],['l1','body',-2.5,5,3],['l2','body',-2.8,5,1],['l3','body',-2.8,5,-1],['l4','body',-2.5,5,-2.6]],
- parts:[['body',0,3.6,1.5,6,4,6,'#3b4a5c','fur'],['abd',0,3.4,-6,9,7,9,'#34445a','fur'],['abd',0,10.4,-4,6,.3,1.4,'#5ad1ff','flat'],['abd',0,10.4,-7,6.6,.3,1.4,'#5ad1ff','flat'],['abd',0,8,-10.55,4,1.4,.3,'#5ad1ff','flat'],
+ parts:[['body',0,3.6,1.5,6,4,6,'#3b4a5c','fur'],['abd',0,3.6,-5.6,7.4,5.6,8,'#34445a','fur'],['abd',0,10.4,-4,6,.3,1.4,'#5ad1ff','flat'],['abd',0,10.4,-7,6.6,.3,1.4,'#5ad1ff','flat'],['abd',0,8,-10.55,4,1.4,.3,'#5ad1ff','flat'],
   ['body',-1.4,6,4.55,1,1,.2,'#8ff4ff','glow',1],['body',-.5,6.9,4.55,.7,.7,.2,'#8ff4ff','glow',1],['body',-2.3,5.1,4.55,.6,.6,.2,'#8ff4ff','glow',1],['body',-.8,2.6,4.2,.8,1.6,.8,'#141a22','flat',1],
-  ['l1',-5.4,5.4,3.6,5.6,1.2,1.2,'#2c3848','fur',1],['l1',-8.6,0,4.8,1.1,6.6,1.1,'#2c3848','fur',1],['l2',-5.6,5.4,1,5.6,1.2,1.2,'#2c3848','fur',1],['l2',-9,0,1.4,1.1,6.6,1.1,'#2c3848','fur',1],
-  ['l3',-5.6,5.4,-1,5.6,1.2,1.2,'#2c3848','fur',1],['l3',-9,0,-1.4,1.1,6.6,1.1,'#2c3848','fur',1],['l4',-5.4,5.4,-3.2,5.6,1.2,1.2,'#2c3848','fur',1],['l4',-8.6,0,-4.6,1.1,6.6,1.1,'#2c3848','fur',1]]},
+  ['l1',-5.4,5.4,3.6,6.6,1,1,'#2c3848','fur',1],['l1',-8.6,0,4.8,1,7.4,1,'#2c3848','fur',1],['l2',-5.6,5.4,1,6.6,1,1,'#2c3848','fur',1],['l2',-9,0,1.4,1,7.4,1,'#2c3848','fur',1],
+  ['l3',-5.6,5.4,-1,6.6,1,1,'#2c3848','fur',1],['l3',-9,0,-1.4,1,7.4,1,'#2c3848','fur',1],['l4',-5.4,5.4,-3.2,6.6,1,1,'#2c3848','fur',1],['l4',-8.6,0,-4.6,1,7.4,1,'#2c3848','fur',1]]},
 {id:'crystalSlime',name:'クリスタルスライム',group:'洞窟',cat:'monster',move:'hop',rig:'slime',sc:1,sp:1.1,run:2.1,h:.75,r:.38,flee:0,herd:[1,1],hab:{},cave:1,voice:'squish',size:[1.05,1.35],
  bones:[['body','root',0,0,0]],
- parts:[['body',0,0,0,10,10,10,'#8fb6ff','jelly'],['body',0,2.6,0,4.4,4.4,4.4,'#e6dcff','glow'],['body',-2.2,5.4,5.05,1.8,2.4,.25,'#1d1640','flat',1],['body',-2.6,6.6,5.2,.7,.7,.15,'#ffffff','flat',1],
+ parts:[['body',0,0,0,10,10,10,'#6f98ea','glow'],['body',0,.4,0,10.3,2.2,10.3,'#8f7ae8','glow'],['body',-2.2,5.4,5.05,1.8,2.4,.25,'#1d1640','flat',1],['body',-2.6,6.6,5.2,.7,.7,.15,'#ffffff','flat',1],
   ['body',0,3.2,5.05,2,.7,.25,'#1d1640','flat'],['body',-2.4,10,-1,2,3.2,2,'#c58cff','glow'],['body',2.2,10,1.4,1.6,2.4,1.6,'#7fe8ff','glow'],['body',.4,10,-2.6,1.2,1.8,1.2,'#b7a4ff','glow']]}];
 const LIFE_BY_ID={};LIFE_SPECIES.forEach((s,i)=>{s.i=i;LIFE_BY_ID[s.id]=s});
 const lifeMirror=n=>/^[a-z]l$|^legl$/.test(n)?n.slice(0,-1)+'r':/^l\d$/.test(n)?'r'+n.slice(1):n;
@@ -3038,7 +3038,7 @@ function drawLife(cam,F,env,fog,aspect,near,far){lifeF=F;lifeDrawn=0;fishDrawn=0
  const sharedIndices=lifeModel.n/36<=MAXQ;if(sharedIndices)bind(lifeBuffer);
  for(const c of life){c.seen=false;if(c.dormant)continue;const sp=c.sp,d=Math.hypot(c.x-cam.x,c.y-cam.y,c.z-cam.z);if(d>R)continue;const rr=sp.rad*c.size+.3;
   if(!sphereVisible(F,c.x,c.y+sp.top*c.size*.5,c.z,rr))continue;c.seen=true;lifeDrawn++;
-  const poseInterval=d<45?0:d<70?1/30:1/20;if(c.t-c.poseAt>=poseInterval||c.t<c.poseAt){lifePose(c);c.poseAt=c.t}lifeMatrices(c,cam);gl.uniform4fv(lifeU.B,c.Mv);gl.uniform4f(lifeU.cL,c.sky,c.hurtF>0?-c.hurtF:c.flash,glow,0);
+  const poseInterval=d<45?0:d<70?1/30:1/20;if(c.t-c.poseAt>=poseInterval||c.t<c.poseAt){lifePose(c);c.poseAt=c.t}lifeMatrices(c,cam);gl.uniform4fv(lifeU.B,c.Mv);gl.uniform4f(lifeU.cL,c.sky,c.hurtF>0?-c.hurtF:c.flash,glow,c.y<SEA&&peek(Math.floor(c.x),Math.floor(c.y+.5),Math.floor(c.z))!==10?1:0); // w=1: below the sea level but in a dry cave, so no water tint
   if(!sharedIndices&&bound!==sp.i){bind(lifeBuffer,sp.q0*144);bound=sp.i}perfDraw();gl.drawElements(gl.TRIANGLES,sp.nq*6,gl.UNSIGNED_SHORT,sharedIndices?sp.q0*12:0)}
  drawFish(cam,F);gl.disable(gl.BLEND)}
 // ---- Fish behaviour. Where schools live is a pure function of (seed, terrain): each FISH_CELL square near the player may hold
