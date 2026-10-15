@@ -154,10 +154,42 @@ body:has(#eggs:not(.hidden)) .top,body:has(#eggs:not(.hidden)) #stick,body:has(#
 body:has(#eggs:not(.hidden)) #compass{display:none!important}
 @media(max-height:480px){#eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px)}#eggGrid{grid-template-columns:repeat(auto-fill,minmax(66px,1fr))}#eggGrid .egg{min-height:68px}#eggGrid .egg canvas{width:38px;height:38px}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>CORAL REEF · v13.2</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+/* Survival: hearts above the hotbar, a wide attack button on top of the right-hand grid (flight is off in survival),
+   apples beside the menu buttons, a red hurt vignette, the respawn screen, the mode picker and a one-time guide. */
+#attack,#eat,#survHud,#craftSurvival{display:none}
+body.mode-survival .actions #attack{display:block;grid-column:1/3;order:-1;height:52px;margin-bottom:7px;background:#7d2a2499;border-color:#ffc9b8b0;font-size:14px;font-weight:800;line-height:1.15}
+#attack small{display:block;font-size:9px;font-weight:600;opacity:.85}
+body.mode-survival .actions #fly,body.mode-survival .actions #down{display:none}
+body.mode-survival #eat{display:block}
+#eat{position:relative;font-size:17px}#eat b{position:absolute;right:3px;bottom:1px;font-size:10px;text-shadow:1px 1px #000}#eat:disabled{opacity:.45}
+body.mode-survival #survHud{display:flex}
+#survHud{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom)) + 55px);height:16px;align-items:center;gap:6px;pointer-events:none}
+#hearts{display:flex;gap:1px;filter:drop-shadow(0 0 1px #1a0606) drop-shadow(0 1px 1px #000a)}
+#hearts i{display:block;width:14px;height:12px;background:#3b1a1acc;clip-path:polygon(14.3% 0,42.9% 0,42.9% 16.7%,57.1% 16.7%,57.1% 0,85.7% 0,85.7% 16.7%,100% 16.7%,100% 50%,85.7% 50%,85.7% 66.7%,71.4% 66.7%,71.4% 83.3%,57.1% 83.3%,57.1% 100%,42.9% 100%,42.9% 83.3%,28.6% 83.3%,28.6% 66.7%,14.3% 66.7%,14.3% 50%,0 50%,0 16.7%,14.3% 16.7%)}
+#hearts i.full{background:linear-gradient(#ff8a7a 0 30%,#e8322e 30% 80%,#a61c1c 80%)}
+#hearts i.half{background:linear-gradient(90deg,#e8322e 50%,#3b1a1acc 50%)}
+#hearts.protect{animation:heartBlink .45s steps(2) infinite}#hearts.low i.full,#hearts.low i.half{animation:heartBeat .7s ease-in-out infinite}
+@keyframes heartBlink{50%{opacity:.35}}@keyframes heartBeat{50%{transform:translateY(-2px)}}
+#kills{font:bold 10px/1 system-ui,sans-serif;color:#ffe8b0;text-shadow:0 1px 2px #000;white-space:nowrap}
+#hurtFx{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 42%,#d0101c55 72%,#a00010cc 100%)}
+#guide{position:fixed;z-index:9;left:50%;transform:translateX(-50%);top:calc(max(12px,env(safe-area-inset-top)) + 104px);width:max-content;max-width:calc(100vw - 32px);padding:8px 14px;border-radius:12px;background:#10282af0;border:1px solid #ffe49e88;color:#fff8e2;font-size:13px;line-height:1.5;text-align:center;box-shadow:0 4px 18px #0006;pointer-events:none}
+#guide small{display:block;font-size:10px;color:#cfe3c7}
+#craft .craft-head{margin:14px 0 2px;font-size:11px;letter-spacing:2px;color:#ffc9a8}
+body.mode-survival #craftSurvival{display:block}
+.overlay.death{background:linear-gradient(#6b0d0dcc,#1a0505ee);backdrop-filter:blur(2px)}
+.death .panel{text-align:center}.death h2{font-size:28px;margin:6px 0}
+.mode-panel button.mode-choice{display:block;width:100%;margin:8px 0;text-align:left;padding:11px 14px;touch-action:manipulation}
+.mode-choice b{display:block;font-size:16px}.mode-choice span{font-size:11px;color:#cfe3c7}.mode-choice.current{border:2px solid #efffc5}
+body.photo-mode #survHud,body.photo-mode #guide,body:has(#menu:not(.hidden)) #survHud,body:has(#menu:not(.hidden)) #guide,body:has(#craft:not(.hidden)) #survHud,body:has(#eggs:not(.hidden)) #survHud,body:has(#death:not(.hidden)) #survHud,body:has(#death:not(.hidden)) #guide,body:has(#death:not(.hidden)) .actions,body:has(#death:not(.hidden)) #stick,body:has(#modePick:not(.hidden)) #guide,body:has(#craft:not(.hidden)) #guide,body:has(#eggs:not(.hidden)) #guide,body:has(#death:not(.hidden)) #hint{display:none!important}
+body.mode-survival #eggChip{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 76px)}
+body:not(.mode-survival) #guide{display:none!important}
+@media(max-height:480px){body.mode-survival .actions #attack{height:44px;margin-bottom:5px}#survHud{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 53px)}#guide{top:calc(max(6px,env(safe-area-inset-top)) + 62px);font-size:12px;padding:6px 12px}body.mode-survival #eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 72px)}}
+@media(max-width:450px){#hearts i{width:12px;height:11px}#survHud{height:13px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 53px)}}
+
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>SURVIVAL · v15.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
  <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassWarning" class="hidden"></span></div>
-</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
+</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="attack" aria-label="攻撃">⚔ 攻撃<small>素手</small></button><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="survHud" aria-label="体力"><div id="hearts"></div><span id="kills"></span></div><div id="hurtFx"></div><div id="guide" class="hidden" role="status"></div><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
 <div class="title-stage">
  <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">あの山の向こうへ！</span></div>
  <div class="title-menu">
@@ -171,11 +203,11 @@ body:has(#eggs:not(.hidden)) #compass{display:none!important}
   <div class="title-pair"><button id="exportWorld" class="title-button">ワールドをバックアップ</button><button id="importWorld" class="title-button">バックアップから復元</button></div>
 <input id="importFile" type="file" accept=".json,application/json" hidden>
 <details class="title-help"><summary>保存データの復旧</summary><button id="recoverWorld" class="title-button">保存データを復旧（直前の正常セーブ）</button><button id="restoreProtected" class="title-button">切り替え前の世界に戻す</button><button id="exportProtected" class="title-button">退避データを書き出す</button></details>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>サバイバル：⚔攻撃ボタン（PCは左クリック）で敵をたたく / 🍎・Rキーで回復<br>敵が白く光ったら攻撃の合図。出発地点のまわりは安全<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v13.2</span></div>
-</div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><button id="closeCraft" class="primary">戻る</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v15.0</span></div>
+</div><div id="craft" class="overlay hidden"><div class="panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト</h2><p>集めた素材を建築ブロックに変えよう。</p><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button><div id="craftSurvival"><div class="craft-head">⚔ サバイバル</div><button id="craftWoodSword">木材 3 → 木の剣（攻撃力 4）</button><button id="craftStoneSword">石 3 + 木材 1 → 石の剣（攻撃力 6）</button><button id="craftApple">葉っぱ 4 → りんご 1（♥を回復）</button></div><button id="closeCraft" class="primary">戻る</button></div></div><div id="death" class="overlay death hidden" role="dialog" aria-label="やられてしまった"><div class="panel"><div class="eyebrow">GAME OVER</div><h2>やられてしまった…</h2><p>持ち物はそのまま。出発地点からすぐに再チャレンジできるよ。</p><button id="respawn" class="primary">復活する</button></div></div><div id="modePick" class="overlay hidden" role="dialog" aria-label="遊び方をえらぶ"><div class="panel mode-panel"><div class="eyebrow">GAME MODE</div><h2>遊び方をえらぼう</h2><p>あとからメニューの「モード」でいつでも変えられるよ。</p><button id="pickSurvival" class="mode-choice"><b>⚔ サバイバル</b><span>♥と剣でぼうけん。木の剣をつくって、夜のモンスターとたたかおう</span></button><button id="pickPeaceful" class="mode-choice"><b>🌿 ピースフル</b><span>素材を集めて建築・探検。モンスターはおそってこない</span></button><button id="pickCreative" class="mode-choice"><b>✦ クリエイティブ</b><span>ブロック使いほうだい・空を飛んで自由に建築</span></button><button id="closeModePick">もどる</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world');
@@ -221,7 +253,13 @@ function validateSave(d){
  if(d.life!==undefined){if(!obj(d.life)||!['all','animals','off'].includes(d.life.mode)||!Array.isArray(d.life.eggs)||d.life.eggs.length>80)bad();
  const ids='cow pig sheep chicken horse deer fox rabbit wolf squirrel goat eagle songbird gull starling aji tai ayu clown tang turtle dolphin squid zombie skeleton spider slime bomb wisp crawler'.split(' ');
  for(const e of d.life.eggs)if(!Array.isArray(e)||e.length!==6||!ids.includes(e[0])||!e.slice(1).every(Number.isFinite)||e[1]<0||e[1]>=2048||e[3]<0||e[3]>=2048||e[2]<0||e[2]>=(tv>=4?192:96)||e[5]<.5||e[5]>2)bad();}
- if(d.settings!==undefined){if(!obj(d.settings))bad();for(const k of ['hudMinimal','hudDetails','lifeVoices'])if(typeof d.settings[k]!=='boolean')bad();if(!['low','standard','high'].includes(d.settings.qualityName)||!Number.isInteger(d.settings.selected)||d.settings.selected<0||d.settings.selected>=8||!Number.isInteger(d.settings.eggSp)||d.settings.eggSp< -1||d.settings.eggSp>=30)bad();}
+ if(d.settings!==undefined){if(!obj(d.settings))bad();for(const k of ['hudMinimal','hudDetails','lifeVoices'])if(typeof d.settings[k]!=='boolean')bad();if(!['low','standard','high'].includes(d.settings.qualityName)||!Number.isInteger(d.settings.selected)||d.settings.selected<0||d.settings.selected>=8||!Number.isInteger(d.settings.eggSp)||d.settings.eggSp< -1||d.settings.eggSp>=30)bad();
+  if(d.settings.hotbar!==undefined&&(!Number.isInteger(d.settings.hotbar)||d.settings.hotbar<0||d.settings.hotbar>=slots.length))bad();}
+ // Survival (Phase 1). All optional: saves without them keep the original rules (creative or 素材集め = peaceful).
+ if(d.gameMode!==undefined&&!['creative','survival','peaceful'].includes(d.gameMode))bad();
+ if(d.health!==undefined&&(!Number.isFinite(d.health)||d.health<0||d.health>20))bad();
+ if(d.items!==undefined){if(!obj(d.items))bad();for(const [k,v] of Object.entries(d.items))if(!/^[a-zA-Z]\w{0,31}$/.test(k)||!Number.isSafeInteger(v)||v<0)bad()}
+ if(d.defeated!==undefined&&(!Number.isSafeInteger(d.defeated)||d.defeated<0))bad();
  return d;
 }
 function checksum(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
@@ -234,6 +272,18 @@ try{expectedRaw=localStorage.getItem(KEY);if(expectedRaw!==null){saved=decodeSav
 // v7 adds caves (entrances, tunnels, halls, underground lakes, crystal caves); v4-v6 worlds keep their exact terrain.
 // v8 fills the river stretches that were left as dry sand beds; v7 worlds keep their exact terrain.
 // v9 adds the wonders: canyons, waterfalls, natural arches and rock windows, reef hills, sea-floor arches, trenches and drop-offs; v8 worlds keep their exact terrain.
+// ---- Game modes. 'creative' = free building and flight (the original 自由建築); 'peaceful' = gather materials, monsters never attack
+// (the original 素材集め, so saves without a mode keep playing exactly as before); 'survival' = hearts, swords and monsters at night.
+// `creative` stays in the save, in sync, so older releases still open survival and peaceful worlds as 素材集め.
+const GAME_MODES=['survival','peaceful','creative'],MODE_LABEL={survival:'サバイバル',peaceful:'ピースフル',creative:'クリエイティブ'},MAX_HP=20;
+let modeFromURL=null;try{const m=new URLSearchParams(location.search).get('mode');if(GAME_MODES.includes(m))modeFromURL=m}catch(e){}
+let gameMode=saved?(GAME_MODES.includes(saved.gameMode)?saved.gameMode:saved.creative?'creative':'peaceful'):modeFromURL||'peaceful',modeChosen=!!(saved||modeFromURL);
+creative=gameMode==='creative';if(gameMode==='survival')flying=false;
+// A fresh survival world starts just after noon, so the first night (and its monsters) arrives about five minutes in.
+if(!saved&&gameMode==='survival')dayTime=.52;
+const items={woodSword:0,stoneSword:0,ironSword:0,apple:0};if(saved?.items)for(const k in items)if(Number.isSafeInteger(saved.items[k]))items[k]=saved.items[k];
+let health=Number.isFinite(saved?.health)?Math.max(0,Math.min(MAX_HP,saved.health)):MAX_HP,defeated=Number.isSafeInteger(saved?.defeated)?saved.defeated:0;
+let dead=false,atkCD=0,invulT=0,protectT=0,camKick=0,hurtGlow=0,kbx=0,kbz=0,sinceHurt=99,regenT=0,darkT=0,hostileT=2,duskWarned=false,nightWarned=false,attackHeld=false;
 const terrainVersion=saved?.version===1?(saved.terrainVersion||1):9,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
 // Underwater life (v7 worlds): water plants and coral are mesh-only, fish are runtime-only, so nothing is added to saves.
 const AQUA=CAVES;
@@ -1349,6 +1399,7 @@ else if(mat<28.5){ // crystals: facets and ribs, always glowing
  float f=hash(floor(q/4.)+mat),rib=step(.5,fract((q.x*.5+q.y*.35)/3.));c=mix(col*(.78+.5*f),col*1.55+vec3(.12),.32*rib+.22*step(.9,n));}
 else if(mat<29.5){ // luminous moss: soft patches with a few bright spores
  float m=smoothstep(.25,.7,hash(floor(q/4.)+3.)*.6+n*.4);c=mix(col*.55,col*1.35+vec3(.03,.14,.09),m);if(n>.93)c=vec3(.75,1.,.9);}
+else if(mat<30.5){c=col;} // flat, unlit overlay colour (survival health bars)
 else if(mat>30.5){float v=floor(fract(mat)/${AQV}+.5);
  // Corals lose less colour to the water than plants and stones, so a reef reads as colourful from further away.
  aw=vFace>5.5?(v>3.5?.12:.5):(v<1.5||(v>2.5&&v<3.5)||v>4.5?.12:.5);
@@ -1689,6 +1740,7 @@ const LIFE_SPECIES=[
   ['head',0,25.6,.4,6.6,5.6,6.4,'#efe9d6','bone'],['head',-1.6,28.2,3.65,2,1.9,.2,'#15110e','flat',1],['head',-1.6,28.6,3.78,.8,.8,.12,'#7ff0e0','glow',1],['head',0,27.2,3.65,.8,.8,.2,'#15110e','flat'],
   ['jaw',0,24,1,5,1.6,4.8,'#e6e0cc','bone'],['jaw',0,25.5,3.3,4,.5,.2,'#f6f2e2','flat'],
   ['al',-4.6,14,0,1.4,9.6,1.4,'#e6e0cc','bone',1],['al',-4.6,13,0,1.8,1.4,1.8,'#e6e0cc','bone',1],
+  ['al',-4.6,8.4,2.2,.9,10.6,.9,'#8a5a2e','flat'],['al',-4.6,7.6,1.4,.9,1.2,1.4,'#8a5a2e','flat'],['al',-4.6,18.6,1.4,.9,1.2,1.4,'#8a5a2e','flat'],['al',-4.6,8.4,.9,.3,11.4,.3,'#f2eee0','flat'],
   ['ar',4.6,10.4,1,2.2,2.6,2.2,'#ffb85a','glow'],['ar',4.6,13,1,2.6,.5,2.6,'#3a3024','flat'],['ar',4.6,9.9,1,2.6,.5,2.6,'#3a3024','flat'],
   ['ll',-1.6,1,0,1.6,12,1.6,'#e6e0cc','bone',1],['ll',-1.6,0,.6,2,1.2,3,'#e6e0cc','bone',1]]},
 {id:'spider',name:'オオグモ',group:'モンスター',cat:'monster',move:'walk',rig:'spider',sc:1,sp:1.4,run:3.6,h:.8,r:.55,flee:0,herd:[1,2],hab:{night:2,dark:1.2},voice:'hiss',chase:1,
@@ -1858,7 +1910,7 @@ void main(){vec2 q=floor(mp.xy+.001);float n=hash(q+floor(mp.z)*.13);vec3 c=col;
   vec3 L=ambCol*(.82+.18*N.y)*(.7+.3*cL.x)+dirCol*nd*(.12+.88*cL.x);c*=L;
   if(pat>1.5&&pat<2.5)c+=dirCol*pow(max(dot(reflect(v,N),dirLight),0.),20.)*.7+ambCol*.05;
   if(pat>5.5&&pat<6.5){float fr=pow(1.-abs(dot(N,v)),2.);c+=col*(fr*.45+.18)*(ambCol+dirCol*.4)+dirCol*pow(max(dot(reflect(v,N),dirLight),0.),28.)*.9;}}
- c=mix(c,vec3(1.,.98,.92),cL.y);
+ c=cL.y>=0.?mix(c,vec3(1.,.98,.92),cL.y):mix(c,vec3(1.,.16,.1),-cL.y*.7);
  if(w.y<${SEA}.88){float ds=${SEA}.88-w.y;c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-v.y,.1):0.))*(1.-cL.w));}
  gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
 let lifeProg=null,lifeU=null,lifeBuffer=null,fishBuffer=null,mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
@@ -2368,13 +2420,13 @@ if(collides(player))spawn();
 function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
 const hotbarButtons=[];
-function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+(creative?'自由建築':'素材集め');$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
+function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];if(typeof lifeModeText==='function')$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();survivalUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
-function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
+function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;if(strike(false))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;if(gameMode==='survival'&&LEAF_IDS.includes(t)&&Math.random()<.12){items.apple++;toast('りんごを見つけた 🍎')}burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
 function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
 function jump(){if(flying||photoMode)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
-function toggleFlight(){if(paused||suspended||photoMode)return;flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
-function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected,eggSp}}}
+function toggleFlight(){if(paused||suspended||photoMode)return;if(gameMode==='survival'){toast('サバイバルでは飛べないよ（ピースフル・クリエイティブで飛べる）');return}flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
+function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected:selected<8?selected:0,hotbar:selected,eggSp},gameMode,health,items:{...items},defeated}}
 function saveFailure(e){$('saveInfo').textContent='保存失敗：'+e.message+'。元の保存は保護されています。ファイルへのバックアップを試してください';toast('保存できません。メニューの保存状況を確認してください')}
 function checkCurrent(){if(localStorage.getItem(KEY)!==expectedRaw)throw Error('別タブで保存が変更されました。再読み込みしてください')}
 function save(){if(resettingWorld||benchLock||storageBlocked||saving)return false;saving=true;
@@ -2398,7 +2450,7 @@ $('importFile').onchange=async e=>{const file=e.target.files?.[0];try{if(!file)r
 $('recoverWorld').onclick=recoverWorld;
 $('restoreProtected').onclick=()=>{try{const raw=localStorage.getItem(ARCHIVE_KEY);if(raw===null)throw Error('退避データがありません');importWorld(raw)}catch(e){saveFailure(e)}};
 $('exportProtected').onclick=()=>{try{const raw=localStorage.getItem(ARCHIVE_KEY);if(raw===null)throw Error('退避データがありません');downloadSave(raw,'JOCRAFT2-protected-'+Date.now()+'.json')}catch(e){saveFailure(e)}};
-function clearInput(){for(const k in keys)delete keys[k];joy.x=joy.y=0;$('knob').style.transform='';mineHeld=placeHeld=riseHeld=descendHeld=false;lookId=stickId=null}
+function clearInput(){for(const k in keys)delete keys[k];joy.x=joy.y=0;$('knob').style.transform='';mineHeld=placeHeld=riseHeld=descendHeld=attackHeld=false;lookId=stickId=null}
 function applyHUD(){
  document.body.classList.toggle('hud-minimal',hudMinimal);document.body.classList.toggle('hud-details',hudDetails);
  $('hudMode').textContent='HUD：'+(hudMinimal?'最小':'通常');$('hudMode').setAttribute('aria-pressed',String(hudMinimal));
@@ -2418,9 +2470,9 @@ $('photoBtn').onclick=$('photoMenu').onclick=()=>setPhotoMode(true);$('photoExit
 applyHUD();
 function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInput();document.exitPointerLock?.();$('eggs').classList.add('hidden');$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
-function play(){if(storageBlocked){toast('セーブを保護中です。保存データの復旧を選んでください');return}paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast('木を集める → 木材にクラフト → 家を建てる')}
+function play(){if(storageBlocked){toast('セーブを保護中です。保存データの復旧を選んでください');return}if(dead){respawn();return}$('modePick').classList.add('hidden');paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast(monsterNotice()||(gameMode==='survival'?'木を集める → 木の剣をクラフト → 夜のモンスターにそなえよう':'木を集める → 木材にクラフト → 家を建てる'))}
 function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
-$('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creative=!creative;dirty=true;refresh()};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('caves').onclick=nextCave;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(resettingWorld||benchLock)return;if(storageBlocked){toast('元データを保護中です。先に復旧またはバックアップしてください');return}
+$('play').onclick=()=>{if(!modeChosen&&!storageBlocked)openModePick();else play()};$('menuBtn').onclick=pause;$('mode').onclick=()=>{setGameMode(GAME_MODES[(GAME_MODES.indexOf(gameMode)+1)%GAME_MODES.length]);modeChosen=true};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('caves').onclick=nextCave;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(resettingWorld||benchLock)return;if(storageBlocked){toast('元データを保護中です。先に復旧またはバックアップしてください');return}
  if(!confirm('現在の世界を退避して、新しい世界を作成しますか？端末故障に備え、先に「ワールドをバックアップ」でファイル保存をおすすめします。'))return;
  try{checkCurrent();if(!protectCurrent(encodeSave(snapshot())))return;resettingWorld=true;localStorage.removeItem(KEY);
  try{sessionStorage.removeItem('nisekura-playing')}catch(e){}location.href=location.pathname+'?seed='+Math.floor(Math.random()*1000000)
@@ -2428,13 +2480,13 @@ $('play').onclick=play;$('menuBtn').onclick=pause;$('mode').onclick=()=>{creativ
 };
 $('craftBtn').onclick=()=>{if(photoMode)return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();$('craft').classList.remove('hidden')};$('closeCraft').onclick=play;const recipes={plank:[4,1,7,4],brick:[3,3,8,4],glass:[6,2,9,2]};document.querySelectorAll('[data-recipe]').forEach(b=>b.onclick=()=>{const[a,n,c,m]=recipes[b.dataset.recipe];if(!creative&&(inventory[a]||0)<n){toast('材料が足りないよ');b.textContent='材料不足 — '+defs[a][0]+' '+n+' 必要';return}if(!creative)inventory[a]-=n;inventory[c]=(inventory[c]||0)+m;dirty=true;refresh();toast(defs[c][0]+'を'+m+'個つくった');b.textContent=defs[a][0]+' '+n+' → '+defs[c][0]+' '+m+' ✓'});
 let mineHeld=false,placeHeld=false,actionClock=0,lookId=null,stickId=null,lx=0,ly=0;
-function hold(id,fn,flag){$(id).addEventListener('pointerdown',e=>{e.preventDefault();if(paused||photoMode)return;$(id).setPointerCapture(e.pointerId);fn();if(flag==='mine')mineHeld=true;if(flag==='place')placeHeld=true;if(flag==='rise')riseHeld=true;if(flag==='down')descendHeld=true;actionClock=.3});for(const ev of ['pointerup','pointercancel','lostpointercapture'])$(id).addEventListener(ev,()=>{if(flag==='mine')mineHeld=false;if(flag==='place')placeHeld=false;if(flag==='rise')riseHeld=false;if(flag==='down')descendHeld=false})}hold('mine',mine,'mine');hold('place',place,'place');hold('jump',jump,'rise');hold('down',()=>{},'down');$('fly').onclick=toggleFlight;
+function hold(id,fn,flag){$(id).addEventListener('pointerdown',e=>{e.preventDefault();if(paused||photoMode)return;$(id).setPointerCapture(e.pointerId);fn();if(flag==='mine')mineHeld=true;if(flag==='place')placeHeld=true;if(flag==='rise')riseHeld=true;if(flag==='down')descendHeld=true;if(flag==='attack')attackHeld=true;actionClock=.3});for(const ev of ['pointerup','pointercancel','lostpointercapture'])$(id).addEventListener(ev,()=>{if(flag==='mine')mineHeld=false;if(flag==='place')placeHeld=false;if(flag==='rise')riseHeld=false;if(flag==='down')descendHeld=false;if(flag==='attack')attackHeld=false})}hold('attack',()=>strike(true),'attack');hold('mine',mine,'mine');hold('place',place,'place');hold('jump',jump,'rise');hold('down',()=>{},'down');$('fly').onclick=toggleFlight;
 $('stick').onpointerdown=e=>{if(paused||photoMode)return;stickId=e.pointerId;$('stick').setPointerCapture(e.pointerId);moveStick(e)};function moveStick(e){if(e.pointerId!==stickId)return;const r=$('stick').getBoundingClientRect();let x=(e.clientX-r.left-r.width/2)/40,y=(e.clientY-r.top-r.height/2)/40,n=Math.max(1,Math.hypot(x,y));joy.x=x/n;joy.y=y/n;$('knob').style.transform=`translate(${joy.x*30}px,${joy.y*30}px)`}$('stick').onpointermove=moveStick;for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('stick').addEventListener(ev,()=>{stickId=null;joy.x=joy.y=0;$('knob').style.transform='' });
 let tapX=0,tapY=0,tapT=0,tapId=null;
 canvas.onpointerdown=e=>{if(paused)return;if(!photoMode&&e.pointerType==='mouse'&&document.pointerLockElement===canvas){if(e.button===0)mine();if(e.button===2)place();return}lookId=e.pointerId;lx=tapX=e.clientX;ly=tapY=e.clientY;tapT=performance.now();tapId=e.pointerId;canvas.setPointerCapture(e.pointerId)};
 // With a spawn egg in hand, a quick tap (not a look-around drag) places the creature where the finger touched.
 canvas.addEventListener('pointerup',e=>{if(e.pointerId===tapId&&eggSp>=0&&!paused&&!photoMode&&Math.hypot(e.clientX-tapX,e.clientY-tapY)<12&&performance.now()-tapT<400)placeEgg(screenDir(e.clientX,e.clientY));tapId=null});
-canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(e.code==='KeyP'&&!e.repeat&&!paused){e.preventDefault();setPhotoMode(!photoMode);return}if(photoMode){if(e.code==='Escape'){e.preventDefault();setPhotoMode(false)}return}if(e.code==='KeyH'&&!e.repeat){toggleHUD();return}if(e.code==='F3'){e.preventDefault();if(!e.repeat)toggleDetails();return}if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;eggSp=-1;refresh()}if(e.code==='KeyG'&&!e.repeat&&!paused)openEggs();};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
+canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(e.code==='KeyP'&&!e.repeat&&!paused){e.preventDefault();setPhotoMode(!photoMode);return}if(photoMode){if(e.code==='Escape'){e.preventDefault();setPhotoMode(false)}return}if(dead)return;if(e.code==='KeyR'&&!e.repeat&&!paused)eat();if(e.code==='KeyH'&&!e.repeat){toggleHUD();return}if(e.code==='F3'){e.preventDefault();if(!e.repeat)toggleDetails();return}if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;eggSp=-1;refresh()}if(e.code==='KeyG'&&!e.repeat&&!paused)openEggs();};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
 // Suspend simulation on actual backgrounding, then resume the same play state.
 window.onblur=()=>{clearInput();save()};
 window.onfocus=()=>{clearInput();last=performance.now()};
@@ -2537,11 +2589,20 @@ const dynamicCaps=new Map();
 function drawData(buffer,w){if(!w.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);const bytes=w.n*4;let capacity=dynamicCaps.get(buffer)||0;if(capacity<bytes){capacity=2**Math.ceil(Math.log2(Math.max(256,bytes)));gl.bufferData(gl.ARRAY_BUFFER,capacity,gl.DYNAMIC_DRAW);dynamicCaps.set(buffer,capacity)}gl.bufferSubData(gl.ARRAY_BUFFER,0,w.a.subarray(0,w.n));drawQuads(buffer,w.n/36,bind,36)}
 function animateWorld(dt){swing=Math.max(0,swing-dt*3.5);const moving=Math.hypot(joy.x,joy.y)> .1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD;if(moving&&ground)walkPhase+=dt*9;
 for(const p of particles){p.life-=dt;p.vy-=dt*8;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt}for(let i=particles.length-1;i>=0;i--)if(particles[i].life<=0)particles.splice(i,1);
-updateLife(dt,player);
+updateLife(dt,player);updateSurvival(dt);
 }
 function drawWorldDetails(){const a=dyn;a.n=0;
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
+if(arrows.length||gameMode==='survival')drawCombat(a);
 drawData(dynamicBuffer,a)}
+function drawCombat(a){
+ for(const r of arrows){const h=Math.hypot(r.vx,r.vz),yw=Math.atan2(r.vx,r.vz),pt=Math.atan2(r.vy,Math.max(h,.01)),sy=Math.sin(yw),cy=Math.cos(yw),sp=Math.sin(pt),cp=Math.cos(pt);
+  const T=p=>[r.x+p[0]*cy-p[1]*sp*sy+p[2]*cp*sy,r.y+p[1]*cp+p[2]*sp,r.z-p[0]*sy-p[1]*sp*cy+p[2]*cp*cy];
+  cuboid(a,-.025,-.025,-.62,.05,.05,.62,'#d9c49a',0,T);cuboid(a,-.045,-.045,0,.09,.09,.1,'#5d6366',0,T);cuboid(a,-.07,-.01,-.62,.14,.02,.14,'#eeeeee',0,T)}
+ const cyw=Math.cos(yaw),syw=Math.sin(yaw);
+ for(const c of life){if(!(c.barT>0)||c.dormant||!(c.mhp>0)||Math.hypot(c.x-player.x,c.z-player.z)>24)continue;
+  const top=c.y+c.sp.top*c.size+.35,f=Math.max(0,Math.min(1,c.mhp/monsterMaxHP(c))),T=p=>[c.x+cyw*p[0]+syw*p[2],top+p[1],c.z-syw*p[0]+cyw*p[2]];
+  cuboid(a,-.42,0,0,.84,.13,.03,'#1d1414',30,T);cuboid(a,-.39,.03,-.01,.78*f,.07,.03,f>.5?'#6fdc58':f>.25?'#f0c53a':'#f0493a',30,T)}}
 // ---- LIFE runtime. Natural creatures appear around the player in loaded terrain and leave when it unloads; egg-placed ones are saved.
 // Creatures never edit the world and never hurt the player: monsters only watch, follow, stalk or puff harmless spores.
 const life=[],lifePool=[],COW=LIFE_BY_ID.cow;
@@ -2575,7 +2636,8 @@ function covered(X,y,Z){for(let k=1;k<10;k++){const t=peek(X,y+k,Z);if(t>0&&t!==
 function lifeNew(sp,x,y,z,manual,size){const c=lifePool.pop()||{R:new Float32Array(48),O:new Float32Array(48),S:new Float32Array(48),M:new Float32Array(192)};
  Object.assign(c,{id:lifeSeq++,sp,x,y,z,yaw:Math.random()*6.283,want:0,pitch:0,roll:0,vx:0,vy:0,vz:0,manual:!!manual,mode:'idle',timer:.5+Math.random()*2,speed:0,ph:Math.random()*6,t:Math.random()*20,
   hy:0,hp:0,stuck:0,acc:0,size:size||(sp.size?sp.size[0]+Math.random()*(sp.size[1]-sp.size[0]):.9+Math.random()*.2),leader:null,ox:0,oy:0,oz:0,tx:x,ty:y,tz:z,hx:x,hz:z,
-  flash:0,swell:0,cool:0,peck:0,sq:0,hopT:0,hopV:0,pa:Math.random()*6,orb:0,lt:false,stranded:0,talk:0,flap:1,air:sp.move==='fly',voiceT:4+Math.random()*16,vanish:-1,dormant:false,sky:1,skyT:0,chaseT:0,detour:0,alt:0,leap:false,ground:true,dist:0});
+  flash:0,swell:0,cool:0,peck:0,sq:0,hopT:0,hopV:0,pa:Math.random()*6,orb:0,lt:false,stranded:0,talk:0,flap:1,air:sp.move==='fly',voiceT:4+Math.random()*16,vanish:-1,dormant:false,sky:1,skyT:0,chaseT:0,detour:0,alt:0,leap:false,ground:true,dist:0,
+  mhp:0,hurtF:0,barT:0,kbx:0,kbz:0,atkCD:0,aggro:0,los:false,losT:0,side:1,hitDone:false});
  c.poseAt=-Infinity;c.poseVersion=0;c.matrixValid=false;c.want=c.yaw;c.Mv=c.M.subarray(0,sp.nb*12);life.push(c);return c}
 function lifeRemove(c,puff){const i=life.indexOf(c);if(i<0)return;life.splice(i,1);for(const o of life)if(o.leader===c)o.leader=null;
  if(puff){const h=c.sp.top*c.size;for(let k=0;k<(c.sp.cat==='monster'?3:2);k++)burst(c.x,c.y+h*.5,c.z,c.sp.cat==='monster'?'#3b3550':'#e9efe9')}
@@ -2590,7 +2652,7 @@ function lifePick(cat,hab,night,dark){let tot=0;const ok=[];
   else w=sp.hab[hab]||0;if(sp.deep&&cat==='water')w=w;if(w>0){ok.push([sp,w]);tot+=w}}
  let r=Math.random()*tot;for(const [sp,w] of ok)if((r-=w)<=0)return sp;return null}
 // Underground: no surface spawns; a few dark-loving monsters appear on cave floors 18-52 blocks away, out of sight (they only watch and follow).
-function caveSpawn(focus){if(lifeMode!=='all'||readyR<1)return;
+function caveSpawn(focus){if(lifeMode!=='all'||readyR<1||gameMode==='survival')return;
  let n=0;for(const c of life)if(!c.manual&&c.sp.cat==='monster')n++;if(n>=Math.min(7,Math.floor(lifeCap()*.22)))return;
  pkX=1e9;
  for(let a=0;a<6;a++){const ang=Math.random()*6.283,d=18+Math.random()*34,X=Math.floor(focus.x+Math.sin(ang)*d),Z=Math.floor(focus.z+Math.cos(ang)*d),Y=Math.floor(focus.y+(Math.random()-.5)*16);
@@ -2604,8 +2666,9 @@ function lifeSpawnTick(focus,night){
  if(lifeMode==='off'||readyR<1)return;
  if(CAVES&&caveUnder){caveSpawn(focus);return}
  const cap=lifeCap(),cnt={land:0,water:0,bird:0,monster:0};let total=0;for(const c of life)if(!c.manual){cnt[c.sp.cat]++;total++}
- if(total>=cap)return;
- const cats=['land','water','bird','monster'].filter(k=>cnt[k]<cap*LIFE_SHARE[k]&&(k!=='monster'||lifeMode==='all'));if(!cats.length)return;
+ const monsters=lifeMode==='all'&&gameMode!=='survival',nightRoom=monsters&&night&&cnt.monster<cap*LIFE_SHARE.monster*.5;
+ if(total>=cap&&!nightRoom)return;
+ const cats=total>=cap?['monster']:['land','water','bird','monster'].filter(k=>cnt[k]<cap*LIFE_SHARE[k]&&(k!=='monster'||monsters));if(!cats.length)return;
  const cat=cats[Math.floor(Math.random()*cats.length)],R=Math.min(90,Math.max(30,readyR*CHUNK));
  for(let a=0;a<4;a++){const ang=Math.random()*6.283,d=24+Math.random()*(R-24),X=Math.floor(focus.x+Math.sin(ang)*d),Z=Math.floor(focus.z+Math.cos(ang)*d);
   if(X<4||Z<4||X>W-5||Z>W-5)continue;const cx=X>>4,cz=Z>>4;if(Math.max(Math.abs(cx-centerCX),Math.abs(cz-centerCZ))>readyR||!chunks.has(cx+','+cz))continue;
@@ -2631,7 +2694,8 @@ function lifeSpawnTick(focus,night){
 function lifeCull(focus,night){const cap=lifeCap(),far=Math.max(80,readyR*CHUNK+40);let nat=0;
  for(let i=life.length-1;i>=0;i--){const c=life[i];if(c.manual)continue;nat++;
   const loaded=peek(Math.floor(c.x),1,Math.floor(c.z))>=0,d=Math.hypot(c.x-focus.x,c.z-focus.z);
-  if(!loaded||d>far){lifeRemove(c,false);nat--;continue}
+  if(!loaded||d>far||(c.sp.hostile&&gameMode==='survival'&&d>64&&!c.seen)){lifeRemove(c,false);nat--;continue}
+  if(gameMode==='survival'&&c.sp.cat==='monster'&&!c.sp.hostile&&c.vanish<0)c.vanish=Math.random()*3;
   if(c.vanish<0&&(lifeMode==='off'||(c.sp.cat==='monster'&&(lifeMode!=='all'||(!night&&!(c.sp.hab.dark&&covered(Math.floor(c.x),Math.floor(c.y),Math.floor(c.z))))))))c.vanish=Math.random()*(lifeMode==='off'?2:14)}
  if(nat>cap+6){let worst=null,wd=0;for(const c of life)if(!c.manual&&!c.seen){const d=Math.hypot(c.x-focus.x,c.z-focus.z);if(d>wd){wd=d;worst=c}}if(worst)lifeRemove(worst,false)}}
 // ---- Behaviour. Each step gets the time since its last update; distant creatures update less often.
@@ -2640,7 +2704,7 @@ function standAt(c,x,z){const sp=c.sp,g=groundAt(x,z,c.y+1.1,sp.climb?3.2:2.2);i
  if(sp.cat!=='bird'&&peek(X,g,Z)===10)return null;const hh=Math.max(1,Math.ceil(sp.h*c.size-.05));for(let k=0;k<hh;k++){const t=peek(X,g+k,Z);if(t<0||(t&&t!==10))return null}return g}
 function lifeWalk(c,dt){const sp=c.sp;c.yaw+=angTo(c.yaw,c.want)*Math.min(1,dt*(c.mode==='flee'?6:3.5));if(c.speed<.02){c.speed=0;return}
  const s=c.speed*dt,sx=Math.sin(c.yaw),sz=Math.cos(c.yaw),nx=c.x+sx*s,nz=c.z+sz*s,pr=sp.r*c.size+.12;
- const ga=standAt(c,c.x+sx*(pr+s),c.z+sz*(pr+s)),gn=ga===null?null:standAt(c,nx,nz);
+ const ga=standAt(c,c.x+sx*(pr+s),c.z+sz*(pr+s)),gn=ga===null||intoSafe(c,nx,nz)?null:standAt(c,nx,nz);
  if(ga===null||gn===null){c.speed=0;c.stuck+=1;c.want=c.yaw+(Math.random()<.5?-1:1)*(1+Math.random()*1.6);c.detour=1+Math.random();
   if(c.stuck>5){c.stuck=0;c.mode='idle';c.timer=.8+Math.random()*1.5}return}
  c.x=nx;c.z=nz;c.stuck=Math.max(0,c.stuck-dt*2);c.ph+=s*6.2832/(sp.stride||(.9*sp.sc*c.size*(sp.h>1.2?1.4:1)));
@@ -2653,13 +2717,15 @@ function lifeLook(c,dt,dx,dy,dz,dist){let ty=0,tp=0;if(dist<11){ty=Math.max(-1.1
  else if(c.mode==='idle'){ty=Math.sin(c.t*.7+c.id)*.7*Math.max(0,Math.sin(c.t*.31+c.id*2))}
  c.hy+=(ty-c.hy)*Math.min(1,dt*4);c.hp+=(tp-c.hp)*Math.min(1,dt*4)}
 function lifeLand(c,dt,dx,dy,dz,dist,looked){const sp=c.sp,run=sp.run*(.9+c.size*.1),walk=sp.sp;c.timer-=dt;if(c.detour>0)c.detour-=dt;
- const near=Math.abs(dy)<6,plMoving=lifePlayerMoving;
+ const near=Math.abs(dy)<6,plMoving=lifePlayerMoving,hostile=sp.hostile&&gameMode==='survival'&&!paused&&!dead;
  let target=0;
+ // Survival: zombies, skeletons and slimes hunt the player while they can see them (hostileThink); otherwise they wander like the rest.
+ if(hostile&&hostileThink(c,dt,dx,dy,dz,dist)){}else{
  // Animals that startle easily run off; grazers just step aside.
  if(sp.flee&&dist<sp.flee&&near&&(plMoving||dist<sp.flee*.55)&&c.mode!=='flee'){c.mode='flee';c.timer=2.2+Math.random()*1.8;c.want=Math.atan2(-dx,-dz)+(Math.random()-.5)*.8;if(c.sp.move==='hop')c.hopT=0}
  if(!sp.flee&&sp.cat==='land'&&dist<2.2&&near&&c.mode!=='flee'){c.mode='flee';c.timer=1.2;c.want=Math.atan2(-dx,-dz)}
  // Monsters.
- if(sp.cat==='monster'&&c.cool<=0&&near){
+ if(sp.cat==='monster'&&c.cool<=0&&near&&!hostile){
   if(sp.chase&&dist<16&&c.mode!=='back'&&c.mode!=='fuse'&&c.mode!=='rear'){if(c.mode!=='chase'){c.mode='chase';c.chaseT=0}}
   if(sp.keep&&dist<18&&c.mode!=='back'){c.mode=dist<6.5?'back':'stare';if(c.mode==='back')c.timer=2}
   if(sp.stalk&&dist<22)c.mode=looked?'freeze':'chase'}
@@ -2687,11 +2753,11 @@ function lifeLand(c,dt,dx,dy,dz,dist,looked){const sp=c.sp,run=sp.run*(.9+c.size
    const a=Math.random()*6.283,d=(ax===c.x?4+Math.random()*8:Math.random()*3);c.tx=ax+Math.sin(a)*d;c.tz=az+Math.cos(a)*d;c.mode='walk';c.timer=8}
   else if(r<.78&&sp.graze){c.mode='graze';c.timer=3+Math.random()*4}
   else{c.mode='idle';c.timer=1.5+Math.random()*3}}
- if(c.mode==='graze'){c.speed=0;if(c.timer<=0){c.mode='idle';c.timer=.5}}
- // Hoppers move in bounds: a short jump, then a pause.
+ if(c.mode==='graze'){c.speed=0;if(c.timer<=0){c.mode='idle';c.timer=.5}}}
+ // Hoppers move in bounds: a short jump, then a pause (shorter while a slime is hunting).
  if(sp.move==='hop'){c.hopT=(c.hopT||0)-dt;const want=c.speed;c.speed=c.ground?0:c.hopV||0;
-  if(want>0&&c.ground&&c.hopT<=0){c.vy=sp.id==='slime'?5.2+c.size:4.2;c.hopV=want*1.2;c.ground=false;c.hopT=sp.id==='slime'?.6+Math.random()*.9:.12+Math.random()*.25;c.sq=-.25;if(sp.id==='slime')lifeVoice(c,'squish',.5)}}
- lifeWalk(c,dt);lifeGravity(c,dt)}
+  if(want>0&&c.ground&&c.hopT<=0){c.vy=sp.id==='slime'?5.2+c.size:4.2;c.hopV=want*1.2;c.ground=false;c.hopT=sp.id==='slime'?(c.mode==='hunt'?.3+Math.random()*.3:.6+Math.random()*.9):.12+Math.random()*.25;c.sq=-.25;if(sp.id==='slime')lifeVoice(c,'squish',.5)}}
+ lifeKnock(c,dt);lifeWalk(c,dt);lifeGravity(c,dt)}
 function lifeSwim(c,dt,dx,dy,dz,dist){const sp=c.sp,X=Math.floor(c.x),Y=Math.floor(c.y),Z=Math.floor(c.z),wet=peek(X,Y,Z)===10;c.timer-=dt;
  if(c.leap){c.vy-=14*dt;c.x+=c.vx*dt;c.z+=c.vz*dt;c.y+=c.vy*dt;c.pitch=Math.atan2(c.vy,Math.hypot(c.vx,c.vz));
   if(c.vy<0&&c.y<SEA+.3&&wet){c.leap=false;c.vy=0;for(let k=0;k<2;k++)burst(c.x,SEA+1,c.z,'#dff4ff');lifeVoice(c,'splash',.6)}return}
@@ -2790,8 +2856,8 @@ function lifePose(c){c.poseVersion++;const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=s
   case'hop':{const air=!c.ground;bRX('fl',air?-.9:0);bRX('fr',air?-.9:0);bRX('bl',air?.9:0);bRX('br',air?.9:0);bRX('body',air?-.25:0);bRX('head',c.hp+(air?.2:0));bRY('head',c.hy);
    bRX('el',Math.sin(t*1.3+c.id)>.92?.5:-.1);bRX('er',Math.sin(t*1.1+c.id*3)>.92?.5:-.1);bRX('tail',Math.sin(t*3)*.12+(air?-.4:0));if(!air)bOY('body',Math.sin(t*9)*.08);break}
   case'biped':{const z=sp.id==='zombie',a=s*.55*gw;bRX('ll',a);bRX('lr',-a);bRZ('body',s*.04*gw);
-   if(z){bRX('al',-1.35+Math.sin(t*1.7)*.08+a*.2);bRX('ar',-1.25+Math.sin(t*1.9+1)*.08-a*.2);bRZ('al',-.08);bRZ('ar',.1);bRX('body',.13);bRZ('head',Math.sin(t*.6)*.16);bRZ('body',Math.sin(t*.8)*.04)}
-   else{bRX('al',-a*.9);bRX('ar',-.55+Math.sin(t*2)*.05);bRX('jaw',c.talk>0?.25+Math.sin(t*28)*.25:.04)}
+   if(z){const w=c.mode==='windup'?-1.05:c.mode==='recover'&&c.timer>.75?.75:0;bRX('al',-1.35+Math.sin(t*1.7)*.08+a*.2+w);bRX('ar',-1.25+Math.sin(t*1.9+1)*.08-a*.2+w);bRZ('al',-.08);bRZ('ar',.1);bRX('body',.13+(w<0?-.2:w>0?.15:0));bRZ('head',Math.sin(t*.6)*.16);bRZ('body',Math.sin(t*.8)*.04)}
+   else{const aim=c.mode==='aim';bRX('al',aim?-1.5:-a*.9);if(aim)bRY('al',.25);bRX('ar',-.55+Math.sin(t*2)*.05);bRX('jaw',c.talk>0?.25+Math.sin(t*28)*.25:.04)}
    bRX('head',c.hp);bRY('head',c.hy);break}
   case'bird':{if(c.air){const f=c.flap?Math.sin(t*(sp.soar?7:sp.id==='chicken'?20:22))*(sp.soar?.75:.95):-.08+Math.sin(t*1.3)*.04;bRZ('wl',f);bRZ('wr',-f);bRX('legl',1.1);bRX('legr',1.1);bRX('tail',-c.pitch*.4)}
    else if(sp.move==='fly'){bRY('wl',-1.45);bRY('wr',1.45);bRZ('wl',-.25);bRZ('wr',.25);bOY('wl',-1);bOY('wr',-1);bRX('head',c.peck>0?.8*Math.abs(Math.sin(c.peck*12)):0);bRY('head',Math.sin(t*1.7+c.id)*.6)}
@@ -2828,7 +2894,7 @@ function drawLife(cam,F,env,fog,aspect,near,far){lifeF=F;lifeDrawn=0;fishDrawn=0
  const sharedIndices=lifeModel.n/36<=MAXQ;if(sharedIndices)bind(lifeBuffer);
  for(const c of life){c.seen=false;if(c.dormant)continue;const sp=c.sp,d=Math.hypot(c.x-cam.x,c.y-cam.y,c.z-cam.z);if(d>R)continue;const rr=sp.rad*c.size+.3;
   if(!sphereVisible(F,c.x,c.y+sp.top*c.size*.5,c.z,rr))continue;c.seen=true;lifeDrawn++;
-  const poseInterval=d<45?0:d<70?1/30:1/20;if(c.t-c.poseAt>=poseInterval||c.t<c.poseAt){lifePose(c);c.poseAt=c.t}lifeMatrices(c,cam);gl.uniform4fv(lifeU.B,c.Mv);gl.uniform4f(lifeU.cL,c.sky,c.flash,glow,0);
+  const poseInterval=d<45?0:d<70?1/30:1/20;if(c.t-c.poseAt>=poseInterval||c.t<c.poseAt){lifePose(c);c.poseAt=c.t}lifeMatrices(c,cam);gl.uniform4fv(lifeU.B,c.Mv);gl.uniform4f(lifeU.cL,c.sky,c.hurtF>0?-c.hurtF:c.flash,glow,0);
   if(!sharedIndices&&bound!==sp.i){bind(lifeBuffer,sp.q0*144);bound=sp.i}perfDraw();gl.drawElements(gl.TRIANGLES,sp.nq*6,gl.UNSIGNED_SHORT,sharedIndices?sp.q0*12:0)}
  drawFish(cam,F);gl.disable(gl.BLEND)}
 // ---- Fish behaviour. Where schools live is a pure function of (seed, terrain): each FISH_CELL square near the player may hold
@@ -3003,8 +3069,10 @@ function buildEggPanel(){if(eggBuilt)return;const stamp=perfEnabled?performance.
  for(const g of LIFE_GROUPS){const hd=document.createElement('div');hd.className='egg-head';hd.textContent=g;grid.appendChild(hd);
   for(const sp of LIFE_SPECIES.filter(s=>s.group===g)){const b=document.createElement('button');b.className='egg';b.setAttribute('data-sp',sp.i);const slot=document.createElement('span');slot.className='egg-icon-slot';b.appendChild(slot);eggIconQueue.push({sp,slot});const s=document.createElement('span');s.textContent=sp.name;b.appendChild(s);
    b.onclick=()=>{eggSp=sp.i;refresh();play();toast(`${sp.name}：置きたい場所をタップ（または「置く」）`)};grid.appendChild(b)}}if(perfEnabled)perfSample('eggPanel',performance.now()-stamp)}
-function lifeModeText(){return'生き物：'+(lifeMode==='all'?'すべて':lifeMode==='animals'?'動物だけ':'自然発生OFF')}
-function setLifeMode(m){lifeMode=m;dirty=true;$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText()}
+function lifeModeText(){return'生き物：'+(lifeMode==='all'?'すべて':lifeMode==='animals'?'動物だけ':'自然発生OFF')+(monsterNotice()?' ⚠敵なし':'')}
+function setLifeMode(m){lifeMode=m;dirty=true;$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();if(gameMode==='survival'&&!paused)toast(monsterNotice()||'モンスターが出るようになった（夜に注意）')}
+// Survival needs 「生き物：すべて」 for monsters. A setting the player chose is respected, never changed silently; it is explained instead.
+function monsterNotice(){return gameMode==='survival'&&lifeMode!=='all'?`⚠ 生き物が「${lifeMode==='off'?'自然発生OFF':'動物だけ'}」なのでモンスターは出ないよ。メニューの「生き物」を「すべて」にしてね`:''}
 function openEggs(){if(photoMode)return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();buildEggPanel();
  $('lifeMode').textContent=lifeModeText();$('voices').textContent='鳴き声：'+(lifeVoices?'ON':'OFF');$('eggCount').textContent=`置いた生き物 ${life.filter(c=>c.manual).length} / ${MANUAL_MAX}`;$('eggs').classList.remove('hidden');scheduleEggIcons()}
 const eggIcons=new Map();let eggChipSpecies=-2;
@@ -3014,6 +3082,190 @@ const cycleLife=()=>setLifeMode(lifeMode==='all'?'animals':lifeMode==='animals'?
 $('lifeBtn').onclick=openEggs;$('eggChip').onclick=openEggs;$('closeEggs').onclick=play;$('lifeMenu').onclick=cycleLife;$('lifeMode').onclick=cycleLife;$('lifeMenu').textContent=lifeModeText();
 $('voices').onclick=()=>{lifeVoices=!lifeVoices;try{localStorage.setItem(VOICE_KEY,lifeVoices?'1':'0')}catch(e){}$('voices').textContent='鳴き声：'+(lifeVoices?'ON':'OFF')};
 $('clearEggs').onclick=()=>{const m=life.filter(c=>c.manual);if(!m.length){toast('置いた生き物はいないよ');return}if(!confirm(`置いた生き物${m.length}匹を帰しますか？`))return;for(const c of m)lifeRemove(c,true);dirty=true;$('eggCount').textContent=`置いた生き物 0 / ${MANUAL_MAX}`};
+// ---- SURVIVAL (Phase 1): hearts, swords, three hostile monsters, arrows, death and respawn. Creative and peaceful never take damage.
+// Monsters reuse the creature runtime above (models, walking, gravity, culling); only their decisions change while survival is on.
+// Swords: the best one owned is always in hand (no item switching for small players). The iron sword is ready for when iron exists.
+const SWORDS={woodSword:{name:'木の剣',dmg:4,reach:3.6,cd:.45,blade:'#c79a5e',edge:'#a57a45',need:{7:3}},
+ stoneSword:{name:'石の剣',dmg:6,reach:3.8,cd:.45,blade:'#a3abad',edge:'#7d8789',need:{3:3,7:1}},
+ ironSword:{name:'鉄の剣',dmg:8,reach:4,cd:.42,blade:'#e6ebee',edge:'#b9c3c8',need:null}},FIST={name:'素手',dmg:1,reach:3.2,cd:.4};
+const LEAF_IDS=[5,14,15,16],APPLE_HEAL=6,SAFE_R=24,HOSTILE_CAP={low:2,standard:4,high:5},ACTIVE_R=32,ARROW_G=14,ARROW_MAX=12;
+// hp, damage, sight (blocks), wind-up before the hit (the readable tell), cooldown after it. Damage is eased until three monsters fall.
+const HOSTILE={zombie:{hp:12,dmg:3,reach:1.7,sight:16,windup:.55,cool:1.2},skeleton:{hp:10,dmg:2,sight:18,windup:.8,cool:2.6,near:5,far:11},slime:{hp:0,dmg:2,reach:3.2,sight:14,windup:.5,cool:1.4}};
+for(const id in HOSTILE)LIFE_BY_ID[id].hostile=HOSTILE[id];
+const HOSTILE_MODES=new Set(['hunt','windup','recover','aim','pounce']);
+const arrows=[];
+function weapon(){return items.ironSword>0?SWORDS.ironSword:items.stoneSword>0?SWORDS.stoneSword:items.woodSword>0?SWORDS.woodSword:FIST}
+function monsterMaxHP(c){const h=c.sp.hostile;return h?h.hp||Math.round(3+c.size*4):8}
+function viewDir(){return[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]}
+// Clear line between the monster's eyes and the player's chest: rock, wood, leaves and glass all block it (no hits through walls).
+function canSee(c,tx=player.x,ty=player.y+1.4,tz=player.z){const ex=c.x,ey=c.y+c.sp.top*c.size*.8,ez=c.z,dx=tx-ex,dy=ty-ey,dz=tz-ez,n=Math.ceil(Math.hypot(dx,dy,dz)/.3);
+ for(let i=1;i<n;i++){const k=i/n,t=peek(Math.floor(ex+dx*k),Math.floor(ey+dy*k),Math.floor(ez+dz*k));if(t<0||(t>0&&t!==10))return false}return true}
+// ---- Hostile decisions. Returns false while the monster is not engaged (too far, or it has not seen the player for a few seconds).
+// The start area is a sanctuary: survival monsters never walk into it and leave a player alone while they stand inside it.
+const inSafe=(x,z)=>Math.hypot(x-homeX,z-homeZ)<SAFE_R;
+function intoSafe(c,x,z){return!!c.sp.hostile&&gameMode==='survival'&&inSafe(x,z)&&Math.hypot(x-homeX,z-homeZ)<Math.hypot(c.x-homeX,c.z-homeZ)}
+function hostileThink(c,dt,dx,dy,dz,dist){const sp=c.sp,h=sp.hostile;c.atkCD-=dt;if(inSafe(player.x,player.z))c.aggro=0;
+ if((c.losT-=dt)<=0){c.losT=.22+Math.random()*.1;c.los=dist<h.sight+6&&Math.abs(dy)<10&&canSee(c)}
+ if(c.los&&dist<h.sight&&Math.abs(dy)<8&&!inSafe(player.x,player.z))c.aggro=4;else c.aggro-=dt;
+ if(c.aggro<=0||dist>ACTIVE_R){if(HOSTILE_MODES.has(c.mode)){c.mode='idle';c.timer=.6+Math.random()}return false}
+ const face=Math.atan2(dx,dz),close=Math.abs(dy)<1.7;
+ if(sp.id==='zombie'){
+  if(c.mode==='windup'){c.speed=0;c.want=face;if(c.timer<=0){if(dist<h.reach+.6&&close&&canSee(c))hurtPlayer(h.dmg,c);c.mode='recover';c.timer=1;c.atkCD=h.cool;c.flash=0}}
+  else if(c.mode==='recover'){c.speed=0;c.want=face;if(c.timer<=0)c.mode='hunt'}
+  else{c.mode='hunt';if(c.detour<=0)c.want=face;c.speed=dist>h.reach*.75?sp.run:0;
+   if(dist<h.reach&&close&&c.los&&c.atkCD<=0){c.mode='windup';c.timer=h.windup;lifeVoice(c,'groan',.8)}}}
+ else if(sp.id==='skeleton'){
+  if(c.mode==='aim'){c.speed=0;c.want=face;if(c.timer<=0){c.flash=0;if(canSee(c))shootArrow(c,h.dmg);c.mode='hunt';c.atkCD=h.cool+Math.random()*.8}}
+  else{c.mode='hunt';if((c.side_t=(c.side_t||0)-dt)<=0){c.side_t=1.5+Math.random()*2;c.side=-c.side}
+   // Keep a shooting distance: back off when crowded, close in when far or out of sight, otherwise sidestep.
+   if(dist<h.near){c.want=Math.atan2(-dx,-dz);c.speed=sp.sp}
+   else if(dist>h.far||!c.los){if(c.detour<=0)c.want=face;c.speed=sp.run}
+   else{c.want=face+c.side*1.3;c.speed=sp.sp*.55}
+   if(c.los&&dist>2.5&&dist<h.sight&&c.atkCD<=0){c.mode='aim';c.timer=h.windup;c.talk=.3;sfx('draw',c)}}}
+ else{// slime: hop closer, crouch (the tell), then a lunge that bumps the player once.
+  if(c.mode==='windup'){c.speed=0;c.want=face;c.sq=.32+Math.sin(c.t*30)*.05;
+   if(c.timer<=0&&c.ground){c.yaw=c.want=face;c.vy=5.4;c.hopV=Math.min(6.5,dist*1.9+1.2);c.speed=c.hopV;c.ground=false;c.hopT=1;c.mode='pounce';c.timer=1.4;c.hitDone=false;c.flash=0;lifeVoice(c,'squish',.8)}}
+  else if(c.mode==='pounce'){c.want=c.yaw;
+   if(!c.hitDone&&Math.hypot(dx,dz)<sp.r*c.size+.75&&dy>-1.4-c.size*.4&&dy<1.2){c.hitDone=true;hurtPlayer(c.size>1.2?3:h.dmg,c)}
+   if(c.ground&&c.timer<1.2){c.mode='recover';c.timer=.8;c.atkCD=h.cool;c.sq=.35}}
+  else if(c.mode==='recover'){c.speed=0;if(c.timer<=0)c.mode='hunt'}
+  else{c.mode='hunt';if(c.detour<=0)c.want=face;c.speed=sp.run;
+   if(dist<h.reach&&close&&c.los&&c.atkCD<=0&&c.ground){c.mode='windup';c.timer=h.windup}}}
+ // The tell: the monster pulses white while it winds up or draws its bow.
+ if(c.mode==='windup'||c.mode==='aim')c.flash=.2+.22*Math.max(0,Math.sin(c.t*22));
+ // A short stagger while knocked back.
+ if(Math.abs(c.kbx)+Math.abs(c.kbz)>1.2)c.speed=0;
+ return true}
+// Knocked-back monsters slide only where they could walk (never into walls or off cliffs).
+function lifeKnock(c,dt){if(!c.kbx&&!c.kbz)return;const nx=c.x+c.kbx*dt,nz=c.z+c.kbz*dt;if(!intoSafe(c,nx,nz)&&standAt(c,nx,nz)!==null){c.x=nx;c.z=nz}else c.kbx=c.kbz=0;
+ const k=Math.max(0,1-dt*6);c.kbx*=k;c.kbz*=k;if(Math.abs(c.kbx)+Math.abs(c.kbz)<.1)c.kbx=c.kbz=0}
+// ---- Arrows: real projectiles with gravity, stopped by terrain, dodgeable (about 15 blocks/s after a visible draw).
+function shootArrow(c,dmg){if(arrows.length>=ARROW_MAX)arrows.shift();const f=Math.sin(c.yaw),g=Math.cos(c.yaw),sx=c.x+f*.45,sy=c.y+1.45*c.size,sz=c.z+g*.45;
+ const tx=player.x-sx,tz=player.z-sz,dh=Math.max(.5,Math.hypot(tx,tz)),spd=15,t=dh/spd,ty=player.y+1.1-sy,err=(Math.random()-.5)*.08;
+ const a=Math.atan2(tx,tz)+err;arrows.push({x:sx,y:sy,z:sz,vx:Math.sin(a)*spd,vy:ty/t+.5*ARROW_G*t,vz:Math.cos(a)*spd,life:5,stuck:false,dmg});sfx('shoot',c)}
+function updateArrows(dt){for(let i=arrows.length-1;i>=0;i--){const a=arrows[i];a.life-=dt;if(a.life<=0){arrows.splice(i,1);continue}if(a.stuck)continue;
+ a.vy-=ARROW_G*dt;const n=Math.max(1,Math.ceil(Math.hypot(a.vx,a.vy,a.vz)*dt/.2));let gone=false;
+ for(let s=0;s<n;s++){a.x+=a.vx*dt/n;a.y+=a.vy*dt/n;a.z+=a.vz*dt/n;const t=peek(Math.floor(a.x),Math.floor(a.y),Math.floor(a.z));
+  if(t<0||(t>0&&t!==10)){a.stuck=true;a.life=Math.min(a.life,1.5);sfx('thunk',a);break}
+  if(Math.abs(a.x-player.x)<.45&&Math.abs(a.z-player.z)<.45&&a.y>player.y&&a.y<player.y+1.85){hurtPlayer(a.dmg,a);gone=true;break}}
+ if(gone)arrows.splice(i,1)}}
+// ---- Player attacks. The attack button always swings; 壊す / left click hits a monster under the crosshair instead of mining behind it.
+function attackTarget(d,reach){const h=ray(d,reach),maxD=h?h.dist:reach,o=[player.x,player.y+1.62,player.z];let best=null,bt=maxD;
+ for(const c of life){if(c.dormant||c.vanish>=0||c.sp.cat!=='monster')continue;const r=Math.max(.55,c.sp.r*c.size+.35),top=c.sp.top*c.size;
+  // Closest approach of the view ray to the monster's vertical body segment.
+  const cx=c.x-o[0],cz=c.z-o[2],hh=d[0]*d[0]+d[2]*d[2],raw=hh>1e-4?(cx*d[0]+cz*d[2])/hh:0;if(raw<-r||raw>bt)continue;
+  const t=Math.max(0,raw),px=o[0]+d[0]*t-c.x,pz=o[2]+d[2]*t-c.z,py=o[1]+d[1]*t;if(px*px+pz*pz<r*r&&py>c.y-.2&&py<c.y+top+.2){bt=Math.max(t,.01);best=c}}
+ if(best)return best;
+ // Small aim assist for touch screens: the nearest monster within arm's length in front, if nothing is in the way.
+ let near=null,nd=Math.min(2.6,reach);for(const c of life){if(c.dormant||c.vanish>=0||c.sp.cat!=='monster')continue;const ex=c.x-player.x,ez=c.z-player.z,dd=Math.hypot(ex,ez);
+  if(dd<nd&&Math.abs(c.y-player.y)<2&&(ex*d[0]+ez*d[2])/Math.max(.01,dd*Math.hypot(d[0],d[2]))>.75&&canSee(c,o[0],o[1],o[2])){nd=dd;near=c}}return near}
+function strike(button){if(paused||photoMode||dead||gameMode!=='survival')return false;const w=weapon(),c=attackTarget(viewDir(),w.reach);
+ if(!c&&!button)return false;if(atkCD>0)return true;atkCD=w.cd;swing=1;if(!c){sfx('swing');return true}
+ if(!(c.mhp>0))c.mhp=monsterMaxHP(c);c.mhp-=w.dmg;c.hurtF=1;c.barT=4;c.aggro=6;c.los=true;sfx('hit',c);
+ const ex=c.x-player.x,ez=c.z-player.z,el=Math.hypot(ex,ez)||1;c.kbx=ex/el*8;c.kbz=ez/el*8;if(c.ground){c.vy=Math.max(c.vy,3.2);c.ground=false}
+ // A hit interrupts a wind-up: hitting first is always rewarded.
+ if(c.mode==='windup'||c.mode==='aim'){c.mode='recover';c.timer=.6;c.atkCD=Math.max(c.atkCD,.9);c.flash=0}
+ burst(c.x,c.y+c.sp.top*c.size*.6,c.z,'#ffffff');
+ if(c.mhp<=0)defeatMonster(c);return true}
+function defeatMonster(c){const y=c.y+c.sp.top*c.size*.5;for(let k=0;k<(qualityName==='low'?2:4);k++)burst(c.x,y,c.z,k%2?'#ffe27a':c.sp.main);lifeRemove(c,true);sfx('defeat');defeated++;dirty=true;
+ let msg=`${c.sp.name}をたおした！ ✨`;if(defeated===1)msg='はじめてモンスターをたおした！ 🎉';
+ if(Math.random()<.3){items.apple++;msg+=' 🍎りんごを手に入れた'}toast(msg);refresh()}
+// ---- Health.
+function hurtPlayer(n,src){if(gameMode!=='survival'||dead||paused||photoMode||bench||invulT>0||protectT>0||inSafe(player.x,player.z))return false;
+ n=Math.max(1,Math.round(n*(defeated<3?.67:1)));health=Math.max(0,health-n);invulT=.8;sinceHurt=0;regenT=0;hurtGlow=1;camKick=-.05;dirty=true;
+ const ex=player.x-src.x,ez=player.z-src.z,el=Math.hypot(ex,ez)||1;kbx=ex/el*7;kbz=ez/el*7;if(ground){vy=Math.max(vy,4.5);ground=false}
+ sfx('hurt');survivalUI();if(health<=0)die();return true}
+function die(){dead=true;paused=true;clearInput();rememberPlaying(false);document.exitPointerLock?.();kbx=kbz=0;arrows.length=0;
+ $('craft').classList.add('hidden');$('eggs').classList.add('hidden');$('death').classList.remove('hidden');sfx('down');save()}
+function respawn(){dead=false;health=MAX_HP;invulT=0;protectT=5;sinceHurt=99;hurtGlow=0;arrows.length=0;flying=false;spawn();
+ for(let i=life.length-1;i>=0;i--){const c=life[i];if(!c.sp.hostile)continue;if(!c.manual&&Math.hypot(c.x-player.x,c.z-player.z)<20)lifeRemove(c,true);else{c.aggro=0;if(HOSTILE_MODES.has(c.mode))c.mode='idle'}}
+ $('death').classList.add('hidden');streamChunks(true);dirty=true;save();play();sfx('revive');toast('復活した！ しばらく守られているよ ✨')}
+function eat(){if(paused||photoMode||dead||gameMode!=='survival')return false;if(items.apple<=0){toast('りんごがないよ。葉っぱ4つでクラフトできる');return false}
+ if(health>=MAX_HP){toast('♥はまんたんだよ');return false}items.apple--;health=Math.min(MAX_HP,health+APPLE_HEAL);dirty=true;sfx('eat');toast('りんごを食べた ♥+3');refresh();return true}
+// ---- Crafting (survival recipes; the block recipes stay where they were).
+function craftItem(id){const r=id==='apple'?null:SWORDS[id];
+ if(id==='apple'){let have=0;for(const t of LEAF_IDS)have+=inventory[t]||0;if(have<4){toast('葉っぱが足りないよ（4つ必要）');return false}
+  let need=4;for(const t of LEAF_IDS){const k=Math.min(need,inventory[t]||0);if(k>0){inventory[t]-=k;need-=k}}items.apple++;dirty=true;sfx('craft');toast('りんごをつくった 🍎');refresh();return true}
+ if(!r||!r.need)return false;if(items[id]>0){toast(r.name+'はもう持っているよ');return false}
+ const miss=Object.entries(r.need).filter(([t,n])=>(inventory[t]||0)<n);
+ if(miss.length){toast('材料が足りないよ：'+miss.map(([t,n])=>defs[t][0]+' '+n).join('・')+(r.need[7]&&!(inventory[7]>=r.need[7])?'（原木→木材をクラフト）':''));return false}
+ for(const [t,n] of Object.entries(r.need))inventory[t]-=n;items[id]=1;dirty=true;sfx('craft');toast(r.name+'をつくった！ そうびしたよ ⚔');refresh();return true}
+$('craftWoodSword').onclick=()=>craftItem('woodSword');$('craftStoneSword').onclick=()=>craftItem('stoneSword');$('craftApple').onclick=()=>craftItem('apple');
+$('eat').onclick=()=>eat();$('respawn').onclick=()=>respawn();
+// ---- Modes: switching is always safe (from the title menu). Entering survival lands the player and grants a short shield.
+function setGameMode(m){if(!GAME_MODES.includes(m))return;const was=gameMode;gameMode=m;creative=m==='creative';dirty=true;
+ if(m==='survival'){if(flying){flying=false;vy=0}if(was!=='survival'){if(health<=0)health=MAX_HP;protectT=Math.max(protectT,3);if(monsterNotice())toast(monsterNotice())}}
+ if(m!=='survival'){arrows.length=0;invulT=0;kbx=kbz=0;for(const c of life)if(HOSTILE_MODES.has(c.mode)){c.mode='idle';c.timer=1;c.flash=0}}
+ refresh()}
+function openModePick(){for(const [id,m] of [['pickSurvival','survival'],['pickPeaceful','peaceful'],['pickCreative','creative']])$(id).classList.toggle('current',m===gameMode);$('modePick').classList.remove('hidden')}
+function pickMode(m){const fresh=!saved&&!modeChosen;modeChosen=true;setGameMode(m);
+ if(fresh&&m==='survival'){dayTime=.52;if(lifeMode!=='all')setLifeMode('all')}$('modePick').classList.add('hidden');play()}
+$('pickSurvival').onclick=()=>pickMode('survival');$('pickPeaceful').onclick=()=>pickMode('peaceful');$('pickCreative').onclick=()=>pickMode('creative');$('closeModePick').onclick=()=>$('modePick').classList.add('hidden');
+// ---- Natural hostile spawning (survival only): after dark or underground, a few at a time, out of sight, never near the start point.
+function hostilePick(hab){const w=hab==='cave'?{skeleton:1,slime:1}:hab==='forest'?{zombie:3,skeleton:1.5,slime:.4}:hab==='meadow'?{zombie:3,skeleton:1.3,slime:1.6}:{zombie:2.5,skeleton:1.5,slime:.5};
+ let r=Math.random()*Object.values(w).reduce((a,b)=>a+b,0);for(const id in w)if((r-=w[id])<=0)return LIFE_BY_ID[id];return LIFE_BY_ID.zombie}
+function hostileSpawnTick(){if(lifeMode!=='all'||readyR<1)return false;const under=CAVES&&caveUnder;if(!isNight()&&!under)return false;
+ let n=0;for(const c of life)if(c.sp.hostile&&!c.manual&&c.vanish<0)n++;
+ // Ramp: one monster ~8 s after dark, then one more every 20 s up to the quality cap (fewer when the frame rate drops),
+ // and never more than two at once until the player has won three fights.
+ const cap=Math.min(defeated<3?2:9,Math.max(1,Math.round(HOSTILE_CAP[qualityName]*Math.min(1,lifeScale+.15)))),allow=Math.min(cap,1+Math.floor(Math.max(0,darkT-8)/20));if(darkT<8||n>=allow)return false;
+ pkX=1e9;
+ for(let a=0;a<8;a++){const ang=Math.random()*6.283,d=18+Math.random()*22,X=Math.floor(player.x+Math.sin(ang)*d),Z=Math.floor(player.z+Math.cos(ang)*d);
+  if(X<4||Z<4||X>W-5||Z>W-5||Math.hypot(X+.5-homeX,Z+.5-homeZ)<SAFE_R)continue;let gy,hab;
+  if(under){const Y=Math.floor(player.y+(Math.random()-.5)*10);if(peek(X,Y,Z)<0)continue;let y=Y;while(y>Math.max(3,Y-12)&&peek(X,y,Z)===0)y--;const f=peek(X,y,Z);if(f<=0||f===10)continue;gy=y+1;hab='cave'}
+  else{const col=lifeColumn(X,Z);if(!col||col.water||col.g<=SEA||Math.abs(col.g-player.y)>14)continue;gy=col.g;hab=lifeHabitat(X,Z,col)}
+  if(peek(X,gy,Z)!==0||peek(X,gy+1,Z)!==0||(under&&peek(X,gy+2,Z)!==0))continue;
+  if(lifeF&&d<40&&sphereVisible(lifeF,X+.5,gy+1,Z+.5,2.5))continue;
+  const sp=hostilePick(hab),c=lifeNew(sp,X+.5,gy,Z+.5,false);c.hx=X+.5;c.hz=Z+.5;c.timer=.5+Math.random();return true}
+ return false}
+// ---- Per-frame survival bookkeeping (cheap: timers, at most a dozen arrows and a few hostile monsters).
+let heartsKey='',hurtFxOpacity=-1,guideStep=0,guideUntil=0,guideSince=0,guideShown='';try{guideStep=+localStorage.getItem('jocraft2-guide')||0}catch(e){}
+function updateSurvival(dt){atkCD=Math.max(0,atkCD-dt);invulT=Math.max(0,invulT-dt);camKick*=Math.max(0,1-dt*9);
+ for(const c of life){if(c.hurtF>0)c.hurtF=Math.max(0,c.hurtF-dt*4);if(c.barT>0)c.barT-=dt}
+ updateArrows(dt);
+ const surv=gameMode==='survival';hurtGlow=Math.max(0,hurtGlow-dt*1.8);const low=surv&&health<=6?.22+.12*Math.sin(time*5):0,op=+(Math.max(hurtGlow,low)).toFixed(2);
+ if(op!==hurtFxOpacity){hurtFxOpacity=op;$('hurtFx').style.opacity=String(op)}
+ if(!surv||dead)return;
+ protectT=Math.max(0,protectT-dt);sinceHurt+=dt;
+ // Slow natural healing after ten quiet seconds (apples heal at once).
+ if(health<MAX_HP&&sinceHurt>10&&(regenT+=dt)>=8){regenT=0;health++;dirty=true}
+ const night=isNight(),under=CAVES&&caveUnder;darkT=night||under?darkT+dt:0;
+ if((hostileT-=dt)<=0){hostileT=2.5+Math.random()*2;hostileSpawnTick()}
+ const e=sunFromTime(dayTime)[1];
+ if(e>.15){duskWarned=nightWarned=false}else if(!duskWarned&&e<.06&&e>-.06&&dayTime>.5){duskWarned=true;toast('もうすぐ夜… モンスターに気をつけて！ 🌙')}
+ if(night&&!nightWarned){nightWarned=true;if(duskWarned)toast(weapon()===FIST?'夜になった！ 木の剣をつくってそなえよう':'夜になった！ ⚔ 攻撃ボタンでたたかおう')}
+ guideTick();survivalUI()}
+// First-time guide (once per device): wood -> sword -> fight -> heal. Tapping it hides the current tip.
+const GUIDE=[()=>'🌳 木（原木）に向かって「壊す」で集めよう<small>PC：左クリック</small>',()=>'🛠 「クラフト」で 原木→木材、木材3つで<b>木の剣</b>をつくろう',
+ ()=>inSafe(player.x,player.z)?'🧭 安全地帯の外へ冒険しよう！ 夜になるとモンスターが出るよ<small>出発地点のまわりは安全。上のコンパスの⌂が出発地点</small>':'⚔ 敵に向かって「攻撃」<small>PC：左クリック。敵が光ったら攻撃の合図、下がってよけよう</small>',()=>'🍎 ♥が減ったら りんご（右上）で回復<small>葉っぱ4つでクラフト・少しずつ自然にも回復するよ</small>'];
+function guideTick(){const now=performance.now();let step=guideStep;
+ if(step===0&&((inventory[4]||0)+(inventory[13]||0)>0||weapon()!==FIST))step=1;if(step===1&&weapon()!==FIST)step=2;if(step===2&&defeated>0){step=3;guideUntil=now+9000}if(step===3&&!guideUntil)guideUntil=now+9000;if(step===3&&now>guideUntil)step=4;
+ if(step!==guideStep){guideStep=step;try{localStorage.setItem('jocraft2-guide',String(step))}catch(e){}}
+ const text=step<GUIDE.length&&!paused?GUIDE[step]():'';if(text!==guideShown){guideShown=text;guideSince=now;$('guide').innerHTML=text}
+ // The tip never takes touches (swipes pass through to the camera) and fades after 15 s until the next step.
+ const show=!!text&&now-guideSince<15000;if($('guide').classList.contains('hidden')===show)$('guide').classList.toggle('hidden',!show)}
+// ---- HUD (only touched when something changed).
+const heartNodes=[];for(let i=0;i<10;i++){const h=document.createElement('i');$('hearts').appendChild(h);heartNodes.push(h)}
+function survivalUI(){const surv=gameMode==='survival';document.body.classList.toggle('mode-survival',surv);
+ const w=weapon(),key=[surv,Math.ceil(health),protectT>0,items.apple,w.name,defeated].join();if(key===heartsKey)return;heartsKey=key;
+ for(let i=0;i<10;i++){const v=health-i*2;heartNodes[i].className=v>=2?'full':v>=1?'half':''}
+ $('hearts').classList.toggle('protect',protectT>0);$('hearts').classList.toggle('low',health<=6);
+ $('kills').textContent=defeated?'⚔'+defeated:'';$('eat').innerHTML='🍎<b>'+items.apple+'</b>';$('eat').disabled=items.apple<=0;
+ $('attack').innerHTML='⚔ 攻撃<small>'+w.name+'</small>';
+ $('craftWoodSword').textContent='木材 3 → 木の剣（攻撃力 4）'+(items.woodSword?' ✓':'');$('craftStoneSword').textContent='石 3 + 木材 1 → 石の剣（攻撃力 6）'+(items.stoneSword?' ✓':'')}
+// ---- Sounds, synthesised like the creature voices; they follow the world volume, not the creature-voice switch.
+function sfx(kind,src){if(!sound||sound.state!=='running')return;try{let vol=1;if(src){const d=Math.hypot(src.x-player.x,src.y-player.y,src.z-player.z);vol=Math.max(0,1-d/28);if(vol<.05)return}
+ const ac=sound,t0=ac.currentTime,out=ac.createGain();out.gain.value=.45*vol;out.connect(ac.destination);
+ const tone=(type,f0,f1,dur,g,dl=0)=>{const t=t0+dl,o=ac.createOscillator(),a=ac.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);a.gain.setValueAtTime(.0001,t);a.gain.exponentialRampToValueAtTime(g,t+Math.min(.03,dur*.2));a.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(a);a.connect(out);o.start(t);o.stop(t+dur+.02)};
+ const noise=(dur,g,type,fq,dl=0)=>{if(!lifeNoise){lifeNoise=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);const d=lifeNoise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
+  const t=t0+dl,s=ac.createBufferSource(),f=ac.createBiquadFilter(),a=ac.createGain();s.buffer=lifeNoise;f.type=type;f.frequency.value=fq;a.gain.setValueAtTime(g,t);a.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(f);f.connect(a);a.connect(out);s.start(t,Math.random()*.5);s.stop(t+dur+.02)};
+ switch(kind){case'swing':noise(.13,.3,'bandpass',1500);break;case'hit':tone('square',240,80,.12,.3);noise(.09,.45,'lowpass',1100);break;
+  case'hurt':tone('sawtooth',320,110,.25,.35);noise(.1,.3,'lowpass',700);break;case'defeat':[523,659,784,1047].forEach((f,i)=>tone('triangle',f,f*1.01,.18,.22,i*.07));noise(.3,.2,'lowpass',500);break;
+  case'eat':for(let i=0;i<3;i++)noise(.07,.35,'bandpass',800,i*.13);tone('sine',660,990,.25,.15,.42);break;case'craft':tone('triangle',600,900,.1,.2);tone('triangle',900,1300,.12,.18,.09);break;
+  case'draw':tone('triangle',180,420,.5,.08);break;case'shoot':tone('triangle',700,180,.16,.25);noise(.1,.2,'highpass',2500);break;case'thunk':noise(.05,.3,'lowpass',700);break;
+  case'down':tone('triangle',392,196,.6,.3);tone('triangle',294,147,.8,.25,.3);break;case'revive':[392,523,659,784].forEach((f,i)=>tone('sine',f,f,.25,.2,i*.09));break}}catch(e){}}
+// A world saved on the respawn screen comes back at the start point with full hearts.
+if(gameMode==='survival'&&health<=0){health=MAX_HP;spawn();protectT=5}
 // Clouds are blocky like the rest of the world but have real volume: each is a small voxel body (towering cumulus with a flat base,
 // thin stratus sheets, little puffs) built from the exposed faces only. The mesh is static and drifts by offset; the shader lights
 // the faces from the sun and the vertex colour carries (height in the cloud, tint, depth inside the cloud).
@@ -3059,6 +3311,8 @@ const transform=p=>{let x=p[0],y=p[1],z=p[2];const angle=-.40-kick*.65,xx=x*Math
 cuboid(a,-.08,-.48,-.02,.16,.35,.20,'#b6835d',0,transform);cuboid(a,-.095,-.60,-.025,.19,.20,.22,'#467e83',0,transform);
 if(eggSp>=0){const m=LIFE_SPECIES[eggSp].main;cuboid(a,-.11,-.16,-.04,.22,.07,.2,'#efe6d0',0,transform);cuboid(a,-.13,-.09,-.06,.26,.2,.24,'#f4ecd8',0,transform);cuboid(a,-.1,.11,-.04,.2,.09,.2,'#f4ecd8',0,transform);cuboid(a,-.065,.2,-.02,.13,.05,.14,'#efe6d0',0,transform);
  for(const [x,y,z] of [[-.137,-.04,.03],[.117,.0,-.02],[-.03,.05,-.065],[-.06,-.07,.181]])cuboid(a,x,y,z,.02,.06,.06,m,0,transform)}
+else if(gameMode==='survival'&&weapon()!==FIST){const w=weapon();cuboid(a,-.04,-.34,.02,.08,.3,.08,'#6b4423',4,transform);cuboid(a,-.17,-.06,-.01,.34,.07,.14,'#4a3524',0,transform);
+cuboid(a,-.055,.01,.0,.11,.62,.1,w.blade,3,transform);cuboid(a,-.025,.01,.1,.05,.62,.01,w.edge,0,transform);cuboid(a,-.035,.63,.01,.07,.08,.08,w.blade,3,transform)}
 else{cuboid(a,-.045,-.30,.02,.09,.66,.09,'#93612e',4,transform);
 cuboid(a,-.20,.28,-.02,.40,.09,.14,'#48545a',0,transform);cuboid(a,-.16,.37,-.02,.32,.19,.14,'#9aa8aa',3,transform);cuboid(a,-.10,.56,-.02,.20,.07,.14,'#79888d',0,transform)}
 gl.clear(gl.DEPTH_BUFFER_BIT);drawData(toolBuffer,a)}
@@ -3076,10 +3330,12 @@ function update(dt){
  const water=get(Math.floor(player.x),Math.floor(player.y+1),Math.floor(player.z))===10;
  const speed=flying?(keys.ShiftLeft?16:10):water?2.8:keys.ShiftLeft?6.2:4.3;
  const dx=(Math.cos(yaw)*right+Math.sin(yaw)*forward)*speed*dt,dz=(-Math.sin(yaw)*right+Math.cos(yaw)*forward)*speed*dt;
+ if(kbx||kbz){moveAxis('x',kbx*dt);moveAxis('z',kbz*dt);const k=Math.max(0,1-dt*7);kbx*=k;kbz*=k;if(Math.abs(kbx)+Math.abs(kbz)<.08)kbx=kbz=0}
  for(const [axis,d]of [['x',dx],['z',dz]])if(!moveAxis(axis,d)&&!flying&&ground&&Math.hypot(joy.x,joy.y)>.2){const test={...player,[axis]:player[axis]+d,y:player.y+1.05};if(!collides(test)){vy=7;ground=false}}
  if(flying){vy=0;ground=false;const up=riseHeld||keys.Space,down=descendHeld||keys.KeyQ||keys.ControlLeft||keys.ControlRight;moveAxis('y',((up?1:0)-(down?1:0))*7*dt)}
  else {vy-=(water?5:20)*dt;if(water)vy=Math.max(vy,-2);ground=false;if(!moveAxis('y',vy*dt)){ground=vy<=0;vy=0}}
  actionClock-=dt;if(actionClock<=0&&(mineHeld||placeHeld)){if(mineHeld)mine();else place();actionClock=.23}
+ if(attackHeld&&atkCD<=0)strike(true);
 }
 // Title uses the actual world from the scenic evaluation point (or above the saved player in older worlds).
 // This never moves the player or modifies saved coordinates.
@@ -3224,18 +3480,18 @@ function frame(now){
  const ratio=Math.min(devicePixelRatio||1,Q.dpr)*renderScale,w=Math.max(1,Math.floor(innerWidth*ratio)),h=Math.max(1,Math.floor(innerHeight*ratio));
  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}
  gl.viewport(0,0,w,h);
- const cam=titleOpen?titleCamera():{x:player.x,y:player.y+1.62,z:player.z,yaw,pitch};
+ const cam=titleOpen?titleCamera():{x:player.x,y:player.y+1.62,z:player.z,yaw,pitch:pitch+camKick};
  frameCloudMs=0;if(renderReady){render(cam,titleOpen,w,h);if(perfEnabled)perfStats.renderFrames=(perfStats.renderFrames||0)+1}
  const lodStart=performance.now();lodWork(Q.budget*.6*loadScale,64);
  if(!paused){perfFrames++;perfTime+=raw;perfBuildMs+=buildMs+frameCloudMs+performance.now()-lodStart;if(perfTime>2){adaptPerformance(perfFrames/perfTime,perfBuildMs/perfFrames);perfFrames=0;perfTime=0;perfBuildMs=0}}
  if(!titleOpen){const label=hit?defs[hit.t][0]:'';if($('target').textContent!==label)$('target').textContent=label}
  frames++;fpsTime+=raw;
- if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;if(!paused){$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':creative?'自由建築':'素材集め'}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}}
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;if(!paused){$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':MODE_LABEL[gameMode]}${gameMode==='survival'?' · ♥'+Math.ceil(health/2)+(lifeMode==='all'?'':' · 敵なし'):''}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}}
  const opacity=now>toastUntil?'0':'1';if($('hint').style.opacity!==opacity)$('hint').style.opacity=opacity;
  if(now-lastSave>15000&&!paused){queueSave();lastSave=now}
  requestAnimationFrame(frame)
 }
-if(saved?.settings){const q=saved.settings;qualityName=q.qualityName;Q=QUALITY[qualityName];hudMinimal=q.hudMinimal;hudDetails=q.hudDetails;lifeVoices=q.lifeVoices;selected=Number.isInteger(q.selected)&&q.selected>=0&&q.selected<slots.length?q.selected:0;eggSp=q.eggSp;applyHUD();streamDirty=true}
+if(saved?.settings){const q=saved.settings;qualityName=q.qualityName;Q=QUALITY[qualityName];hudMinimal=q.hudMinimal;hudDetails=q.hudDetails;lifeVoices=q.lifeVoices;selected=Number.isInteger(q.hotbar)&&q.hotbar>=0&&q.hotbar<slots.length?q.hotbar:Number.isInteger(q.selected)&&q.selected>=0&&q.selected<slots.length?q.selected:0;eggSp=q.eggSp;applyHUD();streamDirty=true}
 refresh();
 try{if(!BENCH&&saved&&sessionStorage.getItem('nisekura-playing')==='1'){paused=false;$('menu').classList.add('hidden');streamChunks(true);toast('前のプレイを再開した')}}catch(e){}
 // ---- Benchmark (?bench): a fixed 33 s flight (orbit over the vista, then a low pass toward the coast).
