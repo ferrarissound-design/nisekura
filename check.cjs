@@ -10,9 +10,9 @@ function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)
 // ---- New GRAND VISTA world: basics, saves, physics.
 const t0=Date.now();const a=boot();console.log(`boot new world: ${Date.now()-t0} ms`);
 assert(a.triangles>0);assert(!a.api.collides(a.api.player),'spawn must be clear');assert.equal(a.api.get(32,0,32),11);assert(a.api.collides({x:32.5,y:.5,z:32.5}));assert(a.api.collides({x:-1,y:25,z:30}));
-assert.equal(run(a,'terrainVersion'),9);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
+assert.equal(run(a,'terrainVersion'),10);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
 a.api.edit(30,30,30,8);assert(a.api.save());const b=boot(a.storage['nisekura-v1']);assert.equal(b.api.get(30,30,30),8,'world edit survives reload');assert(!b.api.collides(b.api.player));
-assert.equal(run(b,'terrainVersion'),9,'v9 save reloads as v9');
+assert.equal(run(b,'terrainVersion'),10,'v10 save reloads as v10');
 run(b,'paused=false;for(let i=0;i<120;i++)update(1/60)');assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(run(b,'ground'));
 console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
@@ -122,7 +122,7 @@ resetTest.windowEvents.pagehide();
 assert.equal(resetTest.storage['nisekura-v1'],undefined,'unload callbacks must not restore deleted saves');
 assert.equal(run(resetTest,'save()'),false,'autosave must remain disabled until navigation completes');
 const afterReset=boot(resetTest.storage['nisekura-v1']);
-assert.equal(run(afterReset,'terrainVersion'),9,'reset must activate new terrain generator');
+assert.equal(run(afterReset,'terrainVersion'),10,'reset must activate new terrain generator');
 assert.equal(run(afterReset,'SEA'),62,'new world sea level is 62');
 assert.equal(run(afterReset,'H'),192,'new world height is 192');
 console.log('PASS: new world reset survives blur, visibility and pagehide without resurrecting legacy terrain');
@@ -494,7 +494,7 @@ const SEA_=62;
  d.c.confirm=()=>true;assert(run(d,'recoverWorld()'));assert.equal(d.storage[K],legacy);assert.equal(d.storage[A],bad,'corrupt original retained verbatim for export');
  const noBackup=boot(bad);assert.equal(run(noBackup,'recoverWorld()'),false);assert.equal(noBackup.storage[K],bad);noBackup.nodes.reset.onclick();assert.equal(noBackup.storage[K],bad);
  const valid=boot(legacy);valid.api.save();let altered=JSON.parse(valid.storage[K]);altered.seed++;const damaged=boot(JSON.stringify(altered));assert(run(damaged,'storageBlocked'));assert.equal(damaged.api.save(),false);
- for(const patch of [{terrainVersion:10},{changes:[[1,999]]},{changes:[[1]]},{inventory:{'__proto__':1,'999':1}},{life:{mode:'all',eggs:[['unknown',1,1,1,0,1]]}},{player:{x:NaN,y:20,z:30}}]){valid.c.patch=patch;assert.throws(()=>run(valid,'encodeSave({...snapshot(),...patch})'))}
+ for(const patch of [{terrainVersion:11},{changes:[[1,999]]},{changes:[[1]]},{inventory:{'__proto__':1,'999':1}},{life:{mode:'all',eggs:[['unknown',1,1,1,0,1]]}},{player:{x:NaN,y:20,z:30}}]){valid.c.patch=patch;assert.throws(()=>run(valid,'encodeSave({...snapshot(),...patch})'))}
  valid.storage[K]=legacy;assert.equal(valid.api.save(),false,'different tab must not be overwritten');assert.equal(valid.storage[K],legacy);
  console.log('PASS: corruption, checksum mismatch, missing backup, rejected schema, explicit recovery and other-tab protection');
 }
@@ -509,7 +509,7 @@ const SEA_=62;
 }
 {
  const K='nisekura-v1',A=K+'-protected',d=boot(legacy);d.api.edit(30,30,30,9);d.nodes.reset.onclick();assert.equal(d.storage[K],undefined);assert.equal(JSON.parse(d.storage[A]).changes.find(e=>e[0]===30+2048*(30+2048*30))[1],9,'reset checkpoints unsaved construction');
- const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),9,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
+ const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),10,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
  const failed=boot(legacy);failed.c.localStorage.setItem=()=>{throw Error('QuotaExceededError')};failed.nodes.reset.onclick();assert.equal(failed.storage[K],legacy);assert.equal(run(failed,'resettingWorld'),false);
  const auto=boot(legacy);run(auto,'paused=false;frame(16001)');assert(auto.storage[K]);assert(JSON.parse(auto.storage[K]).integrity);run(auto,'dayTime=.64');auto.c.document.hidden=true;auto.events.visibilitychange();assert.equal(JSON.parse(auto.storage[K]).dayTime,.64);
  run(auto,'dayTime=.65');auto.windowEvents.pagehide();assert.equal(JSON.parse(auto.storage[K]).dayTime,.65);
@@ -692,7 +692,7 @@ const SEA_=62;
  const srcHas=()=>R(`(()=>{const l=glowSources(${px>>4},${pz>>4},voxelChunk(${px>>4},${pz>>4}));for(let i=0;i<l.length;i+=4)if(l[i]===${px}&&l[i+1]===${py+3}&&l[i+2]===${pz})return true;return false})()`);
  assert.equal(srcHas(),true,'the placed crystal is a light source');d.api.edit(px,py+3,pz,0);assert.equal(srcHas(),false,'removing it drops it from the light sources');
  R('toggleFlight()');R('keys.Space=true;for(let i=0;i<30;i++)update(1/60);delete keys.Space');assert(R('flying')&&!R('collides(player)'),'flying inside a cave');
- d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),9);
+ d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),10);
  assert.equal(run(re,`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),R(`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),'reloading does not change the caves');
  // Save format: new block ids are accepted, the unused plant-material ids are not, and future versions are rejected.
  const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},false]]){
@@ -864,7 +864,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert.equal(r8('JSON.stringify(vista)'),'{"x":992,"z":736,"yaw":0,"eye":121.5}','v8 start point unchanged');
  // New worlds: every kind of wonder exists, the list is a pure function of the seed, giants stay rare and wonders keep apart.
  const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`)),G=(x,y,z)=>d.api.get(Math.floor(x),Math.floor(y),Math.floor(z));
- assert.equal(R('terrainVersion'),9);
+ assert.equal(R('terrainVersion'),10);
  const L=J('WLIST.map(s=>({k:s.kind,x:s.x,z:s.z,size:s.size,label:s.label}))'),count=k=>L.filter(s=>s.k===k).length;
  for(const [k,n] of [['canyon',1],['falls',3],['arch',1],['hoodoo',1],['seaArch',1],['uwArch',1],['reefHill',1]])assert(count(k)>=n,`${k} exists (${count(k)})`);
  assert(count('trench')+count('drop')>=1,'a trench or drop-off exists');
@@ -931,7 +931,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  for(let i=0;i<6;i++){R(`$('hint').textContent='';wonderNext=0;wonderTick(${i+2})`);assert.notEqual(d.nodes.hint.textContent,first,'a found wonder is not announced twice')}
  assert.equal(J('JSON.parse(localStorage.getItem(WONDER_FOUND_KEY+seed)).length'),J('wonderFound.size'),'found wonders are remembered on the device');
  // Save: an edit at a fall survives a reload of the v9 world.
- const f0=F[0];d.api.edit(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz),0);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(run(re,'terrainVersion'),9);assert.equal(re.api.get(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz)),0,'an edit at a fall survives reload');
+ const f0=F[0];d.api.edit(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz),0);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(run(re,'terrainVersion'),10);assert.equal(re.api.get(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz)),0,'an edit at a fall survives reload');
  console.log(`PASS: v9 wonders: ${L.length} (${[...new Set(L.map(s=>s.k))].map(k=>k+' '+count(k)).join(', ')}), falls ${drops.join('/')}m with pools that run on, canyon river and sheer walls, worker matches on wonder tiles (${fallQuads} far falls quads), arches open with no loose blocks, ${al.length} hollows with crystals, reef hill ${reef.coral} coral quads, effects in 3 qualities, tour/discovery/save; v8 worlds identical`)}
 
 // ---- SURVIVAL Phase 1: game modes, hearts, swords, hostile zombies / skeletons / slimes, arrows, death and respawn, saves, touch.

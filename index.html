@@ -223,7 +223,7 @@ if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてく�
 // The world is generated on demand. Near 16x16 columns are real voxels; everything farther is a light LOD mesh.
 const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
 const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
-const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341'],null,null,null,null,null,null,null,null,null,['青い結晶','#4d8cff'],['紫の結晶','#b45cff'],['翠の結晶','#38f09a'],['光ゴケ','#3fbf9a']];
+const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341'],null,null,null,null,null,null,null,null,null,['青い結晶','#4d8cff'],['紫の結晶','#b45cff'],['翠の結晶','#38f09a'],['光ゴケ','#3fbf9a'],['石炭鉱石','#2f3133'],['鉄鉱石','#d39a6e'],['金鉱石','#f2c93a'],['ダイヤモンド鉱石','#5ee8e4'],['宝箱','#a8742f'],['開いた宝箱','#7e5626']];
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
 const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
@@ -244,7 +244,7 @@ function validateSave(d){
  const obj=v=>v&&typeof v==='object'&&!Array.isArray(v),bad=()=>{throw Error('セーブ形式・内容が不正、または未対応のバージョンです')};
  if(!obj(d)||d.version!==1||!Number.isFinite(d.seed)||!Array.isArray(d.changes)||!obj(d.inventory))bad();
  const tv=d.terrainVersion??1,w=d.worldWidth??64,h=d.worldHeight??40;
- if(!Number.isInteger(tv)||tv<1||tv>9||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
+ if(!Number.isInteger(tv)||tv<1||tv>10||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
  for(const e of d.changes)if(!Array.isArray(e)||e.length!==2||!Number.isSafeInteger(e[0])||e[0]<0||e[0]>=w*w*h||!Number.isInteger(e[1])||e[1]<0||e[1]>=defs.length||e[1]&&!defs[e[1]])bad();
  for(const [k,v]of Object.entries(d.inventory))if(!/^[1-9]\d*$/.test(k)||+k>=defs.length||!defs[+k]||!Number.isSafeInteger(v)||v<0)bad();
  for(const k of ['creative','flying'])if(d[k]!==undefined&&typeof d[k]!=='boolean')bad();
@@ -272,6 +272,7 @@ try{expectedRaw=localStorage.getItem(KEY);if(expectedRaw!==null){saved=decodeSav
 // v7 adds caves (entrances, tunnels, halls, underground lakes, crystal caves); v4-v6 worlds keep their exact terrain.
 // v8 fills the river stretches that were left as dry sand beds; v7 worlds keep their exact terrain.
 // v9 adds the wonders: canyons, waterfalls, natural arches and rock windows, reef hills, sea-floor arches, trenches and drop-offs; v8 worlds keep their exact terrain.
+// v10 adds ores and cave treasure chests (see placeOres / placeChests); v9 worlds keep their exact terrain.
 // ---- Game modes. 'creative' = free building and flight (the original 自由建築); 'peaceful' = gather materials, monsters never attack
 // (the original 素材集め, so saves without a mode keep playing exactly as before); 'survival' = hearts, swords and monsters at night.
 // `creative` stays in the save, in sync, so older releases still open survival and peaceful worlds as 素材集め.
@@ -284,7 +285,9 @@ if(!saved&&gameMode==='survival')dayTime=.52;
 const items={woodSword:0,stoneSword:0,ironSword:0,apple:0};if(saved?.items)for(const k in items)if(Number.isSafeInteger(saved.items[k]))items[k]=saved.items[k];
 let health=Number.isFinite(saved?.health)?Math.max(0,Math.min(MAX_HP,saved.health)):MAX_HP,defeated=Number.isSafeInteger(saved?.defeated)?saved.defeated:0;
 let dead=false,atkCD=0,invulT=0,protectT=0,camKick=0,hurtGlow=0,kbx=0,kbz=0,sinceHurt=99,regenT=0,darkT=0,hostileT=2,duskWarned=false,nightWarned=false,attackHeld=false;
-const terrainVersion=saved?.version===1?(saved.terrainVersion||1):9,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
+const terrainVersion=saved?.version===1?(saved.terrainVersion||1):10,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
+// v10 adds ores (coal, iron, gold, diamond) in the rock and treasure chests in caves; v9 worlds keep their exact terrain.
+const ORES=terrainVersion>=10;
 // Underwater life (v7 worlds): water plants and coral are mesh-only, fish are runtime-only, so nothing is added to saves.
 const AQUA=CAVES;
 const glowChunks=new Set(),glowCache=new Map(); // chunks that contain crystals or moss (for the lighting bake)
@@ -1117,6 +1120,56 @@ function growCrystals(data,b,x0,z0,hue){let any=false;const ix=(x,y,z)=>(y*CHUNK
      for(let t=0;t<SL;t++){const px=bx+D[0]*t,py=by+D[1]*t,pz=bz+D[2]*t;if(!inRange(px,py,pz)||data[ix(px,py,pz)]!==0)break;data[ix(px,py,pz)]=colour}}
     any=true;break}}}
  return any}
+// ---- v10 ores. A pure function of (seed, chunk): every vein grows inside its own chunk and only ever replaces stone, so no ore floats,
+// none sits in a tree, a lake or an arch above the ground, and a chunk is the same however often it is generated. Hidden veins reward
+// digging; cave walls get extra ore so explorers find it. Deeper is rarer: coal near the top, iron in the middle, gold and diamond deep.
+const ORE_COAL=30,ORE_IRON=31,ORE_GOLD=32,ORE_DIA=33,B_CHEST=34,B_CHEST_OPEN=35,isOre=t=>t>=30&&t<=33;
+// t block, n veins per chunk, s vein size, lo..hi height band with the richest part p0..p1, wall = chance per open cave cell, d = min depth under the surface
+const ORE_K=[{t:30,n:6,s:[4,8],lo:20,hi:150,p0:44,p1:110,wall:.0042,d:2},{t:31,n:3.6,s:[3,6],lo:8,hi:100,p0:22,p1:72,wall:.0030,d:4},
+ {t:32,n:1.1,s:[2,5],lo:6,hi:48,p0:8,p1:36,wall:.0011,d:6},{t:33,n:.45,s:[1,4],lo:4,hi:34,p0:4,p1:26,wall:.0011,d:8}];
+const ORE_DIRS=[[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],[0,1,0],[0,-1,0]];
+function oreBand(o,y){return y<o.lo||y>o.hi?0:y<o.p0?.25+.75*(y-o.lo)/(o.p0-o.lo+1):y>o.p1?.25+.75*(o.hi-y)/(o.hi-o.p1+1):1}
+function placeOres(data,cx,cz,info,caved){const x0=cx*CHUNK,z0=cz*CHUNK,ix=(x,y,z)=>(y*CHUNK+z)*CHUNK+x,R=treeRng(cx*7+3,cz*13+5,4242);
+ const vein=(o,x,y,z,size)=>{for(let k=0;k<size;k++){if(x>=0&&x<CHUNK&&z>=0&&z<CHUNK&&y>0&&y<=info.h[z*16+x]-o.d){const i=ix(x,y,z);if(data[i]===3)data[i]=o.t}
+   const d=ORE_DIRS[Math.floor(R()*6)];x+=d[0];y+=d[1];z+=d[2]}};
+ for(const o of ORE_K){const n=Math.floor(o.n)+(R()<o.n%1?1:0);
+  for(let v=0;v<n;v++){const x=Math.floor(R()*CHUNK),z=Math.floor(R()*CHUNK),y=o.lo+Math.floor(R()*(o.hi-o.lo+1)),size=o.s[0]+Math.floor(R()*(o.s[1]-o.s[0]+1));
+   if(R()<oreBand(o,y))vein(o,x,y,z,size)}}
+ // Exposed ore on the walls, floors and ceilings of caves: an open cell picks an ore by depth and pushes a small cluster into the rock beside it.
+ if(!caved)return;
+ for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const wx=x0+x,wz=z0+z,top=info.h[z*16+x]-4;
+  for(let y=CAVE_Y0+1;y<top;y++){if(data[ix(x,y,z)]!==0)continue;let u=vh(wx,y,wz,601);
+   for(const o of ORE_K){const p=o.wall*oreBand(o,y);if(u>=p){u-=p;continue}
+    const s=Math.floor(vh(wx,y,wz,602)*6);for(let k=0;k<6;k++){const d=ORE_DIRS[(s+k)%6],ax=x+d[0],ay=y+d[1],az=z+d[2];if(ax<0||az<0||ax>=CHUNK||az>=CHUNK||data[ix(ax,ay,az)]!==3)continue;
+     const L=1+Math.floor(vh(wx,y,wz,603)*(o.t===ORE_DIA?2:3));for(let q=0;q<L;q++){const bx=ax+d[0]*q,by=ay+d[1]*q,bz=az+d[2]*q;if(bx<0||bz<0||bx>=CHUNK||bz>=CHUNK||data[ix(bx,by,bz)]!==3)break;data[ix(bx,by,bz)]=o.t}
+     // a second block beside the first, so a find reads as a little seam rather than a single pixel
+     const e=ORE_DIRS[(s+k+2)%6],cx2=ax+e[0],cy2=ay+e[1],cz2=az+e[2];if(cx2>=0&&cz2>=0&&cx2<CHUNK&&cz2<CHUNK&&data[ix(cx2,cy2,cz2)]===3&&vh(wx,y,wz,604)<.6)data[ix(cx2,cy2,cz2)]=o.t;break}
+    break}}}}
+// ---- v10 treasure chests. Candidates come from the cave cells (some chambers hold one: crystal caves always, lakes, great halls and side
+// pockets often) and from the wonders (the hollow behind a fall, under a sea-floor arch, in a trench). The chunk that owns a candidate
+// finds a floor near it in its freshly generated voxels, so the chest is part of the pure terrain; opening it turns it into an open chest
+// (block 35), which is an ordinary saved edit: a chest can be emptied only once, and anything the player builds there wins.
+const CHEST_P={crystal:1,lake:.75,hall:.6,cavern:.5,pocket:.45},chestInfo=new Map();let WCHEST=null;
+function cellChests(cell){if(cell.chests)return cell.chests;const R=treeRng(cell.ci*37+11,cell.cj*53+7,777),out=[];
+ for(const ch of cell.chambers){const p=CHEST_P[ch.kind]||0,roll=R(),a=R()*6.283;if(roll>=p)continue;
+  if(ch.kind==='lake'){const b=ch.balc?ch.balc.ang:a;out.push({x:Math.floor(ch.x+Math.cos(b)*ch.rx*.74),z:Math.floor(ch.z+Math.sin(b)*ch.rz*.74),y0:CAVE_LAKE_Y+1,y1:Math.floor(ch.y+ch.ry*.6),tier:'lake'})}
+  else{const k=ch.kind==='pocket'?.2:.38;out.push({x:Math.floor(ch.x+Math.cos(a)*ch.rx*k),z:Math.floor(ch.z+Math.sin(a)*ch.rz*k),y0:Math.max(CAVE_Y0+1,Math.floor(ch.y-ch.ry*1.4)),y1:Math.floor(ch.y+ch.ry*.5),tier:ch.kind==='crystal'?'crystal':ch.kind==='hall'?'hall':'cave'})}}
+ return cell.chests=out}
+function wonderChests(){if(WCHEST)return WCHEST;WCHEST=[];if(!WON)return WCHEST;
+ for(const a of WA){if(a.t===5){const t=-a.ad*.55;WCHEST.push({x:Math.floor(a.x+a.dx*t),z:Math.floor(a.z+a.dz*t),y0:a.y0,y1:a.y0+a.ah,tier:'falls'})}
+  else if(a.kind==='uwArch')WCHEST.push({x:Math.floor(a.x),z:Math.floor(a.z),y0:SEA-34,y1:SEA-3,tier:'sea',wet:1})}
+ for(const f of WF)if(f.t===2&&f.s===1){const m=f.P[Math.floor(f.P.length/2)];WCHEST.push({x:Math.floor(m[0]),z:Math.floor(m[1]),y0:SEA-34,y1:SEA-3,tier:'sea',wet:1})}
+ return WCHEST}
+const CHEST_OFFS=[[0,0],[1,0],[0,1],[-1,0],[0,-1],[2,1],[-1,2],[-2,-1],[1,-2]];
+function placeChests(data,cx,cz){const x0=cx*CHUNK,z0=cz*CHUNK,ix=(x,y,z)=>(y*CHUNK+z)*CHUNK+x,cell=CAVES?caveCell(cx>>4,cz>>4):null,list=[];
+ const mine=c=>c.x>=x0&&c.x<x0+CHUNK&&c.z>=z0&&c.z<z0+CHUNK;
+ if(cell)for(const c of cellChests(cell))if(mine(c))list.push(c);for(const c of wonderChests())if(mine(c))list.push(c);
+ for(const c of list){let done=false;
+  for(const [ox,oz] of CHEST_OFFS){const x=Math.min(CHUNK-1,Math.max(0,c.x-x0+ox)),z=Math.min(CHUNK-1,Math.max(0,c.z-z0+oz));
+   // dry chests: down from the top of the chamber to its floor; wet ones: up from the sea bed (so never on top of an arch)
+   const ya=Math.max(2,c.y0),yb=Math.min(H-3,c.y1);for(let k=0;k<=yb-ya;k++){const y=c.wet?ya+k:yb-k,t=data[ix(x,y,z)],b=data[ix(x,y-1,z)],u=data[ix(x,y+1,z)],open=c.wet?t===10&&u===10:t===0&&u===0;
+    if(!open||b===0||b===10||b===11||isGlowBlock(b))continue;data[ix(x,y,z)]=B_CHEST;chestInfo.set(idx(x0+x,y,z0+z),c.tier);done=true;break}
+   if(done)break}}}
 // Glow sources (crystals, moss) of one chunk, for the lighting bake in the mesher. Cached per chunk, dropped when a glow block is edited.
 // ---- Cave spots for the title button: mouths on the hillside, halls, lakes and crystal caves, each with a safe place to stand and a view.
 const CAVE_SPOT_KINDS={entrance:'洞窟の入口',hall:'巨大空洞',lake:'地底湖',crystal:'結晶洞窟'};
@@ -1159,7 +1212,8 @@ function generateChunk(cx,cz){
   const info=columnInfo(cx,cz);
   for(let lz=0;lz<16;lz++)for(let lx=0;lx<16;lx++){const k=lz*16+lx,h=info.h[k],top=info.surf[k],sub=top===1||top===2?2:top===6?6:3;
    data[k]=11;const soil=SCENIC&&info.slope[k]>=2?2:4;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-soil?sub:3;const wl=info.wl?info.wl[k]:SEA;for(let y=h+1;y<=wl;y++)data[y*256+k]=10}
-  if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);if(CAVES)carveCaves(data,cx,cz,info);if(WON)wonderVoxels(data,cx,cz);return data}
+  if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);const caved=CAVES&&carveCaves(data,cx,cz,info);if(WON)wonderVoxels(data,cx,cz);
+   if(ORES){placeOres(data,cx,cz,info,caved);placeChests(data,cx,cz)}return data}
   // One tree candidate per 5x5 cell; canopies reach three blocks into neighbouring chunks.
   for(let i=Math.floor((x0-3)/5);i<=Math.floor((x0+CHUNK+2)/5);i++)for(let j=Math.floor((z0-3)/5);j<=Math.floor((z0+CHUNK+2)/5);j++){
    const tx=i*5+Math.floor(rand(i*7+1,j*13+5)*5),tz=j*5+Math.floor(rand(i*11+3,j*3+17)*5);
@@ -1357,16 +1411,38 @@ gl_Position=vec4(xx*1.35/aspect,yy*1.35,dd*proj.x-proj.y,dd);col=aColor;uv=aUV;m
 const fragmentSource=PRECISION+`
 varying vec3 col; varying vec2 uv; varying float mat; varying vec3 rel; varying float vClk; varying float vFace; varying float vShade; varying float vWet; varying vec3 vCave;
 uniform vec3 eyeF;`+SKY_GLSL+`
-void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.,aw=.5;vec3 w=rel+eyeF;
+void main(){vec2 q=floor(uv*16.);float n=hash(q);vec3 c=col*(.82+n*.32);float alpha=1.,aw=.5;vec3 w=rel+eyeF;vec3 oreG=vec3(0.);
 if(mat<.5){c=col;}
 else if(mat<1.5){float fleck=step(.77,n);c=col*(.76+n*.40)+vec3(.025,.045,.008)*fleck;}
 else if(mat<2.5){float pebble=step(.84,n);c=mix(col*(.70+n*.5),col*1.32,pebble*.55);}
-else if(mat<3.5){vec2 r=floor((q+vec2(mod(floor(q.y/4.),2.)*3.,0.))/vec2(5.,4.));float seam=step(4.,mod(q.x+mod(floor(q.y/4.),2.)*3.,5.))+step(3.,mod(q.y,4.));c=col*(.80+hash(r)*.28+n*.14-seam*.13);
- if(vCave.x>.01||vCave.y>.01){float band=hash(vec2(floor(w.y/2.5),floor((w.x+w.z)/9.)));c=col*(.50+.34*band+.20*n+.12*step(.82,hash(floor(q/2.)+3.)))*vec3(.86,.92,1.1);}}
+else if(mat<3.5){float ov=floor(uv.x*.5+.25);if(ov>.5){q=floor((uv-vec2(ov*2.,0.))*16.);n=hash(q);}
+ vec2 r=floor((q+vec2(mod(floor(q.y/4.),2.)*3.,0.))/vec2(5.,4.));float seam=step(4.,mod(q.x+mod(floor(q.y/4.),2.)*3.,5.))+step(3.,mod(q.y,4.));c=col*(.80+hash(r)*.28+n*.14-seam*.13);
+ if(vCave.x>.01||vCave.y>.01){float band=hash(vec2(floor(w.y/2.5),floor((w.x+w.z)/9.)));c=col*(.50+.34*band+.20*n+.12*step(.82,hash(floor(q/2.)+3.)))*vec3(.86,.92,1.1);}
+ if(ov>.5){ // v10 ores (variant 1 coal, 2 iron, 3 gold, 4 diamond): 2x2 nuggets in about half of the 4x4 cells, metals with a bright corner.
+  vec3 oc=ov<1.5?vec3(.09,.09,.10):ov<2.5?vec3(.96,.70,.50):ov<3.5?vec3(1.,.80,.22):vec3(.36,.97,.95);vec2 cl=floor(q/4.),o=floor(vec2(hash(cl+ov),hash(cl+ov+5.))*2.99),p=mod(q,4.)-o;
+  float on=step(.42,hash(cl*1.7+ov*3.1))*step(0.,p.x)*step(p.x,1.)*step(0.,p.y)*step(p.y,1.);
+  c=mix(c,oc*(.78+.32*n)+vec3(.16)*step(1.5,ov)*step(p.x+p.y,.5),on);
+  // gold and diamond catch the lantern light and twinkle a little, so a find shows up in a dark cave
+  oreG=oc*on*((ov<1.5?0.:ov<2.5?.10:ov<3.5?.22:.38)+step(2.5,ov)*.5*step(.94,hash(q+floor(vClk*1.4)+ov)));}}
 else if(mat<4.5){float bark=hash(vec2(q.x,floor(q.y/5.)));c=col*(.56+bark*.62+n*.18);}
 else if(mat<5.5){float clump=hash(floor(q/2.));c=col*(.54+clump*.65+n*.18);}
 else if(mat<6.5){c=col*(.90+n*.16);if(n>.94)c*=.80;}
-else if(mat<7.5){float seam=step(3.,mod(q.y,4.));float knot=step(.86,hash(vec2(floor(q.x/3.),floor(q.y/4.))));c=col*(.93+n*.14-seam*.28-knot*.15);}
+else if(mat<7.5){float ov=floor(uv.x*.5+.25);
+ if(ov<.5){float seam=step(3.,mod(q.y,4.));float knot=step(.86,hash(vec2(floor(q.x/3.),floor(q.y/4.))));c=col*(.93+n*.14-seam*.28-knot*.15);}
+ else{ // v10 treasure chest (variant 1 closed, 2 opened): planks in a dark frame, gold corners, a gold band at the lid and a lock on every side
+  q=floor((uv-vec2(ov*2.,0.))*16.);n=hash(q);vec3 gold=vec3(1.,.78,.25)*(.85+.3*n),dark=vec3(.24,.15,.07);
+  float frame=step(q.x,0.)+step(15.,q.x)+step(q.y,0.)+step(15.,q.y),corner=(1.-step(abs(q.x-7.5),5.5))*(1.-step(abs(q.y-7.5),5.5));
+  c=col*(.9+n*.14-step(3.,mod(q.y,4.))*.22);
+  float g=0.;
+  if(vFace>1.5&&vFace<2.5){ // lid seen from above; an opened chest shows its dark inside with a few coins
+   if(ov>1.5&&step(abs(q.x-7.5),5.5)*step(abs(q.y-7.5),5.5)>.5){c=vec3(.10,.06,.03)*(.8+.4*n);g=step(.86,hash(floor(q/2.)))*step(abs(q.x-7.5),4.)*step(abs(q.y-7.5),4.);}
+   g=max(g,corner);}
+  else if(vFace<2.5||vFace>3.5){ // sides: the band where the lid meets the box, and a lock with a keyhole in the middle
+   float band=step(9.,q.y)*step(q.y,10.),lock=step(abs(q.x-7.5),2.)*step(5.,q.y)*step(q.y,10.),hole=step(abs(q.x-7.5),.5)*step(6.,q.y)*step(q.y,7.);
+   g=max(max(band,lock*(1.-hole)),corner*step(13.,q.y));if(ov>1.5)g*=.55;if(hole>.5)c=dark;}
+  c=mix(mix(c,dark,step(.5,frame)*(1.-g)),gold,g);
+  // closed chests glint now and then, so a chest is easy to notice in the dark
+  oreG=gold*g*(ov<1.5?.22+.5*step(.96,hash(q+floor(vClk*1.2))):.06);}}
 else if(mat<8.5){float seam=max(step(3.,mod(q.y,4.)),step(7.,mod(q.x+floor(q.y/4.)*4.,8.)));c=mix(col*(.80+n*.26),vec3(.69,.64,.55)*length(col),seam*.75);}
 else if(mat<9.5){float edge=step(.94,max(abs(uv.x-.5),abs(uv.y-.5))*2.);float shine=step(.91,mod(uv.x+uv.y,.9));c=mix(col*.70,vec3(.86,.96,1.),max(edge,shine*.65));alpha=.22+edge*.48+shine*.12;}
 else if(mat<10.5){c=mix(vec3(.10,.42,.50),vec3(.03,.16,.36),col.r*2.)*(ambCol+dirCol*.6);alpha=.75;}
@@ -1447,7 +1523,7 @@ if(mat<9.5||mat>10.5){
    float sk=1.-vCave.x;sk=sk*sk*(3.-2.*sk);vec3 cav=vec3(.33,.37,.48)*(.7+.3*nrm.y);Lt=mix(cav,Lt,sk);
    float lamp=misc.w*vCave.x*(1.-smoothstep(3.,36.,length(rel)))*(.4+.6*max(dot(nrm,-normalize(rel)),0.));
    Lt+=vec3(1.,.78,.5)*.8*lamp+caveGlow(vCave.z)*(vCave.y*vCave.y*1.7);}
-  c*=Lt;}
+  c*=Lt;c+=oreG*(.4+.6*vCave.x);}
  // Faces under water: rippling sun caustics, then light loses red and green along its way down and back up to the eye.
  if(vWet>.5){float ds=max(${SEA}.88-w.y,0.);c+=caustic(w.xz+vec2(w.y*.3),vClk)*dirCol*(vFace>1.5&&vFace<2.5?.55:.25)*exp(-ds*.12)*smoothstep(.0,.25,dirLight.y)*(1.-.7*misc.x)*(1.-vCave.x);
   c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-normalize(rel).y,.1):0.))*(mat>30.5?aw:1.));}
@@ -2149,7 +2225,7 @@ function bakeGlow(cx,cz,near){let any=false;
 const occ=t=>t!==0&&t!==9&&t!==10;
 const FACE=faces.map(f=>{const st=[1,PA,PW],axes=[0,1,2].filter(a=>!f.n[a]);return{off:f.n[0]+f.n[1]*PA+f.n[2]*PW,dcol:f.n[0]+f.n[2]*PW,dy:f.n[1],n:f.n,l:f.l,v:f.v,uv:f.v.map(v=>faceUV(v,f)),
  ao:f.v.map(v=>{const oa=(v[axes[0]]?1:-1)*st[axes[0]],ob=(v[axes[1]]?1:-1)*st[axes[1]];return[oa,ob,oa+ob]})}});
-const LOG_TOP=rgb('#b9955d'),BIRCH_TOP=rgb('#d8cfa8'),WHITE=[1,1,1],ZERO2=[0,0],wfl=[0,0];
+const CHEST_RGB=rgb('#a8742f'),LOG_TOP=rgb('#b9955d'),BIRCH_TOP=rgb('#d8cfa8'),WHITE=[1,1,1],ZERO2=[0,0],wfl=[0,0];
 // ---- Water surface data, per corner of the sea-level water surface so every value blends smoothly across blocks:
 // depth (mean of the four columns, land = 0), shore nearness (distance to land up to 3.5 blocks), sandy bed share,
 // exposure to the open sea, and river flow. Only the mesh changes; terrain, water and saves are untouched.
@@ -2206,6 +2282,8 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
     if(t===1){if(F.n[1]>0)c=gcol;else if(F.n[1]===0){mat=12;c=grassSide}else{mat=2;c=defsRGB[2]}}
     else if(t===4||t===13){if(F.n[1]){mat=13;c=t===13?BIRCH_TOP:LOG_TOP}else if(t===13||(!GRAND&&rand(wx*9,wz*7)>.62)){mat=14;c=WHITE}}
     else if(t===5)c=lcol;else if(t===14||t===15||t===16){mat=5;c=t===14?lc14:t===15?lc15:lc16}else if(t===12)mat=19;
+    // v10 ores draw as stone and chests as planks; the variant rides in whole steps of 2 on the face u (the shader reads it back).
+    let uvo=0;if(t>=30){if(t<=33){mat=3;c=defsRGB[3];uvo=2*(t-29)}else{mat=7;c=CHEST_RGB;uvo=t===34?2:4}}
     // Faces whose open neighbour lies under a roof (canopy, overhang) lose direct sunlight in the shader.
     const shaded=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy,pa=p+F.off;let cb=0;
     // Cave light: how much rock lies above the open cell in front of this face (spread one column sideways), plus baked crystal glow.
@@ -2221,7 +2299,7 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
      // v9 streams above the sea: the surface drifts toward the falls
      const pf=WON&&fi===2&&y>SEA?(wfl[0]=wfl[1]=0,wonderFlow(wx,wz,wfl),wfl):ZERO2;
      for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0;vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],d/30,shore,pad[q]===6?1:0,pf[0],pf[1],code)}}
-    else for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=sh[kk];vert(w,wx+v[0],y+v[1],wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0],F.uv[kk][1],code)}}
+    else for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=sh[kk];vert(w,wx+v[0],y+v[1],wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0]+uvo,F.uv[kk][1],code)}}
    if(t===1&&!pad[p+PA]){const ps=roofs[(z+1)*PW+x+1]>y+1;
     if(VEG&&info)emitMeadow(opaqueW,wx,wz,y+1,k,info,gcol,ps,y+2<H&&!pad[p+2*PA],keep);
     else if(info){const forest=smooth(.5,.64,info.hum[k]),r1=rand(wx*23,wz*11),meadow=1-smooth(.36,.5,info.hum[k]),fp=meadow*smooth(.05,.35,pn(wx/24+12.5,wz/24+44.4))*.5+.02;
