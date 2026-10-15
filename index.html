@@ -304,7 +304,8 @@ creative=gameMode==='creative';if(gameMode==='survival')flying=false;
 if(!saved&&gameMode==='survival')dayTime=.52;
 // Items (save field `items`, whole counts). v16 adds gear (pickaxes, swords, armour), ore materials, leather, the rare collection and a chest count.
 const items={woodSword:0,stoneSword:0,ironSword:0,apple:0,diamondSword:0,woodPick:0,stonePick:0,ironPick:0,diamondPick:0,leatherArmor:0,ironArmor:0,diamondArmor:0,
- coal:0,iron:0,gold:0,diamond:0,leather:0,coin:0,crystal:0,dragonEgg:0,chests:0,found:0}; // found: bit set of first finds (see FOUND_BIT)if(saved?.items)for(const k in items)if(Number.isSafeInteger(saved.items[k]))items[k]=saved.items[k];
+ coal:0,iron:0,gold:0,diamond:0,leather:0,coin:0,crystal:0,dragonEgg:0,chests:0,found:0}; // found: bit set of first finds (see FOUND_BIT)
+if(saved?.items)for(const k in items)if(Number.isSafeInteger(saved.items[k]))items[k]=saved.items[k];
 let health=Number.isFinite(saved?.health)?Math.max(0,Math.min(MAX_HP,saved.health)):MAX_HP,defeated=Number.isSafeInteger(saved?.defeated)?saved.defeated:0;
 let dead=false,atkCD=0,invulT=0,protectT=0,camKick=0,hurtGlow=0,kbx=0,kbz=0,sinceHurt=99,regenT=0,darkT=0,hostileT=2,duskWarned=false,nightWarned=false,attackHeld=false;
 const terrainVersion=saved?.version===1?(saved.terrainVersion||1):10,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
@@ -1177,7 +1178,7 @@ function cellChests(cell){if(cell.chests)return cell.chests;const R=treeRng(cell
   if(ch.kind==='lake'){const b=ch.balc?ch.balc.ang:a;out.push({x:Math.floor(ch.x+Math.cos(b)*ch.rx*.74),z:Math.floor(ch.z+Math.sin(b)*ch.rz*.74),y0:CAVE_LAKE_Y+1,y1:Math.floor(ch.y+ch.ry*.6),tier:'lake'})}
   else{const k=ch.kind==='pocket'?.2:.38;out.push({x:Math.floor(ch.x+Math.cos(a)*ch.rx*k),z:Math.floor(ch.z+Math.sin(a)*ch.rz*k),y0:Math.max(CAVE_Y0+1,Math.floor(ch.y-ch.ry*1.4)),y1:Math.floor(ch.y+ch.ry*.5),tier:ch.kind==='crystal'?'crystal':ch.kind==='hall'?'hall':'cave'})}}
  return cell.chests=out}
-function wonderChests(){if(WCHEST)return WCHEST;WCHEST=[];if(!WON)return WCHEST;
+function wonderChests(){if(WCHEST)return WCHEST;WCHEST=[];if(!WON||!ORES)return WCHEST;
  for(const a of WA){if(a.t===5){const t=-a.ad*.55;WCHEST.push({x:Math.floor(a.x+a.dx*t),z:Math.floor(a.z+a.dz*t),y0:a.y0,y1:a.y0+a.ah,tier:'falls'})}
   else if(a.kind==='uwArch')WCHEST.push({x:Math.floor(a.x),z:Math.floor(a.z),y0:SEA-34,y1:SEA-3,tier:'sea',wet:1})}
  for(const f of WF)if(f.t===2&&f.s===1){const m=f.P[Math.floor(f.P.length/2)];WCHEST.push({x:Math.floor(m[0]),z:Math.floor(m[1]),y0:SEA-34,y1:SEA-3,tier:'sea',wet:1})}
@@ -1870,13 +1871,13 @@ const LIFE_SPECIES=[
   ['l1',-4.8,2.8,4,4.6,.9,.9,'#a9a49c','bone',1],['l1',-7,0,4.8,.9,3.6,.9,'#a9a49c','bone',1],['l2',-5,2.8,0,4.6,.9,.9,'#a9a49c','bone',1],['l2',-7.3,0,0,.9,3.6,.9,'#a9a49c','bone',1],
   ['l3',-4.8,2.8,-4,4.6,.9,.9,'#a9a49c','bone',1],['l3',-7,0,-4.8,.9,3.6,.9,'#a9a49c','bone',1]]},
 // v16 cave monsters (survival only, never natural elsewhere and not in the spawn-egg book: their group is not listed).
-{id:'caveSpider',name:'洞窟グモ',group:'洞窟',cat:'monster',move:'walk',rig:'spider',sc:1,sp:1.9,run:4.3,h:.65,r:.45,flee:0,herd:[1,1],hab:{},voice:'hiss',size:[.72,.86],
+{id:'caveSpider',name:'洞窟グモ',group:'洞窟',cat:'monster',move:'walk',rig:'spider',sc:1,sp:1.9,run:4.3,h:.65,r:.45,flee:0,herd:[1,1],hab:{},cave:1,voice:'hiss',size:[.72,.86],
  bones:[['body','root',0,5,0],['abd','body',0,6,-2],['l1','body',-2.5,5,3],['l2','body',-2.8,5,1],['l3','body',-2.8,5,-1],['l4','body',-2.5,5,-2.6]],
  parts:[['body',0,3.6,1.5,6,4,6,'#3b4a5c','fur'],['abd',0,3.4,-6,9,7,9,'#34445a','fur'],['abd',0,10.4,-4,6,.3,1.4,'#5ad1ff','flat'],['abd',0,10.4,-7,6.6,.3,1.4,'#5ad1ff','flat'],['abd',0,8,-10.55,4,1.4,.3,'#5ad1ff','flat'],
   ['body',-1.4,6,4.55,1,1,.2,'#8ff4ff','glow',1],['body',-.5,6.9,4.55,.7,.7,.2,'#8ff4ff','glow',1],['body',-2.3,5.1,4.55,.6,.6,.2,'#8ff4ff','glow',1],['body',-.8,2.6,4.2,.8,1.6,.8,'#141a22','flat',1],
   ['l1',-5.4,5.4,3.6,5.6,1.2,1.2,'#2c3848','fur',1],['l1',-8.6,0,4.8,1.1,6.6,1.1,'#2c3848','fur',1],['l2',-5.6,5.4,1,5.6,1.2,1.2,'#2c3848','fur',1],['l2',-9,0,1.4,1.1,6.6,1.1,'#2c3848','fur',1],
   ['l3',-5.6,5.4,-1,5.6,1.2,1.2,'#2c3848','fur',1],['l3',-9,0,-1.4,1.1,6.6,1.1,'#2c3848','fur',1],['l4',-5.4,5.4,-3.2,5.6,1.2,1.2,'#2c3848','fur',1],['l4',-8.6,0,-4.6,1.1,6.6,1.1,'#2c3848','fur',1]]},
-{id:'crystalSlime',name:'クリスタルスライム',group:'洞窟',cat:'monster',move:'hop',rig:'slime',sc:1,sp:1.1,run:2.1,h:.75,r:.38,flee:0,herd:[1,1],hab:{},voice:'squish',size:[1.05,1.35],
+{id:'crystalSlime',name:'クリスタルスライム',group:'洞窟',cat:'monster',move:'hop',rig:'slime',sc:1,sp:1.1,run:2.1,h:.75,r:.38,flee:0,herd:[1,1],hab:{},cave:1,voice:'squish',size:[1.05,1.35],
  bones:[['body','root',0,0,0]],
  parts:[['body',0,0,0,10,10,10,'#8fb6ff','jelly'],['body',0,2.6,0,4.4,4.4,4.4,'#e6dcff','glow'],['body',-2.2,5.4,5.05,1.8,2.4,.25,'#1d1640','flat',1],['body',-2.6,6.6,5.2,.7,.7,.15,'#ffffff','flat',1],
   ['body',0,3.2,5.05,2,.7,.25,'#1d1640','flat'],['body',-2.4,10,-1,2,3.2,2,'#c58cff','glow'],['body',2.2,10,1.4,1.6,2.4,1.6,'#7fe8ff','glow'],['body',.4,10,-2.6,1.2,1.8,1.2,'#b7a4ff','glow']]}];
@@ -2839,7 +2840,7 @@ function lifeCull(focus,night){const cap=lifeCap(),far=Math.max(80,readyR*CHUNK+
   const loaded=peek(Math.floor(c.x),1,Math.floor(c.z))>=0,d=Math.hypot(c.x-focus.x,c.z-focus.z);
   if(!loaded||d>far||(c.sp.hostile&&gameMode==='survival'&&d>64&&!c.seen)){lifeRemove(c,false);nat--;continue}
   if(gameMode==='survival'&&c.sp.cat==='monster'&&!c.sp.hostile&&c.vanish<0)c.vanish=Math.random()*3;
-  if(c.vanish<0&&(lifeMode==='off'||(c.sp.cat==='monster'&&(lifeMode!=='all'||(!night&&!(c.sp.hab.dark&&covered(Math.floor(c.x),Math.floor(c.y),Math.floor(c.z))))))))c.vanish=Math.random()*(lifeMode==='off'?2:14)}
+  if(c.vanish<0&&(lifeMode==='off'||(c.sp.cat==='monster'&&(lifeMode!=='all'||(!night&&!((c.sp.hab.dark||c.sp.cave)&&covered(Math.floor(c.x),Math.floor(c.y),Math.floor(c.z))))))))c.vanish=Math.random()*(lifeMode==='off'?2:14)}
  if(nat>cap+6){let worst=null,wd=0;for(const c of life)if(!c.manual&&!c.seen){const d=Math.hypot(c.x-focus.x,c.z-focus.z);if(d>wd){wd=d;worst=c}}if(worst)lifeRemove(worst,false)}}
 // ---- Behaviour. Each step gets the time since its last update; distant creatures update less often.
 const angTo=(a,b)=>{let d=b-a;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;return d};
@@ -3248,7 +3249,8 @@ function pickaxe(){return bestOf(PICKS,HAND)}
 function armor(){return bestOf(ARMORS,NO_ARMOR)}
 function needName(k){return /^\d+$/.test(k)?defs[k][0]:MAT_NAME[k]||k}
 function haveOf(k){return /^\d+$/.test(k)?inventory[k]||0:items[k]||0}
-function missingOf(need){return Object.entries(need).filter(([k,n])=>haveOf(k)<n).map(([k,n])=>needName(k)+' あと'+(n-haveOf(k)))}
+const needList=need=>Object.entries(need).sort((a,b)=>(/^\d/.test(a[0])?1:0)-(/^\d/.test(b[0])?1:0)); // materials first, then blocks
+function missingOf(need){return needList(need).filter(([k,n])=>haveOf(k)<n).map(([k,n])=>needName(k)+' あと'+(n-haveOf(k)))}
 const LEAF_IDS=[5,14,15,16],APPLE_HEAL=6,SAFE_R=24,HOSTILE_CAP={low:2,standard:4,high:5},ACTIVE_R=32,ARROW_G=14,ARROW_MAX=12;
 // hp, damage, sight (blocks), wind-up before the hit (the readable tell), cooldown after it. Damage is eased until three monsters fall.
 const HOSTILE={caveSpider:{hp:8,dmg:2,reach:1.6,sight:14,windup:.38,cool:1,ai:'melee'},crystalSlime:{hp:16,dmg:3,reach:3.2,sight:14,windup:.55,cool:1.5},zombie:{hp:12,dmg:3,reach:1.7,sight:16,windup:.55,cool:1.2},skeleton:{hp:10,dmg:2,sight:18,windup:.8,cool:2.6,near:5,far:11},slime:{hp:0,dmg:2,reach:3.2,sight:14,windup:.5,cool:1.4}};
@@ -3361,7 +3363,7 @@ function craftItem(id){
  toast(r.name+'をつくった！ '+(SWORDS[id]?'そうびしたよ ⚔':PICKS[id]?'掘れるものが増えた ⛏':'みにつけた 🛡（ダメージ'+Math.round(r.def*100)+'%カット）'));refresh();return true}
 // The craft screen lists every recipe; each button says what it makes, what it needs and, when short, exactly what is missing.
 const CRAFT_SECTIONS=[['⛏ 道具（ツルハシ）',PICKS],['⚔ 武器',SWORDS],['🛡 防具',ARMORS]];
-function craftLabel(id,r){const need=Object.entries(r.need).sort((a,b)=>(/^\d/.test(a[0])?1:0)-(/^\d/.test(b[0])?1:0)).map(([k,n])=>needName(k)+' '+n).join(' + '),stat=SWORDS[id]?'攻撃力 '+r.dmg:PICKS[id]?(r.tier>=3?'金・ダイヤも掘れる':r.tier>=2?'鉄も掘れる':'石炭が掘れる'):'ダメージ'+Math.round(r.def*100)+'%カット';
+function craftLabel(id,r){const need=needList(r.need).map(([k,n])=>needName(k)+' '+n).join(' + '),stat=SWORDS[id]?'攻撃力 '+r.dmg:PICKS[id]?(r.tier>=3?'金・ダイヤも掘れる':r.tier>=2?'鉄も掘れる':'石炭が掘れる'):'ダメージ'+Math.round(r.def*100)+'%カット';
  const miss=items[id]>0?'':missingOf(r.need).join('・');return`<b>${r.name}</b><span>${need} → ${stat}</span>${items[id]>0?'<em>✓ 持っている</em>':miss?'<em class="miss">たりない：'+miss+'</em>':'<em class="ok">つくれる！</em>'}`}
 let craftBuilt=false;
 function buildCraftGear(){const box=$('craftGear');if(!box||craftBuilt)return;craftBuilt=true;

@@ -407,7 +407,7 @@ const SEA_=62;
  const want=['cow','pig','sheep','chicken','horse','deer','fox','rabbit','wolf','squirrel','aji','tai','ayu','clown','tang','turtle','dolphin','squid','goat','eagle','songbird','gull','starling','zombie','skeleton','spider','slime','bomb','wisp','crawler'];
  const sp=J(`LIFE_SPECIES.map(s=>({id:s.id,cat:s.cat,group:s.group,nq:s.nq,nb:s.nb,move:s.move}))`);
  for(const id of want)assert(sp.some(s=>s.id===id),'species '+id);
- assert.equal(sp.filter(s=>s.cat==='monster').length,7,'seven monster types');assert(sp.every(s=>s.nb<=16&&s.nq>=12&&s.nq<1200),'model budgets');
+ assert.equal(sp.filter(s=>s.cat==='monster'&&s.group==='モンスター').length,7,'seven monster types');assert.deepEqual(sp.filter(s=>s.group==='洞窟').map(s=>s.id),['caveSpider','crystalSlime'],'two v16 cave monsters');assert(sp.every(s=>s.nb<=16&&s.nq>=12&&s.nq<1200),'model budgets');
  // Models: finite vertices, valid bones, and no two species share a shape.
  const m=J(`(()=>{const a=lifeModel.a,out=[];for(const s of LIFE_SPECIES){let h=2166136261,bad=0;for(let i=s.q0*36;i<(s.q0+s.nq)*36;i++){const v=a[i];if(!Number.isFinite(v))bad++;if(i%9<3){h^=Math.round(v*16);h=Math.imul(h,16777619)}}
    for(let i=s.q0*36+8;i<(s.q0+s.nq)*36;i+=9)if(Math.floor(a[i]/128)>=s.nb)bad++;
@@ -743,7 +743,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
 {// Fish: models, habitats, staying in water, flight from the player, bounded numbers and determinism.
  const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
  const sp=J('FISH_SPECIES.map(s=>({id:s.id,nq:s.nq,q0:s.q0,tail:s.parts.filter(p=>p[0]==="tail").length,fins:s.parts.length,rare:!!s.rare,zone:s.zone,dims:[s.rad.toFixed(2),s.h.toFixed(2)]}))');
- assert(sp.length>=8,'at least eight new fish');assert.equal(R('LIFE_SPECIES.length'),30,'the 30 existing creatures are unchanged');
+ assert(sp.length>=8,'at least eight new fish');assert.equal(R('LIFE_SPECIES.length'),32,'the 30 existing creatures are unchanged (plus the two v16 cave monsters)');
  assert(sp.every(s=>!R(`!!LIFE_BY_ID['${s.id}']`)),'new ids');assert(sp.every(s=>s.tail>=1&&s.fins>=8),'every fish has a tail and fins');
  assert.equal(new Set(sp.map(s=>s.dims.join())).size,sp.length,'every species has its own shape');assert(sp.some(s=>s.rare)&&sp.some(s=>s.zone==='bottom')&&sp.some(s=>s.zone==='top'));
  assert(sp.every(s=>s.q0+s.nq*8<=R('MAXQ')),'shared index buffer covers every batch');
@@ -978,7 +978,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  R(`life.length=0;items.woodSword=1;var z=lifeNew(LIFE_BY_ID.zombie,X0+.5,Y0+1,Z0+2.5,false);var hits=0;for(let i=0;i<8&&life.includes(z);i++){atkCD=0;z.z=Z0+2.5;z.x=X0+.5;if(strike(true))hits++}`);
  assert.equal(R('hits'),3,'a wooden sword defeats a zombie in three hits');assert.equal(R('life.includes(z)'),false);assert.equal(R('defeated'),1);assert.match(d.nodes.hint.textContent,/たおした/,'defeat is celebrated');
  R(`arena();wall(Z0+4,3);var z=lifeNew(LIFE_BY_ID.zombie,X0+.5,Y0+1,Z0+2.5,false);pitch=0;mine()`);assert.equal(R('z.mhp'),R('monsterMaxHP(z)-weapon().dmg'),'壊す hits the monster in front');assert.equal(R(`get(X0,Y0+2,Z0+4)`),3,'and not the block behind it');R('wall(Z0+4,0)');
- R(`arena();var far=lifeNew(LIFE_BY_ID.zombie,X0+.5,Y0+1,Z0+20,false);step(30)`);assert.notEqual(R('far.mode'),'windup');R('items.stoneSword=1');assert.equal(R('weapon().dmg'),6,'the stone sword is stronger');assert.equal(R('SWORDS.ironSword.need'),null,'iron sword is defined for later');
+ R(`arena();var far=lifeNew(LIFE_BY_ID.zombie,X0+.5,Y0+1,Z0+20,false);step(30)`);assert.notEqual(R('far.mode'),'windup');R('items.stoneSword=1');assert.equal(R('weapon().dmg'),6,'the stone sword is stronger');assert.deepEqual(JSON.parse(R('JSON.stringify(SWORDS.ironSword.need)')),{7:1,iron:2},'v16: the iron sword is made from iron');
  // Monster HP / AI only near the player; nothing hostile beyond the active radius.
  R(`arena();var far=lifeNew(LIFE_BY_ID.zombie,X0+.5,Y0+1,Z0+23.5,false);far.los=true;step(60)`);assert(!R('HOSTILE_MODES.has(far.mode)')||R('Math.hypot(far.x-player.x,far.z-player.z)')<R('ACTIVE_R'),'far monsters stay passive');
  // Creative and peaceful: never hurt; peaceful monsters never wind up.
@@ -1013,7 +1013,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  // Saves: mode, hearts, swords, apples and wins come back; older releases still see `creative` and a hotbar slot they accept.
  R(`arena();setGameMode('survival');health=13;items.apple=3;defeated=4;selected=11`);assert(d.api.save(),'saving with hotbar slot 12 selected works: '+d.nodes.saveInfo.textContent);const sv=JSON.parse(d.storage['nisekura-v1']);
  assert.equal(sv.gameMode,'survival');assert.equal(sv.creative,false);assert.equal(sv.health,13);assert.equal(sv.settings.selected,0,'old-release compatible slot');assert.equal(sv.settings.hotbar,11);
- const re=boot(d.storage['nisekura-v1']);assert.deepEqual(JSON.parse(run(re,'JSON.stringify([gameMode,health,items,defeated,selected,creative])')),['survival',13,{woodSword:1,stoneSword:1,ironSword:0,apple:3},4,11,false]);
+ const re=boot(d.storage['nisekura-v1']);const ri=JSON.parse(run(re,'JSON.stringify([gameMode,health,items,defeated,selected,creative])'));assert.deepEqual([ri[0],ri[1],ri[3],ri[4],ri[5]],['survival',13,4,11,false]);assert.deepEqual({woodSword:ri[2].woodSword,stoneSword:ri[2].stoneSword,ironSword:ri[2].ironSword,apple:ri[2].apple},{woodSword:1,stoneSword:1,ironSword:0,apple:3});
  const deadSave={...sv,health:0};delete deadSave.integrity;const rd=boot(JSON.stringify(deadSave));assert.equal(run(rd,'health'),20,'a world saved on the respawn screen comes back alive');assert(run(rd,'Math.hypot(player.x-homeX,player.z-homeZ)')<1);
  for(const bad of [{gameMode:'hard'},{health:-1},{health:21},{items:[]},{items:{apple:-1}},{defeated:1.5}]){const x={...sv,...bad};delete x.integrity;const b=boot(JSON.stringify(x));assert(run(b,'storageBlocked'),'rejects '+JSON.stringify(bad))}
  const future={...sv,items:{...sv.items,diamondSword:1}};delete future.integrity;assert.equal(run(boot(JSON.stringify(future)),'storageBlocked'),false,'unknown future items are tolerated');
@@ -1079,3 +1079,117 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  Tt('hurtPlayer(99,{x:player.x,y:player.y,z:player.z+1});protectT=0;invulT=0');Tt('protectT=0;invulT=0;health=1;hurtPlayer(5,{x:player.x,y:player.y,z:player.z+1})');
  t.nodes.attack.listeners.pointerdown.forEach(f=>f({...T,pointerId:16}));assert.equal(Tt('attackHeld'),false,'the attack button does nothing on the respawn screen');
  console.log('PASS: survival polish: life setting kept and explained (off/animals/all), title warning, stats flag, short exploration guide, safe zone vs outside, creative/peaceful untouched, stick+attack+look at once, release/cancel/menu/death stop attacks')}
+
+// ---- v16 ADVENTURE: ores (terrain v10), pickaxes and dig times, swords and armour, treasure chests, cave monsters, rare items.
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ assert.equal(R('terrainVersion'),10);assert.equal(R('ORES'),true);
+ // Chunks around cave chambers in a v10 world and the same seed in v9: identical except where ore replaced stone and a chest sits on a floor.
+ const v9=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:9,seed:73219,changes:[],inventory:{}}));assert.equal(run(v9,'ORES'),false);
+ const cks=J(`(()=>{const p=[];for(let ci=0;ci<8&&p.length<40;ci++)for(let cj=0;cj<8&&p.length<40;cj++){const c=caveCell(ci,cj);if(!c)continue;for(const ch of c.chambers.slice(0,3))p.push([Math.floor(ch.x)>>4,Math.floor(ch.z)>>4])}return p})()`);
+ const cnt={30:0,31:0,32:0,33:0,34:0},ys={30:[],31:[],32:[],33:[]};let t10=0,t9=0,exposed=0;
+ for(const [cx,cz] of cks){let s=Date.now();const a10=J(`Array.from(generateChunk(${cx},${cz}))`);t10+=Date.now()-s;s=Date.now();const a9=JSON.parse(run(v9,`JSON.stringify(Array.from(generateChunk(${cx},${cz})))`));t9+=Date.now()-s;
+  const h=J(`Array.from(columnInfo(${cx},${cz}).h)`);
+  for(let i=0;i<a10.length;i++){const t=a10[i];if(t===a9[i])continue;
+   if(t>=30&&t<=33){assert.equal(a9[i],3,'ore only ever replaces stone (never air, water, trees or other blocks)');cnt[t]++;const y=i>>8;ys[t].push(y);assert(y<=h[i&255]-2,'ore stays under the ground surface');
+    const x=i&15,z=(i>>4)&15;if(x>0&&x<15&&z>0&&z<15&&[1,-1,16,-16,256,-256].some(o=>a10[i+o]===0))exposed++}
+   else if(t===34){assert([0,10].includes(a9[i]),'a chest stands in open space');const b=a10[i-256];assert(b&&b!==10&&b!==11,'a chest stands on a solid floor');cnt[34]++}
+   else assert.fail(`unexpected v10 difference ${a9[i]} -> ${t}`)}}
+ for(const t of [30,31,32,33])assert(cnt[t]>0,'every ore is generated: '+t);
+ assert(cnt[30]>cnt[31]&&cnt[31]>cnt[32]&&cnt[32]>cnt[33],'rarer the deeper: coal > iron > gold > diamond '+JSON.stringify(cnt));
+ const med=a=>a.sort((p,q)=>p-q)[a.length>>1];assert(med(ys[30])>med(ys[31])&&med(ys[31])>med(ys[32])&&med(ys[32])>=med(ys[33]),'coal shallow, iron middle, gold and diamond deep');
+ assert(Math.max(...ys[33])<=34&&Math.max(...ys[32])<=48,'diamond and gold only deep down');assert(exposed>cks.length,'cave walls show ore to explorers');
+ assert(cnt[30]/cks.length<40,'ore never crowds the rock');
+ // Deterministic: the same chunk again (and after the cache is dropped) is identical.
+ assert.equal(R(`(()=>{const a=generateChunk(${cks[0]}),b=generateChunk(${cks[0]});return a.every((v,i)=>v===b[i])})()`),true);
+ // Chests: candidates from caves and wonders, tiers, the v9 world has none.
+ const tiers=J(`(()=>{const t={};for(let ci=0;ci<8;ci++)for(let cj=0;cj<8;cj++){const c=caveCell(ci,cj);if(c)for(const k of cellChests(c))t[k.tier]=(t[k.tier]||0)+1}for(const k of wonderChests())t[k.tier]=(t[k.tier]||0)+1;return t})()`);
+ for(const k of ['cave','hall','crystal'])assert(tiers[k]>0,'chest kind '+k);assert(Object.values(tiers).reduce((a,b)=>a+b,0)<160,'chests stay special');
+ assert.equal(run(v9,'wonderChests().length'),0);
+ // v9 save played in this release stays readable by the previous release: no new block ids and terrain v9.
+ v9.api.edit(1000,70,1000,8);assert(v9.api.save());const v9s=JSON.parse(v9.storage['nisekura-v1']);assert.equal(v9s.terrainVersion,9);assert(v9s.changes.every(e=>e[1]<30));
+ console.log(`PASS: v16 ores: coal ${cnt[30]} / iron ${cnt[31]} / gold ${cnt[32]} / diamond ${cnt[33]} in ${cks.length} cave chunks (median y ${med(ys[30])}/${med(ys[31])}/${med(ys[32])}/${med(ys[33])}), ${exposed} on cave walls, only stone replaced, ${cnt[34]} chests on floors, kinds ${JSON.stringify(tiers)}, chunk generation ${(t10/cks.length).toFixed(1)} ms vs v9 ${(t9/cks.length).toFixed(1)} ms (incl. JSON copy), v9 untouched`);
+
+ // ---- Mining with pickaxes.
+ R(`var findView=function(T){for(let ci=0;ci<8;ci++)for(let cj=0;cj<8;cj++){const cell=caveCell(ci,cj);if(!cell)continue;for(const ch of cell.chambers){const cx=Math.floor(ch.x)>>4,cz=Math.floor(ch.z)>>4;
+  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const X=cx+dx,Z=cz+dz,dd=voxelChunk(X,Z);for(let i=0;i<dd.length;i++){if(dd[i]!==T)continue;const x=X*16+(i&15),z=Z*16+((i>>4)&15),y=i>>8;
+   for(const [ox,oz] of [[2,0],[-2,0],[0,2],[0,-2],[3,0],[-3,0],[0,3],[0,-3]])for(const oy of [0,-1,1]){const px=x+ox,pz=z+oz,py=y+oy;if(get(px,py,pz)!==0||get(px,py+1,pz)!==0||!solid(px,py-1,pz)||collides({x:px+.5,y:py,z:pz+.5}))continue;
+    const ex=px+.5,ey=py+1.62,ez=pz+.5,tx=x+.5,ty=y+.5,tz=z+.5;player.x=ex;player.y=py+.02;player.z=ez;yaw=Math.atan2(tx-ex,tz-ez);pitch=Math.atan2(ty-ey,Math.hypot(tx-ex,tz-ez));const h=ray();if(h&&h.x===x&&h.y===y&&h.z===z)return{x,y,z}}}}}}return null};
+  var hold=n=>{mineHeld=true;for(let i=0;i<n;i++)update(1/30);mineHeld=false};paused=false;setGameMode('survival');protectT=1e9;life.length=0`);
+ const iron=J('findView(31)');assert(iron,'an iron ore can be seen from a cave floor');const at=`get(${iron.x},${iron.y},${iron.z})`;
+ R('mine();hold(60)');assert.equal(R(at),31,'bare hands cannot mine iron ore');assert.match(d.nodes.hint.textContent,/石のツルハシ/,'and the player is told which pickaxe is needed');
+ assert.match(R('targetLabel(ray())'),/🔒/,'the crosshair label shows the lock');
+ R('items.woodPick=1;mine();hold(60)');assert.equal(R(at),31,'a wooden pickaxe is not enough for iron');
+ R('items.stonePick=1;mine();hold(5)');assert.equal(R(at),31,'digging takes a moment');assert(R('dig&&dig.p>0&&dig.p<1'),'progress builds while held');assert.match(R('targetLabel(ray())'),/▰/,'progress shows under the crosshair');
+ R('update(1/30);update(1/30);drawWorldDetails()');R('hold(20)');assert.equal(R(at),0,'held long enough, the ore breaks');assert.equal(R('items.iron'),1,'iron ore gives iron');assert(R('items.found&FOUND_BIT.iron'));assert.match(d.nodes.find.innerHTML,/はじめての鉄/,'the first iron is celebrated');
+ // dig times: hand > wood > stone > iron > diamond for stone; peaceful and creative stay instant
+ const times=J(`[0,1,2,3,4].map(k=>{for(const p in PICKS)items[p]=0;if(k)items[Object.keys(PICKS)[k-1]]=1;return +(DIG_BASE[3]/pickaxe().speed).toFixed(3)})`);assert(times.every((v,i)=>!i||v<times[i-1]),'better pickaxes dig faster '+times);assert(times[0]<=1,'stone by hand under a second');
+ R('for(const p in PICKS)items[p]=0;items.stonePick=1');const gold=J('findView(32)');if(gold){R('mine();hold(90)');assert.equal(R(`get(${gold.x},${gold.y},${gold.z})`),32,'gold needs an iron pickaxe');R('items.ironPick=1;mine();hold(40)');assert.equal(R(`get(${gold.x},${gold.y},${gold.z})`),0);assert.equal(R('items.gold'),1)}
+ R('setGameMode("peaceful");items.stonePick=items.ironPick=items.woodPick=0');const pc=J('findView(30)');R('mine()');assert.equal(R(`get(${pc.x},${pc.y},${pc.z})`),0,'peaceful: ore is mined at once, as before');assert(R('items.coal')>=1);
+ R('setGameMode("creative")');const cc=J('findView(31)');R('mine()');assert.equal(R(`get(${cc.x},${cc.y},${cc.z})`),0,'creative: no pickaxe needed');
+ console.log(`PASS: v16 mining: pickaxe tiers (hand/wood blocked on iron, stone ok, gold needs iron), hold-to-dig ${times.join('/')} s for stone, cracks and progress label, materials, first-find banner, peaceful/creative instant`);
+
+ // ---- Gear: crafting with exact missing materials, swords, armour.
+ R('setGameMode("survival");for(const k in items)items[k]=0;inventory[7]=0;inventory[3]=0');
+ assert.equal(R('craftItem("ironSword")'),false);assert.match(d.nodes.hint.textContent,/鉄 あと2/,'the missing material is named with the amount');assert.match(d.nodes.hint.textContent,/木材 あと1/);
+ R('craftUI()');assert.match(d.nodes.craft_ironSword.innerHTML,/たりない：鉄 あと2/,'the craft screen shows what is missing');
+ R('items.iron=8;inventory[7]=4');assert.equal(R('craftItem("ironSword")'),true);assert.equal(R('weapon().name'),'鉄の剣');assert.equal(R('items.iron'),6);assert.equal(R('inventory[7]'),3);
+ assert.equal(R('craftItem("ironSword")'),false,'one is enough');R('craftUI()');assert.match(d.nodes.craft_ironSword.innerHTML,/持っている/);
+ R('items.diamond=2;inventory[7]=1');assert.equal(R('craftItem("diamondSword")'),true);assert.equal(R('weapon().dmg'),12);
+ const dmg=J('[SWORDS.woodSword.dmg,SWORDS.stoneSword.dmg,SWORDS.ironSword.dmg,SWORDS.diamondSword.dmg]');assert(dmg.every((v,i)=>!i||v>dmg[i-1]));
+ assert(J('Math.ceil(HOSTILE.zombie.hp/SWORDS.diamondSword.dmg)')===1&&J('Math.ceil(HOSTILE.zombie.hp/SWORDS.woodSword.dmg)')===3,'a zombie takes 3 hits with wood, 1 with diamond');
+ R('health=15;invulT=0;protectT=0;defeated=9;life.length=0');const h0=R('health');assert.equal(R('craftItem("ironArmor")'),true,'iron armour from 5 iron');assert.equal(R('health'),h0,'armour never changes the hearts');assert.match(d.nodes.armorIco.textContent,/鉄/,'the worn armour shows next to the hearts');
+ R('hurtPlayer(4,{x:player.x+1,y:player.y,z:player.z})');assert.equal(R('health'),h0-2.5,'iron armour stops 40% (4 -> 2.5)');
+ R('items.ironArmor=0;invulT=0;health=15;hurtPlayer(4,{x:player.x+1,y:player.y,z:player.z})');assert.equal(R('health'),11,'without armour the damage is as before');
+ R('items.leather=3;invulT=0;health=15');assert.equal(R('craftItem("leatherArmor")'),true);R('hurtPlayer(4,{x:player.x+1,y:player.y,z:player.z})');assert.equal(R('health'),12,'leather armour stops 20%');
+ R('items.ironArmor=1;items.ironPick=1;health=1;invulT=0;hurtPlayer(9,{x:player.x+1,y:player.y,z:player.z})');assert(R('dead'));R('respawn()');assert.equal(R('armor().name'),'鉄の防具','gear is kept after respawn');assert.equal(R('weapon().name'),'ダイヤの剣');assert.equal(R('pickaxe().name'),'鉄のツルハシ');assert.equal(R('health'),20);
+ // leather from monsters (always from the first win)
+ R(`life.length=0;defeated=0;items.leather=0;var z=lifeNew(LIFE_BY_ID.zombie,player.x,player.y,player.z+2,false);defeatMonster(z)`);assert(R('items.leather')>=2,'the first monster always leaves leather');
+ console.log(`PASS: v16 gear: missing materials named (toast and craft screen), swords ${dmg.join('/')}, armour 20/40% with hearts untouched, worn armour shown, gear kept after respawn, leather drops`);
+
+ // ---- Treasure chests.
+ R('setGameMode("survival");for(const k in items)items[k]=0');const ch=J('findView(34)');assert(ch,'a chest can be reached on a cave floor');
+ const tier=R(`chestInfo.get(idx(${ch.x},${ch.y},${ch.z}))`);assert(Object.keys(J('LOOT')).includes(tier));
+ R('chestScanT=0;chestTick(.2)');assert.deepEqual(J('nearChest'),[ch.x,ch.y,ch.z],'the chest in front is found');assert(!d.nodes.openChest.classList.contains('hidden'),'and 開ける appears');
+ const loot=J(`chestLoot(${ch.x},${ch.y},${ch.z},"${tier}")`);assert.deepEqual(J(`chestLoot(${ch.x},${ch.y},${ch.z},"${tier}")`),loot,'loot is a pure function of the chest');
+ assert.equal(R(`openChest(${ch.x},${ch.y},${ch.z})`),true);assert.equal(R(`get(${ch.x},${ch.y},${ch.z})`),35,'it becomes an open chest');assert.equal(R('items.chests'),1);assert(R('items.iron')>=2,'the first chest helps toward iron gear');
+ assert(!d.nodes.loot.classList.contains('hidden')&&/宝箱/.test(d.nodes.loot.innerHTML),'the loot is listed');assert(d.nodes.openChest.classList.contains('hidden'));
+ const after=R('JSON.stringify(items)');assert.equal(R(`openChest(${ch.x},${ch.y},${ch.z})`),false,'an open chest gives nothing again');R(`inventory[slots[selected]]=0;place()`);assert.equal(R('JSON.stringify(items)'),after,'right click / 置く on it gives nothing either');
+ assert(d.api.save());const re=boot(d.storage['nisekura-v1']),RR=c=>run(re,c);assert.equal(re.api.get(ch.x,ch.y,ch.z),35,'the open state is saved');assert.equal(RR('JSON.stringify(items)'),after,'items and the collection are saved');
+ assert.equal(RR(`openChest(${ch.x},${ch.y},${ch.z})`),false,'and cannot be emptied again after a reload');
+ R('mine()');assert.equal(R(`get(${ch.x},${ch.y},${ch.z})`),0,'an empty chest can be broken (gives planks)');
+ // a player's build wins over a chest
+ const ch2=J(`(()=>{for(const [i,t] of chestInfo){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));if(get(x,y,z)===34&&(x!==${ch.x}||z!==${ch.z}))return{x,y,z}}return null})()`);
+ if(ch2){R(`edit(${ch2.x},${ch2.y},${ch2.z},8)`);assert.equal(R(`openChest(${ch2.x},${ch2.y},${ch2.z})`),false);assert(d.api.save());assert.equal(boot(d.storage['nisekura-v1']).api.get(ch2.x,ch2.y,ch2.z),8,'a block placed where a chest was stays')}
+ // rare items: banner the first time, saved, never used up
+ R('items.found&=~FOUND_BIT.dragonEgg;items.dragonEgg=0');assert.equal(R('giveRare("dragonEgg",1,[])'),true);assert.match(d.nodes.find.innerHTML,/レアアイテム発見/);assert.match(d.nodes.find.innerHTML,/ドラゴンの卵/);assert.equal(R('giveRare("dragonEgg",1,[])'),false,'only the first find gets the banner');
+ R('craftUI()');assert.match(d.nodes.rareRow.innerHTML,/ドラゴンの卵 <b>×2/);assert(d.api.save());assert.equal(run(boot(d.storage['nisekura-v1']),'items.dragonEgg'),2,'the collection is saved');
+ // every loot table yields sensible things, diamonds and dragon eggs stay rare
+ const stats=J(`(()=>{const s={};for(const t in LOOT){let dia=0,egg=0,n=0;for(let i=0;i<400;i++){const l=chestLoot(i*7,20+i%9,i*13,t);n+=l.length;for(const [k,c] of l){if(k==='diamond')dia+=c;if(k==='dragonEgg')egg++}}s[t]={items:+(n/400).toFixed(1),dia:+(dia/400).toFixed(2),egg:+(egg/400).toFixed(3)}}return s})()`);
+ for(const t in stats){assert(stats[t].items>=2,'a chest holds a few things: '+t);assert(stats[t].dia<1,'diamonds stay rare: '+t);assert(stats[t].egg<.1,'the dragon egg stays very rare: '+t)}
+ console.log(`PASS: v16 chests: found and opened (${tier}), 開ける button, deterministic loot, one-time only (also after reload), break when empty, builds win, rare-item banner and collection saved, loot ${JSON.stringify(stats)}`);
+
+ // ---- Cave monsters (survival).
+ R(`setGameMode('survival');for(const k in items)items[k]=0;life.length=0;protectT=0;invulT=0;health=20;defeated=9;var X0=Math.floor(player.x)+300,Z0=Math.floor(player.z),Y0=150;for(let x=X0-8;x<=X0+8;x++)for(let z=Z0-8;z<=Z0+12;z++){edit(x,Y0,z,3);for(let y=Y0+1;y<Y0+5;y++)edit(x,y,z,0);edit(x,Y0+5,z,3)}player.x=X0+.5;player.z=Z0+.5;player.y=Y0+1;vy=0;yaw=0;pitch=-.1;streamChunks(true)`);
+ for(const [hab,ids] of [['cave',['skeleton','slime','caveSpider']],['crystal',['crystalSlime','caveSpider']]]){const seen=new Set(J(`Array.from({length:200},()=>hostilePick('${hab}').id)`));for(const id of ids)assert(seen.has(id),hab+' spawns '+id);if(hab==='crystal')assert(!seen.has('zombie'))}
+ assert.equal(R('hostilePick("meadow").id==="crystalSlime"||hostilePick("meadow").id==="caveSpider"'),false,'cave monsters never come to the surface');
+ R(`var s=lifeNew(LIFE_BY_ID.caveSpider,X0+.5,Y0+1,Z0+7.5,false);var step=n=>{for(let i=0;i<n;i++){updateLife(1/30,player);updateSurvival(1/30)}};step(60)`);
+ assert(R('Math.hypot(s.x-player.x,s.z-player.z)')<7,'the cave spider rushes in');R('step(150)');assert(R('health')<20,'and bites');
+ assert.equal(R('monsterMaxHP(s)'),8);assert(R('s.vanish<0'),'a cave monster stays in a covered cave by day');R('items.ironSword=1;atkCD=0;s.x=player.x;s.z=player.z+1.8;s.y=player.y;pitch=-.15;strike(true)');assert.equal(R('life.includes(s)'),false,'an iron sword defeats a cave spider in one hit');
+ R(`health=20;invulT=0;var g=lifeNew(LIFE_BY_ID.crystalSlime,X0+.5,Y0+1,Z0+6.5,false);step(200)`);assert(R('health')<20,'the crystal slime lunges and hits');assert.equal(R('monsterMaxHP(g)'),16,'tougher than an amber slime');
+ R('items.gold=0;items.crystal=0;let n=0;for(let i=0;i<40;i++){const c=lifeNew(LIFE_BY_ID.crystalSlime,X0+.5,Y0+1,Z0+3,false);defeatMonster(c)}');assert(R('items.gold')>0&&R('items.crystal')>0,'crystal slimes leave gold and mysterious crystals');
+ assert.equal(R('inCrystalCave(player.x,player.y,player.z)'),false);const cr=J(`(()=>{for(let ci=0;ci<8;ci++)for(let cj=0;cj<8;cj++){const c=caveCell(ci,cj);if(c)for(const ch of c.chambers)if(ch.kind==='crystal')return[ch.x,ch.y,ch.z]}return null})()`);assert(cr&&R(`inCrystalCave(${cr})`),'crystal caves are recognised');
+ R('setGameMode("peaceful");life.length=0;for(let i=0;i<30;i++)caveSpawn(player)');assert.equal(R('life.filter(c=>c.sp.group==="洞窟").length'),0,'cave monsters never appear outside survival');
+ console.log('PASS: v16 cave monsters: cave spider rushes/bites/one-hit with iron, crystal slime lunges (16 HP) and drops gold and crystals, crystal-cave spawning, surface and peaceful stay free of them');
+
+ // ---- Goals, the cave compass and the HUD.
+ R('setGameMode("survival");for(const k in items)items[k]=0;guideStep=4;paused=false;guideShown="";updateSurvival(.1)');assert.match(d.nodes.guide.innerHTML,/木のツルハシ/,'next goal: a wooden pickaxe');
+ R('items.woodPick=items.stonePick=1;updateSurvival(.1)');assert.match(d.nodes.guide.innerHTML,/鉄鉱石/);R('items.found|=FOUND_BIT.iron;items.ironPick=1;updateSurvival(.1)');assert.match(d.nodes.guide.innerHTML,/宝箱/);
+ R('caveAimT=0;updateCompass()');const mouth=J('caveAim');assert(mouth&&Number.isFinite(mouth.d),'the nearest cave mouth is known');
+ R(`caveUnder=true;caveAimT=0;updateCompass()`);assert(!d.nodes.compassCave.classList.contains('hidden'));assert.match(d.nodes.compassCaveText.textContent,/出口/,'underground the compass points the way out');R('caveUnder=false');
+ const html=fs.readFileSync(__dirname+'/index.html','utf8');
+ for(const sel of ['#find{','#loot{','#openChest{','body:has(#find:not(.hidden)) #guide','body:has(#craft:not(.hidden)) #openChest'])assert(html.includes(sel),'HUD rule '+sel);
+ assert(/#find\{[^}]*pointer-events:none/.test(html)&&/#loot\{[^}]*pointer-events:none/.test(html),'banners never take touches');
+ assert(!/@keyframes findPop\{[^}]*opacity:0/.test(html),'banners never start invisible');
+ assert(d.api.fragmentSource.includes('v10 ores')&&d.api.fragmentSource.includes('v10 treasure chest'),'ore and chest shading');
+ console.log('PASS: v16 goals (pickaxe -> iron -> chest), cave compass (entrance / way out), discovery banner, loot panel and 開ける button rules');
+}
