@@ -164,7 +164,7 @@ body.mode-survival #eat{display:block}
 #eat{position:relative;font-size:17px}#eat b{position:absolute;right:3px;bottom:1px;font-size:10px;text-shadow:1px 1px #000}#eat:disabled{opacity:.45}
 body.mode-survival #survHud{display:flex}
 #survHud{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom)) + 55px);height:16px;align-items:center;gap:6px;pointer-events:none}
-#hearts{display:flex;gap:1px;filter:drop-shadow(1px 0 0 #1a0606) drop-shadow(-1px 0 0 #1a0606) drop-shadow(0 1px 0 #1a0606) drop-shadow(0 -1px 0 #1a0606)}
+#hearts{display:flex;gap:1px;filter:drop-shadow(0 0 1px #1a0606) drop-shadow(0 1px 1px #000a)}
 #hearts i{display:block;width:14px;height:12px;background:#3b1a1acc;clip-path:polygon(14.3% 0,42.9% 0,42.9% 16.7%,57.1% 16.7%,57.1% 0,85.7% 0,85.7% 16.7%,100% 16.7%,100% 50%,85.7% 50%,85.7% 66.7%,71.4% 66.7%,71.4% 83.3%,57.1% 83.3%,57.1% 100%,42.9% 100%,42.9% 83.3%,28.6% 83.3%,28.6% 66.7%,14.3% 66.7%,14.3% 50%,0 50%,0 16.7%,14.3% 16.7%)}
 #hearts i.full{background:linear-gradient(#ff8a7a 0 30%,#e8322e 30% 80%,#a61c1c 80%)}
 #hearts i.half{background:linear-gradient(90deg,#e8322e 50%,#3b1a1acc 50%)}
@@ -172,7 +172,7 @@ body.mode-survival #survHud{display:flex}
 @keyframes heartBlink{50%{opacity:.35}}@keyframes heartBeat{50%{transform:translateY(-2px)}}
 #kills{font:bold 10px/1 system-ui,sans-serif;color:#ffe8b0;text-shadow:0 1px 2px #000;white-space:nowrap}
 #hurtFx{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 42%,#d0101c55 72%,#a00010cc 100%)}
-#guide{position:fixed;z-index:9;left:50%;transform:translateX(-50%);top:calc(max(12px,env(safe-area-inset-top)) + 104px);width:max-content;max-width:calc(100vw - 32px);padding:8px 14px;border-radius:12px;background:#10282af0;border:1px solid #ffe49e88;color:#fff8e2;font-size:13px;line-height:1.5;text-align:center;box-shadow:0 4px 18px #0006;touch-action:manipulation}
+#guide{position:fixed;z-index:9;left:50%;transform:translateX(-50%);top:calc(max(12px,env(safe-area-inset-top)) + 104px);width:max-content;max-width:calc(100vw - 32px);padding:8px 14px;border-radius:12px;background:#10282af0;border:1px solid #ffe49e88;color:#fff8e2;font-size:13px;line-height:1.5;text-align:center;box-shadow:0 4px 18px #0006;pointer-events:none}
 #guide small{display:block;font-size:10px;color:#cfe3c7}
 #craft .craft-head{margin:14px 0 2px;font-size:11px;letter-spacing:2px;color:#ffc9a8}
 body.mode-survival #craftSurvival{display:block}
@@ -2420,7 +2420,7 @@ if(collides(player))spawn();
 function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
 const hotbarButtons=[];
-function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];survivalUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
+function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];if(typeof lifeModeText==='function')$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();survivalUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
 function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;if(strike(false))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}let t=hit.t;inventory[t]=(inventory[t]||0)+1;if(gameMode==='survival'&&LEAF_IDS.includes(t)&&Math.random()<.12){items.apple++;toast('りんごを見つけた 🍎')}burst(hit.x+.5,hit.y+.5,hit.z+.5,defs[t][1]);edit(hit.x,hit.y,hit.z,0);clickSound();refresh()}
 function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
@@ -2470,7 +2470,7 @@ $('photoBtn').onclick=$('photoMenu').onclick=()=>setPhotoMode(true);$('photoExit
 applyHUD();
 function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInput();document.exitPointerLock?.();$('eggs').classList.add('hidden');$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
-function play(){if(storageBlocked){toast('セーブを保護中です。保存データの復旧を選んでください');return}if(dead){respawn();return}$('modePick').classList.add('hidden');paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast(gameMode==='survival'?'木を集める → 木の剣をクラフト → 夜のモンスターにそなえよう':'木を集める → 木材にクラフト → 家を建てる')}
+function play(){if(storageBlocked){toast('セーブを保護中です。保存データの復旧を選んでください');return}if(dead){respawn();return}$('modePick').classList.add('hidden');paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast(monsterNotice()||(gameMode==='survival'?'木を集める → 木の剣をクラフト → 夜のモンスターにそなえよう':'木を集める → 木材にクラフト → 家を建てる'))}
 function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
 $('play').onclick=()=>{if(!modeChosen&&!storageBlocked)openModePick();else play()};$('menuBtn').onclick=pause;$('mode').onclick=()=>{setGameMode(GAME_MODES[(GAME_MODES.indexOf(gameMode)+1)%GAME_MODES.length]);modeChosen=true};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('caves').onclick=nextCave;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(resettingWorld||benchLock)return;if(storageBlocked){toast('元データを保護中です。先に復旧またはバックアップしてください');return}
  if(!confirm('現在の世界を退避して、新しい世界を作成しますか？端末故障に備え、先に「ワールドをバックアップ」でファイル保存をおすすめします。'))return;
@@ -3069,8 +3069,10 @@ function buildEggPanel(){if(eggBuilt)return;const stamp=perfEnabled?performance.
  for(const g of LIFE_GROUPS){const hd=document.createElement('div');hd.className='egg-head';hd.textContent=g;grid.appendChild(hd);
   for(const sp of LIFE_SPECIES.filter(s=>s.group===g)){const b=document.createElement('button');b.className='egg';b.setAttribute('data-sp',sp.i);const slot=document.createElement('span');slot.className='egg-icon-slot';b.appendChild(slot);eggIconQueue.push({sp,slot});const s=document.createElement('span');s.textContent=sp.name;b.appendChild(s);
    b.onclick=()=>{eggSp=sp.i;refresh();play();toast(`${sp.name}：置きたい場所をタップ（または「置く」）`)};grid.appendChild(b)}}if(perfEnabled)perfSample('eggPanel',performance.now()-stamp)}
-function lifeModeText(){return'生き物：'+(lifeMode==='all'?'すべて':lifeMode==='animals'?'動物だけ':'自然発生OFF')}
-function setLifeMode(m){lifeMode=m;dirty=true;$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText()}
+function lifeModeText(){return'生き物：'+(lifeMode==='all'?'すべて':lifeMode==='animals'?'動物だけ':'自然発生OFF')+(monsterNotice()?' ⚠敵なし':'')}
+function setLifeMode(m){lifeMode=m;dirty=true;$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();if(gameMode==='survival'&&!paused)toast(monsterNotice()||'モンスターが出るようになった（夜に注意）')}
+// Survival needs 「生き物：すべて」 for monsters. A setting the player chose is respected, never changed silently; it is explained instead.
+function monsterNotice(){return gameMode==='survival'&&lifeMode!=='all'?`⚠ 生き物が「${lifeMode==='off'?'自然発生OFF':'動物だけ'}」なのでモンスターは出ないよ。メニューの「生き物」を「すべて」にしてね`:''}
 function openEggs(){if(photoMode)return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();buildEggPanel();
  $('lifeMode').textContent=lifeModeText();$('voices').textContent='鳴き声：'+(lifeVoices?'ON':'OFF');$('eggCount').textContent=`置いた生き物 ${life.filter(c=>c.manual).length} / ${MANUAL_MAX}`;$('eggs').classList.remove('hidden');scheduleEggIcons()}
 const eggIcons=new Map();let eggChipSpecies=-2;
@@ -3192,7 +3194,7 @@ $('craftWoodSword').onclick=()=>craftItem('woodSword');$('craftStoneSword').oncl
 $('eat').onclick=()=>eat();$('respawn').onclick=()=>respawn();
 // ---- Modes: switching is always safe (from the title menu). Entering survival lands the player and grants a short shield.
 function setGameMode(m){if(!GAME_MODES.includes(m))return;const was=gameMode;gameMode=m;creative=m==='creative';dirty=true;
- if(m==='survival'){if(flying){flying=false;vy=0}if(was!=='survival'){if(health<=0)health=MAX_HP;protectT=Math.max(protectT,3);if(lifeMode!=='all')toast('「生き物：すべて」のときにモンスターが出るよ')}}
+ if(m==='survival'){if(flying){flying=false;vy=0}if(was!=='survival'){if(health<=0)health=MAX_HP;protectT=Math.max(protectT,3);if(monsterNotice())toast(monsterNotice())}}
  if(m!=='survival'){arrows.length=0;invulT=0;kbx=kbz=0;for(const c of life)if(HOSTILE_MODES.has(c.mode)){c.mode='idle';c.timer=1;c.flash=0}}
  refresh()}
 function openModePick(){for(const [id,m] of [['pickSurvival','survival'],['pickPeaceful','peaceful'],['pickCreative','creative']])$(id).classList.toggle('current',m===gameMode);$('modePick').classList.remove('hidden')}
@@ -3217,7 +3219,7 @@ function hostileSpawnTick(){if(lifeMode!=='all'||readyR<1)return false;const und
   const sp=hostilePick(hab),c=lifeNew(sp,X+.5,gy,Z+.5,false);c.hx=X+.5;c.hz=Z+.5;c.timer=.5+Math.random();return true}
  return false}
 // ---- Per-frame survival bookkeeping (cheap: timers, at most a dozen arrows and a few hostile monsters).
-let heartsKey='',hurtFxOpacity=-1,guideStep=0,guideUntil=0,guideShown='';try{guideStep=+localStorage.getItem('jocraft2-guide')||0}catch(e){}
+let heartsKey='',hurtFxOpacity=-1,guideStep=0,guideUntil=0,guideSince=0,guideShown='';try{guideStep=+localStorage.getItem('jocraft2-guide')||0}catch(e){}
 function updateSurvival(dt){atkCD=Math.max(0,atkCD-dt);invulT=Math.max(0,invulT-dt);camKick*=Math.max(0,1-dt*9);
  for(const c of life){if(c.hurtF>0)c.hurtF=Math.max(0,c.hurtF-dt*4);if(c.barT>0)c.barT-=dt}
  updateArrows(dt);
@@ -3235,12 +3237,13 @@ function updateSurvival(dt){atkCD=Math.max(0,atkCD-dt);invulT=Math.max(0,invulT-
  guideTick();survivalUI()}
 // First-time guide (once per device): wood -> sword -> fight -> heal. Tapping it hides the current tip.
 const GUIDE=[()=>'🌳 木（原木）に向かって「壊す」で集めよう<small>PC：左クリック</small>',()=>'🛠 「クラフト」で 原木→木材、木材3つで<b>木の剣</b>をつくろう',
- ()=>'⚔ 剣をそうびした！ 敵に向かって「攻撃」<small>PC：左クリック。敵が光ったら攻撃の合図、下がってよけよう。出発地点のまわりは安全</small>',()=>'🍎 ♥が減ったら りんご（右上）で回復<small>葉っぱ4つでクラフト・少しずつ自然にも回復するよ</small>'];
+ ()=>inSafe(player.x,player.z)?'🧭 安全地帯の外へ冒険しよう！ 夜になるとモンスターが出るよ<small>出発地点のまわりは安全。上のコンパスの⌂が出発地点</small>':'⚔ 敵に向かって「攻撃」<small>PC：左クリック。敵が光ったら攻撃の合図、下がってよけよう</small>',()=>'🍎 ♥が減ったら りんご（右上）で回復<small>葉っぱ4つでクラフト・少しずつ自然にも回復するよ</small>'];
 function guideTick(){const now=performance.now();let step=guideStep;
  if(step===0&&((inventory[4]||0)+(inventory[13]||0)>0||weapon()!==FIST))step=1;if(step===1&&weapon()!==FIST)step=2;if(step===2&&defeated>0){step=3;guideUntil=now+9000}if(step===3&&!guideUntil)guideUntil=now+9000;if(step===3&&now>guideUntil)step=4;
  if(step!==guideStep){guideStep=step;try{localStorage.setItem('jocraft2-guide',String(step))}catch(e){}}
- const text=step<GUIDE.length&&!paused?GUIDE[step]():'';if(text!==guideShown){guideShown=text;$('guide').innerHTML=text;$('guide').classList.toggle('hidden',!text)}}
-$('guide').onclick=()=>{guideStep=Math.min(GUIDE.length,guideStep+1);guideUntil=performance.now()+9000;try{localStorage.setItem('jocraft2-guide',String(guideStep))}catch(e){}guideTick()};
+ const text=step<GUIDE.length&&!paused?GUIDE[step]():'';if(text!==guideShown){guideShown=text;guideSince=now;$('guide').innerHTML=text}
+ // The tip never takes touches (swipes pass through to the camera) and fades after 15 s until the next step.
+ const show=!!text&&now-guideSince<15000;if($('guide').classList.contains('hidden')===show)$('guide').classList.toggle('hidden',!show)}
 // ---- HUD (only touched when something changed).
 const heartNodes=[];for(let i=0;i<10;i++){const h=document.createElement('i');$('hearts').appendChild(h);heartNodes.push(h)}
 function survivalUI(){const surv=gameMode==='survival';document.body.classList.toggle('mode-survival',surv);
@@ -3483,7 +3486,7 @@ function frame(now){
  if(!paused){perfFrames++;perfTime+=raw;perfBuildMs+=buildMs+frameCloudMs+performance.now()-lodStart;if(perfTime>2){adaptPerformance(perfFrames/perfTime,perfBuildMs/perfFrames);perfFrames=0;perfTime=0;perfBuildMs=0}}
  if(!titleOpen){const label=hit?defs[hit.t][0]:'';if($('target').textContent!==label)$('target').textContent=label}
  frames++;fpsTime+=raw;
- if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;if(!paused){$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':MODE_LABEL[gameMode]}${gameMode==='survival'?' · ♥'+Math.ceil(health/2):''}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}}
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;if(!paused){$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':MODE_LABEL[gameMode]}${gameMode==='survival'?' · ♥'+Math.ceil(health/2)+(lifeMode==='all'?'':' · 敵なし'):''}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}}
  const opacity=now>toastUntil?'0':'1';if($('hint').style.opacity!==opacity)$('hint').style.opacity=opacity;
  if(now-lastSave>15000&&!paused){queueSave();lastSave=now}
  requestAnimationFrame(frame)

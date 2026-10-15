@@ -1024,5 +1024,58 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  R('setPhotoMode(true);atkCD=0');assert.equal(R('strike(true)'),false,'no attacks in photo mode');R('setPhotoMode(false)');
  // First-time guide: wood -> sword -> fight, remembered on the device.
  const g=boot(),G=c=>run(g,c);G('paused=false;setGameMode("survival");updateSurvival(.1)');assert.match(g.nodes.guide.innerHTML,/木/);assert(!g.nodes.guide.classList.contains('hidden'));
- G('items.woodSword=1;updateSurvival(.1)');assert.match(g.nodes.guide.innerHTML,/攻撃/);assert.equal(g.storage['jocraft2-guide'],'2');
+ G('items.woodSword=1;updateSurvival(.1)');assert.match(g.nodes.guide.innerHTML,/安全地帯の外へ/);assert.equal(g.storage['jocraft2-guide'],'2');
  console.log(`PASS: survival: 3 modes (picker, legacy mapping, safe switching), 20 HP hearts, zombie chase/wind-up/hit, walls block hits and arrows, skeleton arrows (${R('shots')}), slime lunges, sword 3-hit defeat, knockback, death/respawn with nothing lost, apples, crafting, night ramp ${ramp.join('/')}, safe zone, dawn, saves and old-release compatibility, touch attack`)}
+
+// ---- SURVIVAL polish: life setting vs monsters, guidance to leave the safe zone, multi-touch attack, release stops repeats, no side effects elsewhere.
+{const T={pointerId:3,clientX:90,clientY:56,preventDefault(){}};
+ // A brand-new world that picks survival gets 「生き物：すべて」 and no warning.
+ const f=boot(),F=c=>run(f,c);f.nodes.play.onclick();f.nodes.pickSurvival.onclick();
+ assert.equal(F('lifeMode'),'all');assert.equal(F('monsterNotice()'),'');assert(!f.nodes.lifeMenu.textContent.includes('⚠'));
+ // Existing world with natural spawning OFF: survival never changes it silently, but explains why no monsters come.
+ const base=JSON.parse((()=>{const x=boot();x.api.save();return x.storage['nisekura-v1']})());delete base.integrity;base.life={mode:'off',eggs:[]};base.gameMode='peaceful';base.creative=false;
+ for(const mode of ['off','animals']){const w=boot(JSON.stringify({...base,life:{mode,eggs:[]}})),W=c=>run(w,c);
+  for(let i=0;i<3&&W('gameMode')!=='survival';i++)w.nodes.mode.onclick();assert.equal(W('gameMode'),'survival');assert.equal(W('lifeMode'),mode,'the player\'s choice is kept');
+  const label=mode==='off'?'自然発生OFF':'動物だけ';assert(W('monsterNotice()').includes(label)&&W('monsterNotice()').includes('モンスターは出ない'),'the notice names the setting');
+  assert(w.nodes.lifeMenu.textContent.includes('⚠敵なし'),'the title button shows the warning (the hint bubble is hidden behind the title)');
+  W('play()');assert(w.nodes.hint.textContent.includes(label),'starting play explains it');
+  W('paused=false;timeOverride=.95;dayTime=.95;protectT=0;for(let i=0;i<120&&readyR<2;i++)streamChunks();player.x+=60;player.y=surface(player.x,player.z)+.02;streamChunks(true);for(let k=0;k<1500;k++){updateLife(.1,player);updateSurvival(.1)}');
+  assert.equal(W('life.filter(c=>c.sp.hostile).length'),0,'no monsters while natural spawning is not "all"');
+  W('updateSurvival(.1);fps=0');assert(/敵なし/.test(W('`${gameMode==="survival"&&lifeMode!=="all"?" · 敵なし":""}`')),'stats line flags it');
+  W('hint=0');W('setLifeMode("all")');assert.equal(W('monsterNotice()'),'');assert(!w.nodes.lifeMenu.textContent.includes('⚠'),'the warning clears');assert.match(w.nodes.hint.textContent,/モンスターが出るように/,'turning it on is announced');
+  W('timeOverride=.95;for(let k=0;k<1500;k++){updateLife(.1,player);updateSurvival(.1)}');assert(W('life.filter(c=>c.sp.hostile).length')>=1,'monsters come once it is "all"');
+  W('setLifeMode("off")');assert.match(w.nodes.hint.textContent,/自然発生OFF/,'turning it off again is explained');
+  for(let k=0;k<400;k++)W('updateLife(.1,player);updateSurvival(.1)');assert.equal(W('life.filter(c=>c.sp.hostile).length'),0,'OFF is respected: monsters leave');
+  W('setGameMode("peaceful")');assert.equal(W('monsterNotice()'),'','no warning outside survival');assert.equal(W('lifeMode'),'off');
+ }
+ // Guidance: after the sword, the player is sent out of the sanctuary; the fight tip appears only outside it.
+ const g=boot(),G=c=>run(g,c);G('paused=false;setGameMode("survival");guideStep=1;items.woodSword=1;spawn();updateSurvival(.1)');
+ assert.match(g.nodes.guide.innerHTML,/安全地帯の外へ冒険しよう/);assert.match(g.nodes.guide.innerHTML,/夜になるとモンスター/);assert(!g.nodes.guide.classList.contains('hidden'));assert(g.nodes.guide.innerHTML.length<140,'the tip is short');
+ G('player.x=homeX+SAFE_R+3;updateSurvival(.1)');assert.match(g.nodes.guide.innerHTML,/攻撃/);assert(!/安全地帯の外へ/.test(g.nodes.guide.innerHTML));
+ G('guideSince=-20000;updateSurvival(.1)');assert(g.nodes.guide.classList.contains('hidden'),'the tip fades after 15 s');
+ const css=fs.readFileSync(__dirname+'/index.html','utf8');assert(/#guide\{[^}]*pointer-events:none/.test(css),'the tip lets touches through to the camera');assert(css.includes("body:has(#craft:not(.hidden)) #guide"),'tip hides behind panels');
+ // Safe zone: nothing attacks inside it, even when a monster is right next to the player; outside, the same monster fights.
+ const s=boot(),S=c=>run(s,c);S(`paused=false;setGameMode('survival');timeOverride=.95;dayTime=.95;protectT=0;for(let i=0;i<120&&readyR<2;i++)streamChunks();life.length=0;spawn();streamChunks(true);
+  var z=lifeNew(LIFE_BY_ID.zombie,player.x+1.2,player.y,player.z,false);z.aggro=4;z.los=true;for(let k=0;k<200;k++){update(.03);updateLife(.03,player);updateSurvival(.03)}`);
+ assert.equal(S('health'),20,'no attacks in the safe zone');
+ S(`life.length=0;var PX=Math.floor(homeX+SAFE_R+10),PZ=Math.floor(homeZ);player.x=PX+.5;player.z=PZ+.5;player.y=surface(player.x,player.z)+.02;streamChunks(true);for(let i=0;i<120&&readyR<2;i++)streamChunks();
+  for(let x=PX-6;x<=PX+6;x++)for(let z=PZ-6;z<=PZ+6;z++){set(x,150,z,3);for(let y=151;y<158;y++)set(x,y,z,0)}player.x=PX+.5;player.z=PZ+.5;player.y=151;var z=lifeNew(LIFE_BY_ID.zombie,PX+1.7,151,PZ+.5,false);for(let k=0;k<200&&health===20;k++){update(.03);updateLife(.03,player);updateSurvival(.03)}`);
+ assert(S('health')<20,'outside the safe zone the same monster attacks');
+ // Creative / peaceful: no hostile spawns, no damage, no survival HUD, nothing queued for survival.
+ for(const m of ['creative','peaceful']){S(`setGameMode('${m}');life.length=0;health=20;timeOverride=.95;dayTime=.95;for(let k=0;k<600;k++){updateLife(.1,player);updateSurvival(.1)}`);
+  assert.equal(S('life.filter(c=>c.sp.hostile&&c.mode==="hunt").length'),0,m+': monsters never hunt');assert.equal(S('health'),20);assert.equal(S('hurtPlayer(3,{x:player.x,y:player.y,z:player.z})'),false);
+  assert(!s.c.document.body.classList.contains('mode-survival'),m+': survival HUD hidden');assert.equal(S('arrows.length'),0);assert.equal(S('monsterNotice()'),'');}
+ // Touch: move with the stick while attacking, look around while attacking, release stops the repeat.
+ const t=boot(),Tt=c=>run(t,c);Tt(`paused=false;setGameMode('survival');timeOverride=.95;dayTime=.95;protectT=1e9;items.woodSword=1;life.length=0;var X0=Math.floor(player.x)+300,Z0=Math.floor(player.z),Y0=150;
+  for(let x=X0-20;x<=X0+20;x++)for(let z=Z0-20;z<=Z0+20;z++){get(x,Y0,z);set(x,Y0,z,3);for(let y=Y0+1;y<Y0+8;y++)set(x,y,z,0)}
+  player.x=X0+.5;player.z=Z0+.5;player.y=Y0+1;yaw=0;pitch=0;atkCD=0;var hold=(n=1)=>{for(let i=0;i<n;i++){update(1/30);updateLife(1/30,player);updateSurvival(1/30)}}`);
+ Tt(`var z=lifeNew(LIFE_BY_ID.zombie,X0+.5,Y0+1,Z0+3,false);z.mhp=999;z.aggro=-99;z.timer=999;z.mode='freeze'`);
+ t.nodes.stick.onpointerdown({...T,pointerId:11,clientX:56,clientY:10});t.nodes.attack.listeners.pointerdown.forEach(f=>f({...T,pointerId:12}));
+ assert(Tt('joy.y')<0&&Tt('attackHeld'),'the stick and the attack button work at the same time');const z0=Tt('player.z');Tt('for(let i=0;i<45;i++){z.x=player.x+Math.sin(yaw)*2.2;z.z=player.z+Math.cos(yaw)*2.2;hold()}');assert(Tt('player.z')>z0+2,'the player keeps walking while attacking');assert(Tt('z.mhp')<999-8,'and keeps hitting');
+ t.nodes.world.onpointerdown({...T,pointerId:13,pointerType:'touch',clientX:200,clientY:200});const yaw0=Tt('yaw');t.nodes.world.onpointermove({...T,pointerId:13,clientX:260,clientY:200});assert(Tt('yaw')>yaw0&&Tt('attackHeld'),'the view turns while the attack button stays held');
+ for(const ev of ['pointerup']){t.nodes.attack.listeners[ev].forEach(f=>f())}assert.equal(Tt('attackHeld'),false);Tt('z.x=player.x+Math.sin(yaw)*2.2;z.z=player.z+Math.cos(yaw)*2.2;hold(3)');const hp=Tt('z.mhp');Tt('hold(60)');assert.equal(Tt('z.mhp'),hp,'releasing the button stops the repeated attacks');
+ t.nodes.attack.listeners.pointerdown.forEach(f=>f({...T,pointerId:14}));t.nodes.attack.listeners.pointercancel.forEach(f=>f());assert.equal(Tt('attackHeld'),false,'a cancelled touch also stops it');
+ t.nodes.attack.listeners.pointerdown.forEach(f=>f({...T,pointerId:15}));Tt('pause()');assert.equal(Tt('attackHeld'),false,'opening the menu releases the button');Tt('play()');Tt('atkCD=0;hold(30)');assert.equal(Tt('z.mhp'),hp,'and it stays released after returning');
+ Tt('hurtPlayer(99,{x:player.x,y:player.y,z:player.z+1});protectT=0;invulT=0');Tt('protectT=0;invulT=0;health=1;hurtPlayer(5,{x:player.x,y:player.y,z:player.z+1})');
+ t.nodes.attack.listeners.pointerdown.forEach(f=>f({...T,pointerId:16}));assert.equal(Tt('attackHeld'),false,'the attack button does nothing on the respawn screen');
+ console.log('PASS: survival polish: life setting kept and explained (off/animals/all), title warning, stats flag, short exploration guide, safe zone vs outside, creative/peaceful untouched, stick+attack+look at once, release/cancel/menu/death stop attacks')}
