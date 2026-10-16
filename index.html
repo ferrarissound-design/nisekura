@@ -206,7 +206,7 @@ body:not(.mode-survival) #guide{display:none!important}
 @media(max-height:480px){body.mode-survival .actions #attack{height:44px;margin-bottom:5px}#survHud{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 53px)}#guide{top:calc(max(6px,env(safe-area-inset-top)) + 62px);font-size:12px;padding:6px 12px}body.mode-survival #eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 72px)}}
 @media(max-width:450px){#hearts i{width:12px;height:11px}#survHud{height:13px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 53px)}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>ADVENTURE · v16.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>ANCIENT RUINS · v17.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
  <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassCave" class="hidden"><span id="compassCaveArrow" aria-hidden="true">▲</span><span id="compassCaveText"></span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="attack" aria-label="攻撃">⚔ 攻撃<small>素手</small></button><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="survHud" aria-label="体力"><div id="hearts"></div><span id="armorIco"></span><span id="kills"></span></div><div id="hurtFx"></div><div id="guide" class="hidden" role="status"></div><div id="find" class="hidden" role="status"></div><div id="loot" class="hidden" role="status"></div><button id="openChest" class="hidden" aria-label="宝箱を開ける">🎁 開ける</button><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -243,9 +243,9 @@ if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてく�
 // The world is generated on demand. Near 16x16 columns are real voxels; everything farther is a light LOD mesh.
 const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
 const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
-const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341'],null,null,null,null,null,null,null,null,null,['青い結晶','#4d8cff'],['紫の結晶','#b45cff'],['翠の結晶','#38f09a'],['光ゴケ','#3fbf9a'],['石炭鉱石','#2f3133'],['鉄鉱石','#d39a6e'],['金鉱石','#f2c93a'],['ダイヤモンド鉱石','#5ee8e4'],['宝箱','#a8742f'],['開いた宝箱','#7e5626']];
+const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341'],null,null,null,null,null,null,null,null,null,['青い結晶','#4d8cff'],['紫の結晶','#b45cff'],['翠の結晶','#38f09a'],['光ゴケ','#3fbf9a'],['石炭鉱石','#2f3133'],['鉄鉱石','#d39a6e'],['金鉱石','#f2c93a'],['ダイヤモンド鉱石','#5ee8e4'],['宝箱','#a8742f'],['開いた宝箱','#7e5626'],['古代の石材','#8b9984'],['苔むした石材','#5c8261'],['古代の灯石','#70d9e0'],['封印の石扉','#537c88'],['光る踏み石','#84dbcc']];
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
-const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
+const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29,36,37,38];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
 const BENCH=(()=>{try{return new URLSearchParams(location.search).has('bench')}catch(e){return false}})();
 let perfEnabled=BENCH;try{perfEnabled=perfEnabled||new URLSearchParams(location.search).has('perf')}catch(e){}
@@ -264,7 +264,7 @@ function validateSave(d){
  const obj=v=>v&&typeof v==='object'&&!Array.isArray(v),bad=()=>{throw Error('セーブ形式・内容が不正、または未対応のバージョンです')};
  if(!obj(d)||d.version!==1||!Number.isFinite(d.seed)||!Array.isArray(d.changes)||!obj(d.inventory))bad();
  const tv=d.terrainVersion??1,w=d.worldWidth??64,h=d.worldHeight??40;
- if(!Number.isInteger(tv)||tv<1||tv>10||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
+ if(!Number.isInteger(tv)||tv<1||tv>11||!Number.isInteger(w)||w<1||w>2048||!Number.isInteger(h)||h<1||h>(tv>=4?192:96))bad();
  for(const e of d.changes)if(!Array.isArray(e)||e.length!==2||!Number.isSafeInteger(e[0])||e[0]<0||e[0]>=w*w*h||!Number.isInteger(e[1])||e[1]<0||e[1]>=defs.length||e[1]&&!defs[e[1]])bad();
  for(const [k,v]of Object.entries(d.inventory))if(!/^[1-9]\d*$/.test(k)||+k>=defs.length||!defs[+k]||!Number.isSafeInteger(v)||v<0)bad();
  for(const k of ['creative','flying'])if(d[k]!==undefined&&typeof d[k]!=='boolean')bad();
@@ -280,6 +280,11 @@ function validateSave(d){
  if(d.health!==undefined&&(!Number.isFinite(d.health)||d.health<0||d.health>20))bad();
  if(d.items!==undefined){if(!obj(d.items))bad();for(const [k,v] of Object.entries(d.items))if(!/^[a-zA-Z]\w{0,31}$/.test(k)||!Number.isSafeInteger(v)||v<0)bad()}
  if(d.defeated!==undefined&&(!Number.isSafeInteger(d.defeated)||d.defeated<0))bad();
+ if(d.adventure!==undefined){const a=d.adventure;if(!obj(a)||!obj(a.ruins)||Object.keys(a.ruins).length>64)bad();
+  for(const [id,r] of Object.entries(a.ruins)){if(!/^r[0-9]{1,2}$/.test(id)||!obj(r))bad();
+   for(const k of ['discovered','gate','secret','defeated','claimed','cleared'])if(typeof r[k]!=='boolean')bad();
+   if(!Number.isFinite(r.hp)||r.hp<0||r.hp>96||!Number.isInteger(r.guards)||r.guards<0||r.guards>3)bad();
+   if(r.defeated&&r.hp!==0||r.claimed&&!r.cleared)bad();}}
  return d;
 }
 function checksum(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
@@ -304,11 +309,11 @@ creative=gameMode==='creative';if(gameMode==='survival')flying=false;
 if(!saved&&gameMode==='survival')dayTime=.52;
 // Items (save field `items`, whole counts). v16 adds gear (pickaxes, swords, armour), ore materials, leather, the rare collection and a chest count.
 const items={woodSword:0,stoneSword:0,ironSword:0,apple:0,diamondSword:0,woodPick:0,stonePick:0,ironPick:0,diamondPick:0,leatherArmor:0,ironArmor:0,diamondArmor:0,
- coal:0,iron:0,gold:0,diamond:0,leather:0,coin:0,crystal:0,dragonEgg:0,chests:0,found:0}; // found: bit set of first finds (see FOUND_BIT)
+ coal:0,iron:0,gold:0,diamond:0,leather:0,coin:0,crystal:0,dragonEgg:0,chests:0,found:0,ancientSword:0,eggClue:0}; // found: bit set of first finds (see FOUND_BIT)
 if(saved?.items)for(const k in items)if(Number.isSafeInteger(saved.items[k]))items[k]=saved.items[k];
 let health=Number.isFinite(saved?.health)?Math.max(0,Math.min(MAX_HP,saved.health)):MAX_HP,defeated=Number.isSafeInteger(saved?.defeated)?saved.defeated:0;
 let dead=false,atkCD=0,invulT=0,protectT=0,camKick=0,hurtGlow=0,kbx=0,kbz=0,sinceHurt=99,regenT=0,darkT=0,hostileT=2,duskWarned=false,nightWarned=false,attackHeld=false;
-const terrainVersion=saved?.version===1?(saved.terrainVersion||1):10,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
+const terrainVersion=saved?.version===1?(saved.terrainVersion||1):11,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
 // v10 adds ores (coal, iron, gold, diamond) in the rock and treasure chests in caves; v9 worlds keep their exact terrain.
 const ORES=terrainVersion>=10;
 // Underwater life (v7 worlds): water plants and coral are mesh-only, fish are runtime-only, so nothing is added to saves.
@@ -1222,6 +1227,73 @@ function voxelChunk(cx,cz){const key=cx+','+cz;let data=blocks.get(key);if(data)
  const list=changeIndex.get(key);if(list)for(const i of list){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));data[localIdx(x,y,z)]=changes.get(i)}
  blocks.set(key,data);return data}
 const ensureVoxelChunk=voxelChunk;
+// ---- v17: immutable seed plans. Only terrain 11 opts in; runtime progress never changes generateChunk().
+const RUINS=terrainVersion>=11,RUIN_NAMES={forest:'森の古代神殿',coast:'海を望む遺跡',city:'地下古代都市'};
+const adventure={ruins:{}};
+if(saved?.adventure)for(const [id,r] of Object.entries(saved.adventure.ruins))adventure.ruins[id]={...r};
+const ruins=buildRuins(),ruinChunks=new Map(),ruinPlans=new Map();
+for(const r of ruins)for(let cx=(r.x-70)>>4;cx<=(r.x+70)>>4;cx++)for(let cz=(r.z-70)>>4;cz<=(r.z+70)>>4;cz++){const k=cx+','+cz;if(!ruinChunks.has(k))ruinChunks.set(k,[]);ruinChunks.get(k).push(r)}
+function ruinState(r){return adventure.ruins[r.id]||(adventure.ruins[r.id]={discovered:false,gate:false,secret:false,defeated:false,claimed:false,cleared:false,hp:96,guards:0})}
+function ruinWorld(r,u,v){return{x:r.x+r.dx*u-r.dz*v,z:r.z+r.dz*u+r.dx*v}}
+function ruinLocal(r,x,z){const a=x-r.x,b=z-r.z;return{u:a*r.dx+b*r.dz,v:-a*r.dz+b*r.dx}}
+function buildRuins(){if(!RUINS)return[];const out=[],R=treeRng(417,923,1700);
+ // A bounded search on the height map only. No voxel chunks, meshes or distant dungeons are generated here.
+ for(let k=0;k<2400&&out.length<12;k++){
+  const x=160+Math.floor(R()*(W-320)),z=160+Math.floor(R()*(W-320)),h=height4(x,z),land=gLand,mount=gMount,wl=gWL;
+  if(h<SEA+2||h>SEA+42||mount>.28||wl>h||Math.hypot(x-vista.x,z-vista.z)<180||out.some(r=>Math.hypot(x-r.x,z-r.z)<235))continue;
+  const coast=h<=SEA+7&&land<.65,kind=coast?'coast':out.filter(r=>r.kind==='city').length<3&&k%3===0?'city':'forest';
+  if(out.filter(r=>r.kind===kind).length>=5)continue;
+  const rot=Math.floor(R()*4),dx=[1,0,-1,0][rot],dz=[0,1,0,-1][rot],r={id:'r'+out.length,x,z,base:h,f:h-16,dx,dz,kind,side:R()<.5?-1:1,variant:Math.floor(R()*3)};
+  // Reserve the entire footprint, including the approach and roof. Wonders retain their complete bounds.
+  if([...WF,...WA].some(w=>w.bb&&x+70>=w.bb[0]&&x-70<=w.bb[1]&&z+70>=w.bb[2]&&z-70<=w.bb[3]))continue;
+  let ok=true;
+  for(let u=-24;u<=24&&ok;u+=8)for(let v=-16;v<=56;v+=8){const p=ruinWorld(r,u,v),y=height4(p.x,p.z);
+   if(y<r.base-2||gWL>y||gMount>.35){ok=false;break}
+   if(v<=8&&Math.abs(u)<=8&&Math.abs(y-r.base)>2){ok=false;break}}
+  if(!ok)continue;
+  // A real coast nearby, rather than a low inland river bank. Never modify the water or reef itself.
+  if(coast&&![[70,0],[-70,0],[0,70],[0,-70]].some(([a,b])=>{const y=height4(x+a,z+b);return y<SEA&&gLand<0}))continue;
+  out.push(r);
+ }
+ return out}
+function ruinPlan(r){let ops=ruinPlans.get(r.id);if(ops)return ops;ops=[];const b=(u0,u1,y0,y1,v0,v1,t)=>ops.push([u0,u1,y0,y1,v0,v1,t]),f=r.f;
+ const room=(u0,u1,v0,v1,h=7)=>{b(u0-2,u1+2,f-2,f+h+2,v0-2,v1+2,36);b(u0,u1,f+1,f+h,v0,v1,0)};
+ room(-2,2,9,39,5);room(-6,6,9,15);room(-8,8,38,54,r.kind==='city'?12:8);
+ room(-17,-8,20,28);room(8,17,20,28);
+ // Side branches are recognisable loops, with the puzzle and treasure on opposite sides each seed.
+ room(-12,12,22,24,4);room(19,21,12,50,4);room(0,20,48,50,4);room(0,20,12,14,4);
+ // Re-open intersections after all room shells have been placed.
+ b(-2,2,f+1,f+5,9,40,0);b(-12,12,f+1,f+4,22,24,0);b(0,20,f+1,f+4,12,14,0);b(0,20,f+1,f+4,48,50,0);b(19,21,f+1,f+4,12,50,0);
+ b(19,21,f+1,f+4,30,30,39);b(-2,2,f+1,f+5,35,35,39);
+ // Continuous stair, wide enough for touch movement, with at least three blocks of headroom at every rise.
+ for(let v=-8;v<=8;v++){const y=r.base-(v+8);b(-3,3,y-2,y+5,v,v,36);b(-2,2,y+1,y+4,v,v,0)}
+ // Small terrace only: foundation joins the existing surface without cutting a mountain or a shoreline.
+ b(-8,8,r.base-3,r.base,-15,5,r.kind==='coast'?6:37);b(-8,8,r.base+1,r.base+24,-15,5,0);
+ for(let v=-8;v<=5;v++){const y=r.base-(v+8);b(-3,3,y-2,y+5,v,v,36);b(-2,2,y+1,y+4,v,v,0)}
+ // Broken exterior pillars, vines/moss, a lintel and a partly collapsed stair. Coast towers have a taller silhouette.
+ for(const u of[-7,7])for(const v of[-11,-3,4]){const h=(r.kind==='coast'?12:7)+((u+v+r.variant+24)%3);b(u-1,u+1,r.base+1,r.base+h,v-1,v+1,37);b(u-1,u+1,r.base+h,r.base+h,v-1,v+1,36)}
+ b(-7,7,r.base+7,r.base+8,-4,-3,36);b(-7,-5,r.base+1,r.base+4,-12,3,37);b(5,7,r.base+1,r.base+3,-12,3,37);
+ // Crystals and intact hall columns do not obstruct any central route.
+ for(const u of[-6,6])for(const v of[41,46,52]){b(u,u+1,f+1,f+(r.kind==='city'?11:7),v,v+1,37);b(u,u+1,f+5,f+5,v,v+1,26)}
+ for(const u of[-17,17])b(u,u,f+2,f+3,25,25,26);
+ b(r.side*12,r.side*12,f,f,26,26,40);b(-r.side*14,-r.side*14,f+1,f+1,26,26,34);
+ b(0,0,f+1,f+1,53,53,34);b(-1,1,f,f,42,42,38);
+ ruinPlans.set(r.id,ops);return ops}
+function ruinVoxels(data,cx,cz){const list=ruinChunks.get(cx+','+cz);if(!list)return;const x0=cx*16,z0=cz*16;
+ for(const r of list)for(const [u0,u1,y0,y1,v0,v1,t] of ruinPlan(r)){
+  const a=ruinWorld(r,u0,v0),b=ruinWorld(r,u1,v1),xa=Math.max(x0,Math.min(a.x,b.x)),xb=Math.min(x0+15,Math.max(a.x,b.x)),za=Math.max(z0,Math.min(a.z,b.z)),zb=Math.min(z0+15,Math.max(a.z,b.z));
+  for(let z=za;z<=zb;z++)for(let x=xa;x<=xb;x++)for(let y=y0;y<=y1;y++){data[localIdx(x,y,z)]=t;if(t>=26&&t<=29)glowChunks.add(cx+','+cz)}
+ }
+ for(const r of list)for(const [u,v,tier] of[[-r.side*14,26,'ruin'],[0,53,'guardian']]){const p=ruinWorld(r,u,v);if((p.x>>4)===cx&&(p.z>>4)===cz)chestInfo.set(idx(p.x,r.f+1,p.z),tier)}
+}
+// Exterior boxes use the same seed plan in both LOD paths, including the worker. One owner tile per box.
+function lodRuins(x0,z0,s){let ymax=0;for(const r of ruins)for(const op of ruinPlan(r)){const[u0,u1,y0,y1,v0,v1,t]=op;if(t<36||t>37||y0<=r.base)continue;
+ const a=ruinWorld(r,u0,v0),b=ruinWorld(r,u1+1,v1+1),xa=Math.min(a.x,b.x),xb=Math.max(a.x,b.x),za=Math.min(a.z,b.z),zb=Math.max(a.z,b.z);
+ if(xa<x0||xa>=x0+32*s||za<z0||za>=z0+32*s)continue;
+ const c=t===37?[.36,.51,.38]:[.55,.6,.52];lgrow(24);
+ const box=[[xa,y0,za],[xb,y0,za],[xb,y1+1,za],[xa,y1+1,za],[xa,y0,zb],[xb,y0,zb],[xb,y1+1,zb],[xa,y1+1,zb]];
+ for(const ids of[[0,3,2,1],[4,5,6,7],[0,4,7,3],[1,2,6,5],[3,7,6,2],[0,1,5,4]])for(const i of ids){const p=box[i];lvert(p[0]-x0,p[1],p[2]-z0,c,1,0)}ymax=Math.max(ymax,y1+1)}return ymax}
+
 function growTree(write,leaf,x,h,z,kind){const r=rand(x*5+1,z*9+2);
  if(kind===5){write(x,h+1,z,4);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)if(Math.abs(dx)+Math.abs(dz)<2||r>.5)leaf(x+dx,h+1,z+dz);leaf(x,h+2,z);return}
  if(kind===4){const th=7+Math.floor(r*4);for(let y=h+1;y<=h+th;y++)write(x,y,z,4);
@@ -1241,7 +1313,7 @@ function generateChunk(cx,cz){
   for(let lz=0;lz<16;lz++)for(let lx=0;lx<16;lx++){const k=lz*16+lx,h=info.h[k],top=info.surf[k],sub=top===1||top===2?2:top===6?6:3;
    data[k]=11;const soil=SCENIC&&info.slope[k]>=2?2:4;for(let y=1;y<=h;y++)data[y*256+k]=y===h?top:y>h-soil?sub:3;const wl=info.wl?info.wl[k]:SEA;for(let y=h+1;y<=wl;y++)data[y*256+k]=10}
   if(VEG){growVegetation(write,(x,y,z,t)=>{if(x>=x0&&x<x0+CHUNK&&z>=z0&&z<z0+CHUNK&&y>=0&&y<H){const i=localIdx(x,y,z);if(!data[i])data[i]=t}},x0,z0);const caved=CAVES&&carveCaves(data,cx,cz,info);if(WON)wonderVoxels(data,cx,cz);
-   if(ORES){placeOres(data,cx,cz,info,caved);placeChests(data,cx,cz)}return data}
+   if(ORES){placeOres(data,cx,cz,info,caved);placeChests(data,cx,cz)}if(RUINS)ruinVoxels(data,cx,cz);return data}
   // One tree candidate per 5x5 cell; canopies reach three blocks into neighbouring chunks.
   for(let i=Math.floor((x0-3)/5);i<=Math.floor((x0+CHUNK+2)/5);i++)for(let j=Math.floor((z0-3)/5);j<=Math.floor((z0+CHUNK+2)/5);j++){
    const tx=i*5+Math.floor(rand(i*7+1,j*13+5)*5),tz=j*5+Math.floor(rand(i*11+3,j*3+17)*5);
@@ -2469,6 +2541,7 @@ function* tileMesh(s,x0,z0){
  if(WON){const X1=x0+N*s,Z1=z0+N*s;
   for(const f of WF)if(f.t===3){const fx=f.x+f.dx,fz=f.z+f.dz;if(fx>=x0&&fx<X1&&fz>=z0&&fz<Z1){lodFalls(f,x0,z0);if(f.wu+1>ymax)ymax=f.wu+1}}
   for(const f of WA)if(f.t===4&&f.kind!=='uwArch'&&f.x>=x0&&f.x<X1&&f.z>=z0&&f.z<Z1){const t=lodRock(f,x0,z0,s);if(t>ymax)ymax=t}}
+ if(RUINS)ymax=Math.max(ymax,lodRuins(x0,z0,s));
  return{quads:lw.n/4,ymin:Math.max(0,Math.floor(ymin)),ymax:Math.ceil(ymax)+1}}
 function uploadTile(t,bytes,r){if(!renderReady)return;if(!t.buffer)t.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,t.buffer);gl.bufferData(gl.ARRAY_BUFFER,bytes,gl.STATIC_DRAW);t.quads=r.quads;t.ymin=r.ymin;t.ymax=r.ymax;t.bytes=bytes.byteLength;t.ready=true}
 function* buildTile(t){const r=yield* tileMesh(t.step,t.x0,t.z0);uploadTile(t,new Uint8Array(lw.buf,0,lw.n*12),r)}
@@ -2494,11 +2567,12 @@ function lodWorkerSource(){
  return `'use strict';const W=${W},H=${H},SEA=${SEA},ORIGIN=${ORIGIN},GRAND=${GRAND},VEG=${VEG},SCENIC=${SCENIC},terrainVersion=${terrainVersion},seed=${k(seed)},LOD_N=${LOD_N},VOID=${VOID};
 const perm=new Uint8Array(${k(Array.from(perm))}),defsRGB=${k(defsRGB)},CANOPY=${k(CANOPY)},STONE=${k(STONE)},DIRT=${k(DIRT)},SAND=${k(SAND)},SNOW=${k(SNOW)},WATER_DEEP=${k(WATER_DEEP)};
 const smooth=${smooth},mix3=${mix3},clamp01=${clamp01},f01=${f01},VEGK=${k(VEGK)},E=${k(E)},FP=${k(FP)};let gLand=0,gMount=0,gOpen=0;const PKC=new Float64Array(8*8*5).fill(NaN);
+const RUINS=${RUINS},ruins=${k(ruins)},ruinPlans=new Map();
 let WON=${WON},gWL=SEA,gSheet=0,gSurf=0,gWF=0,snI=-1,snT=0,snD=0,NT=null;const CHUNK=${CHUNK},WB=${WB},WBN=${WBN},WF=${k(WF)},WA=${k(WA)},WBK=${k(WBK)},FALLS_COL=${k(FALLS_COL)},ROCK_TOP=${k(ROCK_TOP)},rockLod=new Map();
 const lw={buf:new ArrayBuffer(1<<20),n:0};lw.i16=new Int16Array(lw.buf);lw.u8=new Uint8Array(lw.buf);
 ${[rand,noise,height,grad,pn,fbm,rvf,peakBoost,height4,humidity,birchiness,surface4,treeKind,grassColor,leafColor,lgrow,lvert,tileMesh,
  fieldClump,fieldGlade,fieldTone,fieldTall,fieldBare,forestDensity,grassColor5,leafColor5,flowerPatches,palettePick,vegEnv,pickSpecies,treeRng,treeAge,
- wonderH,canyonH,seaFloorH,fallsH,segNear,chainQ,rockIn,vn3,lodFalls,lodRock].join('\n')}
+ wonderH,canyonH,seaFloorH,fallsH,segNear,chainQ,rockIn,vn3,lodFalls,lodRock,ruinWorld,ruinPlan,lodRuins].join('\n')}
 onmessage=e=>{const{id,step,x0,z0,measure}=e.data,start=measure?performance.now():0,it=tileMesh(step,x0,z0);let r;while(!(r=it.next()).done);const bytes=lw.u8.slice(0,lw.n*12);postMessage({id,bytes,r:r.value,ms:measure?performance.now()-start:0},[bytes.buffer])};`}
 let lodWorker=null,lodPending=new Map(),lodNextId=1;
 function startLodWorker(){
@@ -2570,7 +2644,7 @@ function targetLabel(h){const t=h.t;let s=defs[t][0];
 function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
 function jump(){if(flying||photoMode)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
 function toggleFlight(){if(paused||suspended||photoMode)return;if(gameMode==='survival'){toast('サバイバルでは飛べないよ（ピースフル・クリエイティブで飛べる）');return}flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
-function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected:selected<8?selected:0,hotbar:selected,eggSp},gameMode,health,items:{...items},defeated}}
+function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected:selected<8?selected:0,hotbar:selected,eggSp},gameMode,health,items:{...items},defeated,...(RUINS?{adventure}: {})}}
 function saveFailure(e){$('saveInfo').textContent='保存失敗：'+e.message+'。元の保存は保護されています。ファイルへのバックアップを試してください';toast('保存できません。メニューの保存状況を確認してください')}
 function checkCurrent(){if(localStorage.getItem(KEY)!==expectedRaw)throw Error('別タブで保存が変更されました。再読み込みしてください')}
 function save(){if(resettingWorld||benchLock||storageBlocked||saving)return false;saving=true;
