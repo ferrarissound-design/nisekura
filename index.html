@@ -206,9 +206,15 @@ body:not(.mode-survival) #guide{display:none!important}
 @media(max-height:480px){body.mode-survival .actions #attack{height:44px;margin-bottom:5px}#survHud{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 53px)}#guide{top:calc(max(6px,env(safe-area-inset-top)) + 62px);font-size:12px;padding:6px 12px}body.mode-survival #eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 72px)}}
 @media(max-width:450px){#hearts i{width:12px;height:11px}#survHud{height:13px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 53px)}}
 
-</style><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>ANCIENT RUINS · v17.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+#compassRuin{display:flex;gap:4px;padding:2px 5px;background:#183f46bb;border-radius:5px;color:#bff7ee}
+#adventureLog{white-space:pre-line;font-size:12px;line-height:1.7;padding:12px;background:#183f3966;border:1px solid #8dceba55;border-radius:8px;margin:10px 0}
+#bossHUD{position:fixed;pointer-events:none;z-index:6;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 126px);transform:translateX(-50%);width:min(280px,60vw);text-align:center;font-size:12px;text-shadow:0 1px 3px #000}
+#bossTrack{height:8px;background:#163035;border:1px solid #8acbd1;border-radius:5px;overflow:hidden;margin:4px 0}#bossFill{height:100%;background:linear-gradient(90deg,#3a9b96,#a4f3ff)}#bossTell{font-size:11px;color:#d6fcff}
+body.photo-mode #bossHUD,body:has(#menu:not(.hidden)) #bossHUD,body:has(#craft:not(.hidden)) #bossHUD{display:none!important}
+@media(max-height:480px){#bossHUD{top:max(8px,env(safe-area-inset-top));width:180px;left:14px;transform:none;font-size:10px}}
+</style><div id="bossHUD" class="hidden" aria-label="古代の石の守護者の体力"><b>古代の石の守護者</b><div id="bossTrack"><div id="bossFill"></div></div><span id="bossTell"></span></div><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>ANCIENT RUINS · v17.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
- <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassCave" class="hidden"><span id="compassCaveArrow" aria-hidden="true">▲</span><span id="compassCaveText"></span></span><span id="compassWarning" class="hidden"></span></div>
+ <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassCave" class="hidden"><span id="compassCaveArrow" aria-hidden="true">▲</span><span id="compassCaveText"></span></span><span id="compassRuin" class="hidden"><span id="compassRuinArrow">▲</span><span id="compassRuinText"></span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="attack" aria-label="攻撃">⚔ 攻撃<small>素手</small></button><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="survHud" aria-label="体力"><div id="hearts"></div><span id="armorIco"></span><span id="kills"></span></div><div id="hurtFx"></div><div id="guide" class="hidden" role="status"></div><div id="find" class="hidden" role="status"></div><div id="loot" class="hidden" role="status"></div><button id="openChest" class="hidden" aria-label="宝箱を開ける">🎁 開ける</button><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
 <div class="title-stage">
  <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">あの山の向こうへ！</span></div>
@@ -226,8 +232,8 @@ body:not(.mode-survival) #guide{display:none!important}
   <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>サバイバル：⚔攻撃ボタン（PCは左クリック）で敵をたたく / 🍎・Rキーで回復<br>敵が白く光ったら攻撃の合図。出発地点のまわりは安全<br>石や鉱石は「壊す」を長押し（PCは左クリック長押し）。ツルハシで速く・鉄や金も掘れる<br>宝箱：近づいて「🎁 開ける」（PCは右クリック／T）。持ち物はクラフト画面で確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v16.0</span></div>
-</div><div id="craft" class="overlay hidden"><div class="panel craft-panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト・持ち物</h2><div id="gearRow" class="gear-row"></div><div id="matRow" class="mat-row"></div><div id="rareRow" class="rare-row"></div><div class="craft-head">🧱 ブロック</div><div class="craft-grid"><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button></div><div id="craftSurvival"><div id="craftGear"></div><div class="craft-head">🍎 食べ物</div><div class="craft-grid"><button id="craftApple">葉っぱ 4 → りんご 1（♥を回復）</button></div></div><button id="closeCraft" class="primary">戻る</button></div></div><div id="death" class="overlay death hidden" role="dialog" aria-label="やられてしまった"><div class="panel"><div class="eyebrow">GAME OVER</div><h2>やられてしまった…</h2><p>持ち物はそのまま。出発地点からすぐに再チャレンジできるよ。</p><button id="respawn" class="primary">復活する</button></div></div><div id="modePick" class="overlay hidden" role="dialog" aria-label="遊び方をえらぶ"><div class="panel mode-panel"><div class="eyebrow">GAME MODE</div><h2>遊び方をえらぼう</h2><p>あとからメニューの「モード」でいつでも変えられるよ。</p><button id="pickSurvival" class="mode-choice"><b>⚔ サバイバル</b><span>♥と剣でぼうけん。木の剣をつくって、夜のモンスターとたたかおう</span></button><button id="pickPeaceful" class="mode-choice"><b>🌿 ピースフル</b><span>素材を集めて建築・探検。モンスターはおそってこない</span></button><button id="pickCreative" class="mode-choice"><b>✦ クリエイティブ</b><span>ブロック使いほうだい・空を飛んで自由に建築</span></button><button id="closeModePick">もどる</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v17.0</span></div>
+</div><div id="craft" class="overlay hidden"><div class="panel craft-panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト・持ち物</h2><div id="gearRow" class="gear-row"></div><div id="matRow" class="mat-row"></div><div id="rareRow" class="rare-row"></div><div id="adventureLog" aria-label="冒険の記録"></div><div class="craft-head">🧱 ブロック</div><div class="craft-grid"><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button></div><div id="craftSurvival"><div id="craftGear"></div><div class="craft-head">🍎 食べ物</div><div class="craft-grid"><button id="craftApple">葉っぱ 4 → りんご 1（♥を回復）</button></div></div><button id="closeCraft" class="primary">戻る</button></div></div><div id="death" class="overlay death hidden" role="dialog" aria-label="やられてしまった"><div class="panel"><div class="eyebrow">GAME OVER</div><h2>やられてしまった…</h2><p>持ち物はそのまま。出発地点からすぐに再チャレンジできるよ。</p><button id="respawn" class="primary">復活する</button></div></div><div id="modePick" class="overlay hidden" role="dialog" aria-label="遊び方をえらぶ"><div class="panel mode-panel"><div class="eyebrow">GAME MODE</div><h2>遊び方をえらぼう</h2><p>あとからメニューの「モード」でいつでも変えられるよ。</p><button id="pickSurvival" class="mode-choice"><b>⚔ サバイバル</b><span>♥と剣でぼうけん。木の剣をつくって、夜のモンスターとたたかおう</span></button><button id="pickPeaceful" class="mode-choice"><b>🌿 ピースフル</b><span>素材を集めて建築・探検。モンスターはおそってこない</span></button><button id="pickCreative" class="mode-choice"><b>✦ クリエイティブ</b><span>ブロック使いほうだい・空を飛んで自由に建築</span></button><button id="closeModePick">もどる</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world');
@@ -315,6 +321,7 @@ let health=Number.isFinite(saved?.health)?Math.max(0,Math.min(MAX_HP,saved.healt
 let dead=false,atkCD=0,invulT=0,protectT=0,camKick=0,hurtGlow=0,kbx=0,kbz=0,sinceHurt=99,regenT=0,darkT=0,hostileT=2,duskWarned=false,nightWarned=false,attackHeld=false;
 const terrainVersion=saved?.version===1?(saved.terrainVersion||1):11,GRAND=terrainVersion>=4,VEG=terrainVersion>=5,SCENIC=terrainVersion>=6,CAVES=terrainVersion>=7;
 // v10 adds ores (coal, iron, gold, diamond) in the rock and treasure chests in caves; v9 worlds keep their exact terrain.
+// v11 adds ruins only to new worlds; all older generators stay unchanged.
 const ORES=terrainVersion>=10;
 // Underwater life (v7 worlds): water plants and coral are mesh-only, fish are runtime-only, so nothing is added to saves.
 const AQUA=CAVES;
@@ -1224,6 +1231,7 @@ function glowSources(cx,cz,data){const key=cx+','+cz;if(!glowChunks.has(key))ret
  for(let y=CAVE_Y0;y<H;y++)for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const t=data[(y*CHUNK+z)*CHUNK+x];if(t>=26&&t<=29)l.push(cx*CHUNK+x,y,cz*CHUNK+z,t)}
  if(glowCache.size>200)glowCache.clear();glowCache.set(key,l);return l}
 function voxelChunk(cx,cz){const key=cx+','+cz;let data=blocks.get(key);if(data)return data;const stamp=perfEnabled?performance.now():0;data=generateChunk(cx,cz);if(perfEnabled)perfSample('voxel',performance.now()-stamp);
+ if(RUINS)ruinProgress(data,cx,cz);
  const list=changeIndex.get(key);if(list)for(const i of list){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));data[localIdx(x,y,z)]=changes.get(i)}
  blocks.set(key,data);return data}
 const ensureVoxelChunk=voxelChunk;
@@ -1257,11 +1265,12 @@ function buildRuins(){if(!RUINS)return[];const out=[],R=treeRng(417,923,1700);
  }
  return out}
 function ruinPlan(r){let ops=ruinPlans.get(r.id);if(ops)return ops;ops=[];const b=(u0,u1,y0,y1,v0,v1,t)=>ops.push([u0,u1,y0,y1,v0,v1,t]),f=r.f;
- const room=(u0,u1,v0,v1,h=7)=>{b(u0-2,u1+2,f-2,f+h+2,v0-2,v1+2,36);b(u0,u1,f+1,f+h,v0,v1,0)};
+ const air=[];const room=(u0,u1,v0,v1,h=7)=>{b(u0-2,u1+2,f-2,f+h+2,v0-2,v1+2,36);air.push([u0,u1,f+1,f+h,v0,v1,0])};
  room(-2,2,9,39,5);room(-6,6,9,15);room(-8,8,38,54,r.kind==='city'?12:8);
  room(-17,-8,20,28);room(8,17,20,28);
  // Side branches are recognisable loops, with the puzzle and treasure on opposite sides each seed.
  room(-12,12,22,24,4);room(19,21,12,50,4);room(0,20,48,50,4);room(0,20,12,14,4);
+ ops.push(...air);
  // Re-open intersections after all room shells have been placed.
  b(-2,2,f+1,f+5,9,40,0);b(-12,12,f+1,f+4,22,24,0);b(0,20,f+1,f+4,12,14,0);b(0,20,f+1,f+4,48,50,0);b(19,21,f+1,f+4,12,50,0);
  b(19,21,f+1,f+4,30,30,39);b(-2,2,f+1,f+5,35,35,39);
@@ -1288,7 +1297,7 @@ function ruinVoxels(data,cx,cz){const list=ruinChunks.get(cx+','+cz);if(!list)re
 }
 // Exterior boxes use the same seed plan in both LOD paths, including the worker. One owner tile per box.
 function lodRuins(x0,z0,s){let ymax=0;for(const r of ruins)for(const op of ruinPlan(r)){const[u0,u1,y0,y1,v0,v1,t]=op;if(t<36||t>37||y0<=r.base)continue;
- const a=ruinWorld(r,u0,v0),b=ruinWorld(r,u1+1,v1+1),xa=Math.min(a.x,b.x),xb=Math.max(a.x,b.x),za=Math.min(a.z,b.z),zb=Math.max(a.z,b.z);
+ const a=ruinWorld(r,u0,v0),b=ruinWorld(r,u1,v1),xa=Math.min(a.x,b.x),xb=Math.max(a.x,b.x)+1,za=Math.min(a.z,b.z),zb=Math.max(a.z,b.z)+1;
  if(xa<x0||xa>=x0+32*s||za<z0||za>=z0+32*s)continue;
  const c=t===37?[.36,.51,.38]:[.55,.6,.52];lgrow(24);
  const box=[[xa,y0,za],[xb,y0,za],[xb,y1+1,za],[xa,y1+1,za],[xa,y0,zb],[xb,y0,zb],[xb,y1+1,zb],[xa,y1+1,zb]];
@@ -1954,6 +1963,13 @@ const LIFE_SPECIES=[
   ['body',-1.4,6,4.55,1,1,.2,'#8ff4ff','glow',1],['body',-.5,6.9,4.55,.7,.7,.2,'#8ff4ff','glow',1],['body',-2.3,5.1,4.55,.6,.6,.2,'#8ff4ff','glow',1],['body',-.8,2.6,4.2,.8,1.6,.8,'#141a22','flat',1],
   ['l1',-5.4,5.4,3.6,6.6,1,1,'#2c3848','fur',1],['l1',-8.6,0,4.8,1,7.4,1,'#2c3848','fur',1],['l2',-5.6,5.4,1,6.6,1,1,'#2c3848','fur',1],['l2',-9,0,1.4,1,7.4,1,'#2c3848','fur',1],
   ['l3',-5.6,5.4,-1,6.6,1,1,'#2c3848','fur',1],['l3',-9,0,-1.4,1,7.4,1,'#2c3848','fur',1],['l4',-5.4,5.4,-3.2,6.6,1,1,'#2c3848','fur',1],['l4',-8.6,0,-4.6,1,7.4,1,'#2c3848','fur',1]]},
+{id:'guardian',name:'古代の石の守護者',group:'遺跡',cat:'monster',move:'walk',rig:'guardian',sc:1,sp:1.15,run:8,h:3.5,r:1,flee:0,herd:[1,1],hab:{},cave:1,hostile:{hp:96},
+ bones:[['body','root',0,30,0],['head','body',0,46,0],['al','body',-17,42,0],['ll','root',-8,15,0]],
+ parts:[['body',0,21,0,29,25,18,'#7e8e7c','bone'],['body',-9,43,0,12,4,20,'#4e7753','patch',1],
+ ['head',0,46,0,21,12,16,'#8d9d8b','bone'],['head',-5,51,8.2,4,2,.8,'#63dcff','glow',1],
+ ['body',0,29,9.1,8,9,1,'#6ce8ff','glow'],['body',0,32,9.8,3,3,.6,'#d0ffff','glow'],
+ ['al',-21,18,0,12,26,15,'#6e836f','bone',1],['al',-22,17,0,14,8,16,'#597b59','patch',1],
+ ['ll',-8,0,0,12,22,15,'#6c7e70','bone',1],['ll',-8,0,3,14,7,20,'#4f7057','patch',1]]},
 {id:'crystalSlime',name:'クリスタルスライム',group:'洞窟',cat:'monster',move:'hop',rig:'slime',sc:1,sp:1.1,run:2.1,h:.75,r:.38,flee:0,herd:[1,1],hab:{},cave:1,voice:'squish',size:[1.05,1.35],
  bones:[['body','root',0,0,0]],
  parts:[['body',0,0,0,10,10,10,'#6f98ea','glow'],['body',0,.4,0,10.3,2.2,10.3,'#8f7ae8','glow'],['body',-2.2,5.4,5.05,1.8,2.4,.25,'#1d1640','flat',1],['body',-2.6,6.6,5.2,.7,.7,.15,'#ffffff','flat',1],
@@ -2394,7 +2410,8 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
     else if(t===4||t===13){if(F.n[1]){mat=13;c=t===13?BIRCH_TOP:LOG_TOP}else if(t===13||(!GRAND&&rand(wx*9,wz*7)>.62)){mat=14;c=WHITE}}
     else if(t===5)c=lcol;else if(t===14||t===15||t===16){mat=5;c=t===14?lc14:t===15?lc15:lc16}else if(t===12)mat=19;
     // v10 ores draw as stone and chests as planks; the variant rides in whole steps of 2 on the face u (the shader reads it back).
-    let uvo=0;if(t>=30){if(t<=33){mat=3;c=defsRGB[3];uvo=2*(t-29)}else{mat=7;c=CHEST_RGB;uvo=t===34?2:4}}
+    let uvo=0;if(t>=30&&t<=35){if(t<=33){mat=3;c=defsRGB[3];uvo=2*(t-29)}else{mat=7;c=CHEST_RGB;uvo=t===34?2:4}}
+    if(t>=36){mat=t===38||t===40?26:3;c=defsRGB[t]}
     // Faces whose open neighbour lies under a roof (canopy, overhang) lose direct sunlight in the shader.
     const shaded=roofs[(z+1)*PW+x+1+F.dcol]>y+F.dy,pa=p+F.off;let cb=0;
     // Cave light: how much rock lies above the open cell in front of this face (spread one column sideways), plus baked crystal glow.
@@ -2812,6 +2829,7 @@ updateLife(dt,player);updateSurvival(dt);
 function drawWorldDetails(){const a=dyn;a.n=0;
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
 if(dig&&dig.p>.08)drawCrack(a);
+drawRuinEffects(a);
 if(arrows.length||gameMode==='survival')drawCombat(a);
 drawData(dynamicBuffer,a)}
 // Cracks spread over every face of the block being dug (dark slivers just outside the faces, more of them as the dig goes on).
@@ -2860,7 +2878,7 @@ function lifeNew(sp,x,y,z,manual,size){const c=lifePool.pop()||{R:new Float32Arr
  Object.assign(c,{id:lifeSeq++,sp,x,y,z,yaw:Math.random()*6.283,want:0,pitch:0,roll:0,vx:0,vy:0,vz:0,manual:!!manual,mode:'idle',timer:.5+Math.random()*2,speed:0,ph:Math.random()*6,t:Math.random()*20,
   hy:0,hp:0,stuck:0,acc:0,size:size||(sp.size?sp.size[0]+Math.random()*(sp.size[1]-sp.size[0]):.9+Math.random()*.2),leader:null,ox:0,oy:0,oz:0,tx:x,ty:y,tz:z,hx:x,hz:z,
   flash:0,swell:0,cool:0,peck:0,sq:0,hopT:0,hopV:0,pa:Math.random()*6,orb:0,lt:false,stranded:0,talk:0,flap:1,air:sp.move==='fly',voiceT:4+Math.random()*16,vanish:-1,dormant:false,sky:1,skyT:0,chaseT:0,detour:0,alt:0,leap:false,ground:true,dist:0,
-  mhp:0,hurtF:0,barT:0,kbx:0,kbz:0,atkCD:0,aggro:0,los:false,losT:0,side:1,hitDone:false});
+  ruinId:null,guardBit:0,cycle:0,shock:0,mhp:0,hurtF:0,barT:0,kbx:0,kbz:0,atkCD:0,aggro:0,los:false,losT:0,side:1,hitDone:false});
  c.poseAt=-Infinity;c.poseVersion=0;c.matrixValid=false;c.want=c.yaw;c.Mv=c.M.subarray(0,sp.nb*12);life.push(c);return c}
 function lifeRemove(c,puff){const i=life.indexOf(c);if(i<0)return;life.splice(i,1);for(const o of life)if(o.leader===c)o.leader=null;
  if(puff){const h=c.sp.top*c.size;for(let k=0;k<(c.sp.cat==='monster'?3:2);k++)burst(c.x,c.y+h*.5,c.z,c.sp.cat==='monster'?'#3b3550':'#e9efe9')}
@@ -2915,7 +2933,7 @@ function lifeSpawnTick(focus,night){
   return}}
 // Leave: unloaded or far away (natural only), monsters at daybreak, and surplus when the frame rate drops.
 function lifeCull(focus,night){const cap=lifeCap(),far=Math.max(80,readyR*CHUNK+40);let nat=0;
- for(let i=life.length-1;i>=0;i--){const c=life[i];if(c.manual)continue;nat++;
+ for(let i=life.length-1;i>=0;i--){const c=life[i];if(c.manual||c.ruinId)continue;nat++;
   const loaded=peek(Math.floor(c.x),1,Math.floor(c.z))>=0,d=Math.hypot(c.x-focus.x,c.z-focus.z);
   if(!loaded||d>far||(c.sp.hostile&&gameMode==='survival'&&d>64&&!c.seen)){lifeRemove(c,false);nat--;continue}
   if(gameMode==='survival'&&c.sp.cat==='monster'&&!c.sp.hostile&&c.vanish<0)c.vanish=Math.random()*3;
@@ -3060,6 +3078,7 @@ function updateLife(dt,focus){
   const baseInterval=dist<30?0:dist<60?.05:dist<100?.12:.3,interval=dist<30?0:Math.min(.3,baseInterval*(loadScale<1?1.5:1)+(paused&&!c.seen?.1:0));c.acc+=dt;if(c.acc<interval)continue;const sdt=Math.min(.3,c.acc);c.acc-=sdt;
   if((c.skyT-=sdt)<=0){c.skyT=1+Math.random();c.sky=skyOpen(c.x,c.y+sp.top*c.size,c.z)}
   const ex=c.x-focus.x,ey=c.y+sp.top*.5-focus.y-1.62,ez=c.z-focus.z,el=Math.hypot(ex,ey,ez)||1,looked=(ex*vx+ey*vy+ez*vz)/el>.6&&!paused;
+  if(sp.id==='guardian'){guardianThink(c,sdt);continue}
   if(sp.move==='swim')lifeSwim(c,sdt,dx,dy,dz,dist);else if(sp.move==='fly')lifeFly(c,sdt,dx,dy,dz,dist);else if(sp.move==='float')lifeFloat(c,sdt,dx,dy,dz,dist);else lifeLand(c,sdt,dx,dy,dz,dist,looked);
   if(sp.move!=='fly'&&sp.move!=='swim')lifeLook(c,sdt,dx,dy,dz,dist);else if(sp.move==='swim')c.hy=0;
   if(sp.voice&&(c.voiceT-=sdt)<=0){c.voiceT=(sp.cat==='monster'?7:10)+Math.random()*(sp.flock?8:22);if(dist<26)lifeVoice(c,sp.voice)}}if(perfEnabled)perfSample('lifeAI',performance.now()-stamp)
@@ -3072,6 +3091,7 @@ const bRX=(n,v)=>{const i=pB[n];if(i!==undefined)pR[i*3]+=v},bRY=(n,v)=>{const i
 function lifePose(c){c.poseVersion++;const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=sp.nb;for(let i=0;i<nb*3;i++){R[i]=0;O[i]=0;S[i]=1}for(let i=0;i<nb;i++)R[i*3]=sp.rest[i];pB=B;pR=R;pO=O;pS=S;
  const t=c.t,g=Math.min(2,c.speed/Math.max(.1,sp.sp)),gw=Math.min(1,g),ph=c.ph,s=Math.sin(ph);
  switch(sp.rig){
+  case'guardian':{const a=Math.sin(ph)*.25*gw;bRX('ll',a);bRX('lr',-a);const tell=c.mode==='guardianTell',lift=tell?(c.skill==='slam'?-2.5:-1.7):c.mode==='guardianRecover'?.6:-.12;bRX('al',lift);bRX('ar',lift);bOY('body',Math.abs(Math.sin(ph))*.35*gw);bRX('head',Math.sin(t*.8)*.025);break}
   case'quad':{const run=g>1.3,a=s*gw*(run?.8:.5),b=run?Math.sin(ph+.9)*.8:-a;bRX('fl',a);bRX('br',run?Math.sin(ph+2.2)*.8:a);bRX('fr',b);bRX('bl',run?Math.sin(ph+3.1)*.8:-a);
    bOY('body',Math.abs(Math.cos(ph))*.5*gw+(run?Math.abs(s)*.8:0)+Math.sin(t*1.6)*.12);bRX('body',run?Math.sin(ph*1)*.05:0);
    const graze=c.mode==='graze'?.95+Math.sin(t*3)*.06:0;bRX(B.neck!==undefined?'neck':'head',graze*(B.neck!==undefined?1.1:1));bRX('head',c.hp-graze*.15);bRY('head',c.hy);if(B.neck!==undefined)bRY('neck',c.hy*.4);
@@ -3336,7 +3356,8 @@ const HOSTILE={caveSpider:{hp:8,dmg:2,reach:1.6,sight:14,windup:.38,cool:1,ai:'m
 for(const id in HOSTILE)LIFE_BY_ID[id].hostile=HOSTILE[id];
 const HOSTILE_MODES=new Set(['hunt','windup','recover','aim','pounce']);
 const arrows=[];
-function weapon(){return bestOf(SWORDS,FIST)}
+const ANCIENT_SWORD={name:'古代の剣',dmg:9,reach:4.1,cd:.42,blade:'#73dce5',edge:'#d1fff3'};
+function weapon(){return items.ancientSword&&!items.diamondSword?ANCIENT_SWORD:bestOf(SWORDS,FIST)}
 function monsterMaxHP(c){const h=c.sp.hostile;return h?h.hp||Math.round(3+c.size*4):8}
 function viewDir(){return[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]}
 // Clear line between the monster's eyes and the player's chest: rock, wood, leaves and glass all block it (no hits through walls).
@@ -3403,13 +3424,13 @@ function attackTarget(d,reach){const h=ray(d,reach),maxD=h?h.dist:reach,o=[playe
   if(dd<nd&&Math.abs(c.y-player.y)<2&&(ex*d[0]+ez*d[2])/Math.max(.01,dd*Math.hypot(d[0],d[2]))>.75&&canSee(c,o[0],o[1],o[2])){nd=dd;near=c}}return near}
 function strike(button){if(paused||photoMode||dead||gameMode!=='survival')return false;const w=weapon(),c=attackTarget(viewDir(),w.reach);
  if(!c&&!button)return false;lastStrikeT=time;if(atkCD>0)return true;atkCD=w.cd;swing=1;if(!c){sfx('swing');return true}
- if(!(c.mhp>0))c.mhp=monsterMaxHP(c);c.mhp-=w.dmg;c.hurtF=1;c.barT=4;c.aggro=6;c.los=true;sfx('hit',c);
- const ex=c.x-player.x,ez=c.z-player.z,el=Math.hypot(ex,ez)||1;c.kbx=ex/el*8;c.kbz=ez/el*8;if(c.ground){c.vy=Math.max(c.vy,3.2);c.ground=false}
+ if(!(c.mhp>0))c.mhp=monsterMaxHP(c);c.mhp-=w.dmg;if(c.ruinId&&c.sp.id==='guardian'){ruinState(ruins.find(r=>r.id===c.ruinId)).hp=Math.max(0,c.mhp);dirty=true}c.hurtF=1;c.barT=4;c.aggro=6;c.los=true;sfx('hit',c);
+ const ex=c.x-player.x,ez=c.z-player.z,el=Math.hypot(ex,ez)||1;c.kbx=c.sp.id==='guardian'?0:ex/el*8;c.kbz=c.sp.id==='guardian'?0:ez/el*8;if(c.ground&&c.sp.id!=='guardian'){c.vy=Math.max(c.vy,3.2);c.ground=false}
  // A hit interrupts a wind-up: hitting first is always rewarded.
  if(c.mode==='windup'||c.mode==='aim'){c.mode='recover';c.timer=.6;c.atkCD=Math.max(c.atkCD,.9);c.flash=0}
- burst(c.x,c.y+c.sp.top*c.size*.6,c.z,'#ffffff');
+ burst(c.x,c.y+c.sp.top*c.size*.6,c.z,w===ANCIENT_SWORD?'#7df0ff':'#ffffff',w===ANCIENT_SWORD?8:12);
  if(c.mhp<=0)defeatMonster(c);return true}
-function defeatMonster(c){const y=c.y+c.sp.top*c.size*.5;for(let k=0;k<(qualityName==='low'?2:4);k++)burst(c.x,y,c.z,k%2?'#ffe27a':c.sp.main);lifeRemove(c,true);sfx('defeat');defeated++;dirty=true;
+function defeatMonster(c){if(c.sp.id==='guardian'){defeatGuardian(c);return}if(c.ruinId&&c.guardBit){ruinState(ruins.find(r=>r.id===c.ruinId)).guards|=c.guardBit;dirty=true;queueSave()}const y=c.y+c.sp.top*c.size*.5;for(let k=0;k<(qualityName==='low'?2:4);k++)burst(c.x,y,c.z,k%2?'#ffe27a':c.sp.main);lifeRemove(c,true);sfx('defeat');defeated++;dirty=true;
  let msg=`${c.sp.name}をたおした！ ✨`;if(defeated===1)msg='はじめてモンスターをたおした！ 🎉';
  if(Math.random()<.3){items.apple++;msg+=' 🍎りんごを手に入れた'}
  // v16 drops: leather for the first armour (always from the first win), crystal slimes sometimes leave gold or a mysterious crystal.
@@ -3449,7 +3470,7 @@ function buildCraftGear(){const box=$('craftGear');if(!box||craftBuilt)return;cr
  for(const [head,set] of CRAFT_SECTIONS){const h=document.createElement('div');h.className='craft-head';h.textContent=head;box.appendChild(h);const g=document.createElement('div');g.className='craft-grid';box.appendChild(g);
   for(const id in set){const b=document.createElement('button');b.id='craft_'+id;b.className='recipe';b.onclick=()=>craftItem(id);g.appendChild(b)}}}
 let craftKey='';
-function craftUI(){const box=$('craftGear');if(!box)return;buildCraftGear();
+function craftUI(){const box=$('craftGear');if(!box)return;adventureUI();buildCraftGear();
  const key=JSON.stringify([items,inventory[3],inventory[7],inventory[5],inventory[14],inventory[15],inventory[16],gameMode]);if(key===craftKey)return;craftKey=key;
  for(const [,set] of CRAFT_SECTIONS)for(const id in set){const b=$('craft_'+id),r=set[id];const h=craftLabel(id,r);if(b.innerHTML!==h)b.innerHTML=h;b.classList.toggle('owned',items[id]>0);b.classList.toggle('ready',!(items[id]>0)&&!missingOf(r.need).length)}
  const w=weapon(),pk=pickaxe(),ar=armor();
@@ -3461,13 +3482,13 @@ $('craftApple').onclick=()=>craftItem('apple');
 $('eat').onclick=()=>eat();$('respawn').onclick=()=>respawn();
 // ---- v16 treasure chests: opening. The loot is a pure function of the chest's place and kind (reloading never re-rolls it), and the
 // chest becomes an open chest (block 35, a saved edit), so it can be emptied once. b<id> entries are blocks for the hotbar.
-const LOOT={cave:[['coal',.9,2,5],['iron',.65,1,3],['apple',.5,1,2],['leather',.45,1,2],['coin',.25,1,1],['gold',.12,1,1],['stoneSword',.15,1,1],['b26',.12,2,4]],
+const LOOT={ruin:[['coin',1,2,4],['apple',1,2,3],['iron',1,2,4],['b36',1,6,10],['b38',1,2,3]],guardian:[['coin',1,4,7],['crystal',1,1,2],['b38',1,4,7],['b37',1,8,12]],cave:[['coal',.9,2,5],['iron',.65,1,3],['apple',.5,1,2],['leather',.45,1,2],['coin',.25,1,1],['gold',.12,1,1],['stoneSword',.15,1,1],['b26',.12,2,4]],
  hall:[['coal',.8,3,6],['iron',.85,2,4],['gold',.4,1,2],['apple',.6,1,3],['leather',.45,1,3],['coin',.45,1,2],['diamond',.1,1,1],['ironSword',.12,1,1],['b27',.3,3,6],['crystal',.08,1,1]],
  lake:[['coal',.7,2,5],['iron',.85,2,4],['gold',.45,1,2],['apple',.6,1,3],['leather',.35,1,2],['coin',.55,1,2],['diamond',.12,1,1],['b28',.35,3,6],['crystal',.1,1,1]],
  crystal:[['iron',.8,2,4],['gold',.7,1,3],['diamond',.4,1,2],['crystal',.6,1,1],['coin',.4,1,2],['b26',.5,4,8],['b27',.4,3,6],['b28',.4,3,6],['dragonEgg',.07,1,1]],
  falls:[['iron',.8,2,4],['gold',.6,1,3],['diamond',.25,1,1],['crystal',.3,1,1],['coin',.6,1,3],['b26',.6,4,8],['b29',.4,2,5],['apple',.5,2,3],['dragonEgg',.04,1,1]],
  sea:[['gold',.8,1,3],['diamond',.35,1,1],['coin',.85,2,3],['crystal',.2,1,1],['iron',.5,1,3],['dragonEgg',.06,1,1]]};
-const CHEST_NAME={cave:'洞窟の宝箱',hall:'巨大洞窟の宝箱',lake:'地底湖の宝箱',crystal:'結晶洞窟の宝箱',falls:'滝の裏の宝箱',sea:'海底の宝箱'};
+const CHEST_NAME={ruin:'古代の小部屋の宝箱',guardian:'守護者の宝箱',cave:'洞窟の宝箱',hall:'巨大洞窟の宝箱',lake:'地底湖の宝箱',crystal:'結晶洞窟の宝箱',falls:'滝の裏の宝箱',sea:'海底の宝箱'};
 function chestLoot(x,y,z,tier){const R=treeRng(x*3+y,z*7+y*13,909),out=[];for(const [k,p,a,b] of LOOT[tier]||LOOT.cave)if(R()<p)out.push([k,a+Math.floor(R()*(b-a+1))]);
  if(out.length<2)out.push(['coal',2+Math.floor(R()*3)]);return out}
 // Rare items: a short banner and a chime the first time each one is found (from a chest or a monster); always kept, never used up.
@@ -3476,10 +3497,13 @@ function giveRare(k,n,lines){items[k]+=n;if(lines)lines.push(`<span class="rare"
  if(!lines)toast(`${RARE[k].icon} ${RARE[k].name}を手に入れた（${items[k]}個）`);return false}
 let nearChest=null;
 function openChest(x,y,z){if(paused||photoMode||dead||get(x,y,z)!==B_CHEST||Math.hypot(x+.5-player.x,y+.5-player.y-1,z+.5-player.z)>5.5)return false;
- const tier=chestInfo.get(idx(x,y,z))||'cave',loot=chestLoot(x,y,z,tier),first=!(items.found&FOUND_BIT.chest);
+ const rc=ruinChest(x,y,z),rs=rc?ruinState(rc.r):null;
+ if(rc?.boss&&(rs.claimed||gameMode==='survival'&&!rs.defeated)){toast(rs.claimed?'この宝物はもう受け取った':'守護者が宝箱を封印している。コアをねらって戦おう');return false}
+ const tier=rc?(rc.boss?'guardian':'ruin'):chestInfo.get(idx(x,y,z))||'cave',loot=chestLoot(x,y,z,tier),first=!(items.found&FOUND_BIT.chest);
  if(first){const fe=loot.find(l=>l[0]==='iron');if(fe)fe[1]=Math.max(fe[1],2);else loot.push(['iron',2])} // the first chest always helps toward iron gear
+ if(rc){rs.discovered=true;if(rc.boss){rs.claimed=rs.cleared=true;items.ancientSword=1;items.eggClue=1}else unlockRuin(rc.r,true)}
  edit(x,y,z,B_CHEST_OPEN);items.chests++;items.found|=FOUND_BIT.chest;nearChest=null;$('openChest').classList.add('hidden');
- const lines=[];let rare=false;
+ const lines=rc?.boss?['⚔ 古代の剣（鉄と同じ攻撃力・青い光）','📜 竜の手がかり：結晶洞窟と海底の宝箱に卵が眠る']:[];let rare=false;
  for(const [k,n] of loot){if(/^b\d+$/.test(k)){const t=+k.slice(1);inventory[t]=(inventory[t]||0)+n;lines.push(`🧱 ${defs[t][0]} ×${n}`)}
   else if(SWORDS[k]){if(items[k]>0){items.iron+=2;lines.push('🔩 鉄 ×2')}else{items[k]=1;lines.push('⚔ '+SWORDS[k].name+'！')}}
   else if(RARE[k])rare=giveRare(k,n,lines)||rare;
@@ -3496,6 +3520,101 @@ function chestTick(dt){if((chestScanT-=dt)>0)return;chestScanT=.12;let best=null
   if(Math.random()<.5){pkX=1e9;for(const [i] of chestInfo){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));if(Math.abs(x-player.x)>18||Math.abs(z-player.z)>18||Math.abs(y-player.y)>12||peek(x,y,z)!==B_CHEST)continue;particles.push({x:x+.2+Math.random()*.6,y:y+1.05,z:z+.2+Math.random()*.6,vx:0,vy:2.2,vz:0,life:.7,color:Math.random()<.5?'#ffe27a':'#fffbe0'})}}}
  nearChest=best;const el=$('openChest'),show=!!best;if(el.classList.contains('hidden')===show)el.classList.toggle('hidden',!show)}
 $('openChest').addEventListener('pointerdown',e=>{e.preventDefault();if(nearChest)openChest(...nearChest)});
+// ---- Ruin encounters: only the nearby site is active. Progress belongs to the world, never to a streamed entity.
+let activeRuin=null,ruinTickT=0;
+function ruinAt(x,y,z){return ruins.find(r=>{const p=ruinLocal(r,x,z);return Math.abs(p.u)<25&&p.v>-17&&p.v<57&&y>r.f-3&&y<r.base+20})||null}
+function ruinChest(x,y,z){for(const r of ruins){if(y!==r.f+1)continue;const p=ruinLocal(r,x,z);if(p.u===0&&p.v===53)return{r,boss:true};if(p.u===-r.side*14&&p.v===26)return{r,boss:false}}return null}
+function ruinProgress(data,cx,cz){const list=ruinChunks.get(cx+','+cz);if(!list)return;
+ for(const r of list){const s=adventure.ruins[r.id];if(!s)continue;
+  for(const [open,u0,u1,v,h] of[[s.gate,-2,2,35,5],[s.secret,19,21,30,4]])if(open)for(let u=u0;u<=u1;u++){const p=ruinWorld(r,u,v);if((p.x>>4)===cx&&(p.z>>4)===cz)for(let y=r.f+1;y<=r.f+h;y++)data[localIdx(p.x,y,p.z)]=0}
+  if(s.claimed){const p=ruinWorld(r,0,53);if((p.x>>4)===cx&&(p.z>>4)===cz)data[localIdx(p.x,r.f+1,p.z)]=B_CHEST_OPEN}}
+}
+function unlockRuin(r,secret=false){const s=ruinState(r),key=secret?'secret':'gate';if(s[key])return false;s[key]=true;
+ const changed=new Set();for(let u=secret?19:-2;u<=(secret?21:2);u++){const p=ruinWorld(r,u,secret?30:35);for(let y=r.f+1;y<=r.f+(secret?4:5);y++){
+  // Only remove generated door blocks; player construction always wins.
+  if(get(p.x,y,p.z)===39){set(p.x,y,p.z,0);changed.add(chunkKey(p.x,p.z))}}}
+ for(const k of changed)if(chunks.has(k))rebuild(...k.split(',').map(Number));pkX=1e9;
+ dirty=true;queueSave();sfx('chest');toast(secret?'宝箱の封印がとけた！ 横の通路が入口につながった':'踏み石が光った！ 奥の石扉が開いた');return true}
+function dungeonTick(dt){if(!RUINS||paused||photoMode||dead)return;
+ if((ruinTickT-=dt)>0)return;ruinTickT=.15;activeRuin=ruinAt(player.x,player.y,player.z);
+ // Unload encounter entities when leaving, retaining HP and defeated flags in adventure.
+ for(const c of [...life])if(c.ruinId){const r=ruins.find(r=>r.id===c.ruinId);if(!r||Math.hypot(c.x-player.x,c.z-player.z)>70||Math.abs(c.y-player.y)>24||(c.sp.id!=='guardian'&&gameMode!=='survival'))lifeRemove(c,false)}
+ const r=activeRuin;if(!r){$('bossHUD').classList.add('hidden');return}const s=ruinState(r),p=ruinLocal(r,player.x,player.z);
+ if(!s.discovered){s.discovered=true;dirty=true;queueSave();announce('🏛 遺跡を発見！',RUIN_NAMES[r.kind]+' — 青い踏み石をさがそう','first')}
+ if(Math.abs(p.u-r.side*12)<1.4&&Math.abs(p.v-26)<1.4&&Math.abs(player.y-r.f-1)<.6)unlockRuin(r);
+ if(!s.defeated&&Math.abs(player.y-r.f-1)<12){const pos=ruinWorld(r,0,46);
+  if(Math.hypot(pos.x-player.x,pos.z-player.z)<32&&!life.some(c=>c.ruinId===r.id&&c.sp.id==='guardian')&&peek(pos.x,r.f+1,pos.z)===0){
+   const c=lifeNew(LIFE_BY_ID.guardian,pos.x+.5,r.f+1,pos.z+.5,false,1);c.ruinId=r.id;c.mhp=s.hp;c.mode='guardianIntro';c.timer=1.8;
+   if(gameMode==='survival')announce('古代の石の守護者','コアが目覚めた… 光る予兆を見て離れよう','first')}
+ }
+ if(gameMode==='survival'&&p.v>10&&p.v<36)for(let i=0;i<2;i++){if(s.guards&(1<<i)||life.some(c=>c.ruinId===r.id&&c.guardBit===(1<<i)))continue;
+  const pos=ruinWorld(r,i?-10:10,25);if(peek(pos.x,r.f+1,pos.z)!==0)continue;
+  const c=lifeNew(LIFE_BY_ID.caveSpider,pos.x+.5,r.f+1,pos.z+.5,false,.8);c.ruinId=r.id;c.guardBit=1<<i;
+ }
+ updateBossHUD();
+}
+function guardianMove(c,dt,speed){const r=ruins.find(r=>r.id===c.ruinId),n=Math.max(1,Math.ceil(speed*dt/.15)),step=speed*dt/n;pkX=1e9;
+ for(let i=0;i<n;i++){const x=c.x+Math.sin(c.yaw)*step,z=c.z+Math.cos(c.yaw)*step,p=ruinLocal(r,x,z);if(Math.abs(p.u)>6||p.v<39||p.v>51)return false;
+  for(const ox of[-.85,0,.85])for(const oz of[-.85,0,.85]){const X=Math.floor(x+ox),Z=Math.floor(z+oz),Y=Math.floor(c.y),floor=peek(X,Y-1,Z);
+   if(floor<=0||floor===10)return false;for(let h=0;h<4;h++)if(peek(X,Y+h,Z)!==0)return false}
+  c.x=x;c.z=z;c.ph+=step*3;
+ }return true}
+function guardianThink(c,dt){c.speed=0;if(paused||photoMode||dead)return;const r=ruins.find(r=>r.id===c.ruinId),s=ruinState(r),dx=player.x-c.x,dz=player.z-c.z,d=Math.hypot(dx,dz),dy=Math.abs(player.y-c.y);
+ c.timer-=dt;c.flash=0;
+ if(gameMode!=='survival'){c.mode='guardianSleep';return}
+ if(c.mode==='guardianSleep'){c.mode='guardianIntro';c.timer=1.8}
+ if(d>27||dy>6){c.mode='guardianIdle';c.timer=Math.max(c.timer,1);return}
+ const sees=canSee(c),phase=s.hp<=48?.78:1;
+ if(c.mode==='guardianIntro'){c.flash=.25;if(c.timer<=0)c.mode='guardianIdle';return}
+ if(c.mode==='guardianTell'){
+  c.flash=.25+.25*Math.abs(Math.sin(c.t*8));
+  if(c.timer<=0){if(c.skill==='charge'){c.mode='guardianCharge';c.timer=.75;c.hitDone=false}
+   else{const reach=c.skill==='slam'?5.4:3.4;if(d<reach&&dy<2.2&&sees)hurtPlayer(c.skill==='slam'?5:4,c);
+    if(c.skill==='slam'){c.shock=.65;burst(c.x,c.y+.15,c.z,'#79dfea',qualityName==='low'||loadScale<1?6:14)}
+    c.mode='guardianRecover';c.timer=1.5*phase}}
+  return}
+ if(c.mode==='guardianCharge'){
+  c.speed=8;const moved=guardianMove(c,dt,8);
+  if(!c.hitDone&&Math.hypot(player.x-c.x,player.z-c.z)<2&&dy<2&&canSee(c)){hurtPlayer(4,c);c.hitDone=true}
+  if(!moved||c.timer<=0){c.mode='guardianRecover';c.timer=1.8*phase}return}
+ if(c.mode==='guardianRecover'){if(c.timer<=0)c.mode='guardianIdle';return}
+ if(!sees)return;c.yaw=Math.atan2(dx,dz);
+ if(c.timer<=0&&d<13){c.skill=d>6?'charge':(c.cycle++%2?'slam':'swing');c.mode='guardianTell';c.timer=(c.skill==='slam'?1.5:c.skill==='charge'?1.25:1.05)*phase;return}
+ if(d>2.8){c.speed=1.15;guardianMove(c,dt,c.speed)}
+}
+function updateBossHUD(){const c=life.find(c=>c.sp.id==='guardian'&&c.ruinId===activeRuin?.id),show=!!(c&&gameMode==='survival'&&!paused&&!photoMode&&Math.abs(player.y-c.y)<6&&Math.hypot(c.x-player.x,c.z-player.z)<24&&canSee(c));
+ $('bossHUD').classList.toggle('hidden',!show);if(!show)return;
+ $('bossFill').style.width=(c.mhp/96*100)+'%';$('bossTell').textContent=c.mode==='guardianTell'?(c.skill==='slam'?'地面が光る… 離れよう！':c.skill==='charge'?'突進の予兆… 横によけよう！':'腕を振り上げた… 下がろう！'):c.mhp<=48?'コアが強く光っている':'古代の封印を守っている';
+}
+function defeatGuardian(c){const r=ruins.find(r=>r.id===c.ruinId),s=ruinState(r);if(s.defeated)return;s.defeated=true;s.hp=0;defeated++;dirty=true;
+ burst(c.x,c.y+2,c.z,'#8ff5ff',qualityName==='low'||loadScale<1?12:30);lifeRemove(c,false);$('bossHUD').classList.add('hidden');sfx('defeat');announce('✨ 石の守護者をたおした！','封印がとけた。奥の特別な宝箱を持ち帰ろう！','rare');queueSave();refresh()}
+function drawRuinEffects(a){for(const c of life){if(c.sp.id!=='guardian'||c.dormant||Math.hypot(c.x-player.x,c.z-player.z)>32)continue;
+ if(c.shock>0)c.shock=Math.max(0,c.shock-.03);
+ if(c.mode!=='guardianTell'&&!(c.shock>0))continue;const col=c.shock>0?'#befaff':'#67cddd',n=qualityName==='low'||loadScale<1?12:20,rad=c.skill==='slam'?5.4:3.4;
+ for(let i=0;i<n;i++){const ang=i/n*Math.PI*2;cuboid(a,c.x+Math.sin(ang)*rad,c.y+.04,c.z+Math.cos(ang)*rad,.18,.035,.18,col,26)}
+ if(c.skill==='charge')for(let i=1;i<=6;i++)cuboid(a,c.x+Math.sin(c.yaw)*i,c.y+.045,c.z+Math.cos(c.yaw)*i,.2,.04,.2,col,26);
+ }}
+function adventureUI(){if(!RUINS){$('adventureLog').textContent='この世界は旧地形を保護しています。遺跡は新しい世界で見つかります。';return}
+ const seen=ruins.filter(r=>adventure.ruins[r.id]?.discovered),cleared=seen.filter(r=>adventure.ruins[r.id].cleared),bosses=seen.filter(r=>adventure.ruins[r.id].defeated);
+ $('adventureLog').textContent=`🏛 冒険の記録　発見 ${seen.length} / 攻略 ${cleared.length} / 守護者撃破 ${bosses.length}\n`+
+ (seen.length?seen.map(r=>RUIN_NAMES[r.kind]+(adventure.ruins[r.id].cleared?' ✓ 攻略済み':' ・探索中')).join('\n'):'遠くの石柱を見つけたら近づこう。コンパスは近くの気配だけを教えてくれる。')+
+ `\n⚔ 古代の剣 ${items.ancientSword?'発見済み':'未発見'} / 竜の手がかり ${items.eggClue?'発見済み：結晶洞窟・海底に眠る卵を探せ':'未発見'}\n青い踏み石で石扉が開く。小部屋の宝箱で周回通路が開く。入口への階段はいつでも戻れる。`+
+ (gameMode!=='survival'?'\nこのモードでは守護者は眠り、戦わずに宝物を受け取れる。':'\n守護者は自然発生の設定に関係なく遺跡を守る。予兆を見たら後ろや横へよけよう。');
+}
+function ruinCompass(heading){const el=$('compassRuin');if(!RUINS||paused||photoMode){el.classList.add('hidden');return}
+ const r=ruinAt(player.x,player.y,player.z);let target=null,label='';
+ if(r){const s=ruinState(r),p=ruinLocal(r,player.x,player.z);if(player.y<r.base-4){
+   if(s.cleared||p.v<16){target=ruinWorld(r,0,-11);label='🏛 出口（階段）'}
+   else if(!s.gate){target=ruinWorld(r,r.side*12,26);label='◇ 青い踏み石'}
+   else{target=ruinWorld(r,0,s.defeated?53:46);label=s.defeated?'🎁 守護者の宝箱':'◆ 守護者の間'}
+  }else{target=ruinWorld(r,0,-8);label='🏛 地下への階段'}
+ }else{let best=150;for(const q of ruins){const d=Math.hypot(q.x-player.x,q.z-player.z);if(d<best){best=d;target=q;label=adventure.ruins[q.id]?.discovered?'🏛 '+RUIN_NAMES[q.kind]:'◇ 古い石の気配'}}}
+ el.classList.toggle('hidden',!target);if(!target)return;const dx=target.x-player.x,dz=target.z-player.z;
+ $('compassRuinArrow').style.transform='rotate('+compassDelta(compassBearing(dx,dz),heading)+'deg)';$('compassRuinText').textContent=label+' '+Math.round(Math.hypot(dx,dz))+'m';
+ // Keep the compass compact inside a ruin instead of stacking a second underground guide.
+ if(r)$('compassCave').classList.add('hidden');
+}
+
 // ---- Modes: switching is always safe (from the title menu). Entering survival lands the player and grants a short shield.
 function setGameMode(m){if(!GAME_MODES.includes(m))return;const was=gameMode;gameMode=m;creative=m==='creative';dirty=true;
  if(m==='survival'){if(flying){flying=false;vy=0}if(was!=='survival'){if(health<=0)health=MAX_HP;protectT=Math.max(protectT,3);if(monsterNotice())toast(monsterNotice())}}
@@ -3527,7 +3646,7 @@ function hostileSpawnTick(){if(lifeMode!=='all'||readyR<1)return false;const und
  return false}
 // ---- Per-frame survival bookkeeping (cheap: timers, at most a dozen arrows and a few hostile monsters).
 let heartsKey='',hurtFxOpacity=-1,guideStep=0,guideUntil=0,guideSince=0,guideShown='';try{guideStep=+localStorage.getItem('jocraft2-guide')||0}catch(e){}
-function updateSurvival(dt){atkCD=Math.max(0,atkCD-dt);invulT=Math.max(0,invulT-dt);camKick*=Math.max(0,1-dt*9);
+function updateSurvival(dt){dungeonTick(dt);atkCD=Math.max(0,atkCD-dt);invulT=Math.max(0,invulT-dt);camKick*=Math.max(0,1-dt*9);
  for(const c of life){if(c.hurtF>0)c.hurtF=Math.max(0,c.hurtF-dt*4);if(c.barT>0)c.barT-=dt}
  updateArrows(dt);
  const surv=gameMode==='survival';hurtGlow=Math.max(0,hurtGlow-dt*1.8);const low=surv&&health<=6?.22+.12*Math.sin(time*5):0,op=+(Math.max(hurtGlow,low)).toFixed(2);
@@ -3759,7 +3878,7 @@ function nearestMouth(){if(!CAVES)return null;const ci=Math.floor(player.x/CAVE_
  for(let j=cj-1;j<=cj+1;j++)for(let i=ci-1;i<=ci+1;i++){const c=caveCell(i,j);if(!c)continue;for(const e of c.entrances){const d=Math.hypot(e.x-player.x,e.z-player.z);if(!best||d<best.d)best={x:e.x,z:e.z,d}}}
  return best}
 function updateCompass(){
- if(paused||suspended||photoMode){compassHUD.classList.add('hidden');return}
+ if(paused||suspended||photoMode){$('bossHUD').classList.add('hidden');compassHUD.classList.add('hidden');return}
  compassHUD.classList.remove('hidden');
  // Engine yaw=0 looks toward +Z (south), yaw=PI/2 toward +X (east).
  const heading=compassNormalize(180-yaw*180/Math.PI);
@@ -3785,6 +3904,7 @@ function updateCompass(){
  const nearest=Math.min(...edgeDistances),edge=edgeDistances.indexOf(nearest);
  if(nearest<=100){compassWarning.textContent='⚠ '+edgeNames[edge]+'の端まで '+Math.max(0,Math.floor(nearest))+'m';compassWarning.classList.remove('hidden')}
  else compassWarning.classList.add('hidden');
+ ruinCompass(heading);
 }
 
 // A full day lasts 20 minutes; nights pass 2.5x faster so building time stays mostly in daylight.
