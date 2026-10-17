@@ -215,7 +215,7 @@ body.riding .actions #mine,body.riding .actions #place,body.riding .actions #cra
 body.riding .actions #down{display:block!important}body.riding .actions #down,body.riding .actions #jump{background:#1d5a6acc;border-color:#9ff3ffaa}
 .dragon-box{margin:8px 0;padding:2px 12px 10px;background:#123a4a88;border:1px solid #8ff4ff44;border-radius:8px;font-size:12px;line-height:1.55}.dragon-box p{margin:4px 0}
 .dragon-bar{height:8px;background:#0d2a33;border:1px solid #8acbd1;border-radius:5px;overflow:hidden;margin:4px 0 2px}.dragon-bar i{display:block;height:100%;background:linear-gradient(90deg,#3a9b96,#a4f3ff)}
-.dragon-note{font-size:10px;color:#cfe3c7}.dragon-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.dragon-row button{margin:0;padding:8px 10px;font-size:12px;min-height:40px;touch-action:manipulation}.dragon-log{margin-top:6px;font-size:10px;color:#bfe9f0}
+.dragon-note{font-size:10px;color:#cfe3c7}.dragon-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#craft .dragon-row button{flex:1 1 40%;width:auto;display:block;margin:0;padding:8px 10px;font-size:12px;min-height:40px;touch-action:manipulation}.dragon-log{margin-top:6px;font-size:10px;color:#bfe9f0}
 @media(max-height:480px){#dragonAct{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 170px);padding:7px 13px;font-size:13px}}
 #compassRuin{display:flex;gap:4px;padding:2px 5px;background:#183f46bb;border-radius:5px;color:#bff7ee}
 #adventureLog{white-space:pre-line;font-size:12px;line-height:1.7;padding:12px;background:#183f3966;border:1px solid #8dceba55;border-radius:8px;margin:10px 0}
@@ -3861,7 +3861,7 @@ function rideStep(dt){const c=pet;if(!c||dragon.stage!=='adult'){endRide();retur
   const flapW=rideVy>.5||rideV<6||up?1:Math.sin(c.t*.45)>.55?.8:.12;c.flap+=(flapW-c.flap)*Math.min(1,dt*2.5);c.speed=rideV}
  player.x=c.x;player.z=c.z;player.y=c.y+seatY(c);vy=0;ground=false}
 // Third person behind the dragon, looking where the player looks; it pulls in (at once) when rock is in the way, then eases back out.
-function rideCamera(){const c=pet,tx=c.x,ty=c.y+c.size*1.45+.6,tz=c.z,cp=Math.cos(pitch),dx=Math.sin(yaw)*cp,dy=Math.sin(pitch),dz=Math.cos(yaw)*cp,want=3.4+4.2*c.size/1.9;
+function rideCamera(){const c=pet,tx=c.x,ty=c.y+c.size*1.45+.6,tz=c.z,cp=Math.cos(pitch),dx=Math.sin(yaw)*cp,dy=Math.sin(pitch),dz=Math.cos(yaw)*cp,want=(3.4+4.2*c.size/1.9)*(innerWidth<innerHeight?1.9:1); // narrow portrait screens sit farther back
  let d=want;pkX=1e9;for(let t=.6;t<=want;t+=.35){const b=peek(Math.floor(tx-dx*t),Math.floor(ty-dy*t),Math.floor(tz-dz*t));if(b<0||(b>0&&b!==10)){d=Math.max(.8,t-.45);break}}
  camD+=(d-camD)*(d<camD?1:.06);return{x:tx-dx*camD,y:ty-dy*camD,z:tz-dz*camD,yaw,pitch:pitch+camKick}}
 // The rider: a few blocks on the dragon's back that follow its heading, pitch and roll (same root transform as the creature model).
