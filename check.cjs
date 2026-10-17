@@ -10,9 +10,9 @@ function fingerprint(api,x0,x1,z0,z1,y1){let h=2166136261;for(let x=x0;x<x1;x++)
 // ---- New GRAND VISTA world: basics, saves, physics.
 const t0=Date.now();const a=boot();console.log(`boot new world: ${Date.now()-t0} ms`);
 assert(a.triangles>0);assert(!a.api.collides(a.api.player),'spawn must be clear');assert.equal(a.api.get(32,0,32),11);assert(a.api.collides({x:32.5,y:.5,z:32.5}));assert(a.api.collides({x:-1,y:25,z:30}));
-assert.equal(run(a,'terrainVersion'),10);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
+assert.equal(run(a,'terrainVersion'),11);assert.equal(run(a,'H'),192);assert.equal(run(a,'SEA'),62);
 a.api.edit(30,30,30,8);assert(a.api.save());const b=boot(a.storage['nisekura-v1']);assert.equal(b.api.get(30,30,30),8,'world edit survives reload');assert(!b.api.collides(b.api.player));
-assert.equal(run(b,'terrainVersion'),10,'v10 save reloads as v10');
+assert.equal(run(b,'terrainVersion'),11,'v11 save reloads as v11');
 run(b,'paused=false;for(let i=0;i<120;i++)update(1/60)');assert(!b.api.collides(b.api.player),'gravity stays outside ground');assert(run(b,'ground'));
 console.log('PASS: finite mesh, safe spawn, bedrock, boundary collision, save/reload, gravity landing');
 
@@ -122,7 +122,7 @@ resetTest.windowEvents.pagehide();
 assert.equal(resetTest.storage['nisekura-v1'],undefined,'unload callbacks must not restore deleted saves');
 assert.equal(run(resetTest,'save()'),false,'autosave must remain disabled until navigation completes');
 const afterReset=boot(resetTest.storage['nisekura-v1']);
-assert.equal(run(afterReset,'terrainVersion'),10,'reset must activate new terrain generator');
+assert.equal(run(afterReset,'terrainVersion'),11,'reset must activate new terrain generator');
 assert.equal(run(afterReset,'SEA'),62,'new world sea level is 62');
 assert.equal(run(afterReset,'H'),192,'new world height is 192');
 console.log('PASS: new world reset survives blur, visibility and pagehide without resurrecting legacy terrain');
@@ -494,7 +494,7 @@ const SEA_=62;
  d.c.confirm=()=>true;assert(run(d,'recoverWorld()'));assert.equal(d.storage[K],legacy);assert.equal(d.storage[A],bad,'corrupt original retained verbatim for export');
  const noBackup=boot(bad);assert.equal(run(noBackup,'recoverWorld()'),false);assert.equal(noBackup.storage[K],bad);noBackup.nodes.reset.onclick();assert.equal(noBackup.storage[K],bad);
  const valid=boot(legacy);valid.api.save();let altered=JSON.parse(valid.storage[K]);altered.seed++;const damaged=boot(JSON.stringify(altered));assert(run(damaged,'storageBlocked'));assert.equal(damaged.api.save(),false);
- for(const patch of [{terrainVersion:11},{changes:[[1,999]]},{changes:[[1]]},{inventory:{'__proto__':1,'999':1}},{life:{mode:'all',eggs:[['unknown',1,1,1,0,1]]}},{player:{x:NaN,y:20,z:30}}]){valid.c.patch=patch;assert.throws(()=>run(valid,'encodeSave({...snapshot(),...patch})'))}
+ for(const patch of [{terrainVersion:12},{changes:[[1,999]]},{changes:[[1]]},{inventory:{'__proto__':1,'999':1}},{life:{mode:'all',eggs:[['unknown',1,1,1,0,1]]}},{player:{x:NaN,y:20,z:30}}]){valid.c.patch=patch;assert.throws(()=>run(valid,'encodeSave({...snapshot(),...patch})'))}
  valid.storage[K]=legacy;assert.equal(valid.api.save(),false,'different tab must not be overwritten');assert.equal(valid.storage[K],legacy);
  console.log('PASS: corruption, checksum mismatch, missing backup, rejected schema, explicit recovery and other-tab protection');
 }
@@ -509,7 +509,7 @@ const SEA_=62;
 }
 {
  const K='nisekura-v1',A=K+'-protected',d=boot(legacy);d.api.edit(30,30,30,9);d.nodes.reset.onclick();assert.equal(d.storage[K],undefined);assert.equal(JSON.parse(d.storage[A]).changes.find(e=>e[0]===30+2048*(30+2048*30))[1],9,'reset checkpoints unsaved construction');
- const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),10,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
+ const next=boot(null,{}, {[A]:d.storage[A]});assert.equal(run(next,'terrainVersion'),11,'archive never auto-resurrects');next.api.save();run(next,'dayTime+=.1');next.api.save();assert.equal(next.storage[A],d.storage[A],'autosave cannot overwrite protected world');
  const failed=boot(legacy);failed.c.localStorage.setItem=()=>{throw Error('QuotaExceededError')};failed.nodes.reset.onclick();assert.equal(failed.storage[K],legacy);assert.equal(run(failed,'resettingWorld'),false);
  const auto=boot(legacy);run(auto,'paused=false;frame(16001)');assert(auto.storage[K]);assert(JSON.parse(auto.storage[K]).integrity);run(auto,'dayTime=.64');auto.c.document.hidden=true;auto.events.visibilitychange();assert.equal(JSON.parse(auto.storage[K]).dayTime,.64);
  run(auto,'dayTime=.65');auto.windowEvents.pagehide();assert.equal(JSON.parse(auto.storage[K]).dayTime,.65);
@@ -692,10 +692,10 @@ const SEA_=62;
  const srcHas=()=>R(`(()=>{const l=glowSources(${px>>4},${pz>>4},voxelChunk(${px>>4},${pz>>4}));for(let i=0;i<l.length;i+=4)if(l[i]===${px}&&l[i+1]===${py+3}&&l[i+2]===${pz})return true;return false})()`);
  assert.equal(srcHas(),true,'the placed crystal is a light source');d.api.edit(px,py+3,pz,0);assert.equal(srcHas(),false,'removing it drops it from the light sources');
  R('toggleFlight()');R('keys.Space=true;for(let i=0;i<30;i++)update(1/60);delete keys.Space');assert(R('flying')&&!R('collides(player)'),'flying inside a cave');
- d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),10);
+ d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),11);
  assert.equal(run(re,`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),R(`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),'reloading does not change the caves');
  // Save format: new block ids are accepted, the unused plant-material ids are not, and future versions are rejected.
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},false]]){
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},false]]){
   const t=()=>run(d,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  console.log(`PASS: caves: lake ${lk.water} water voxels (${lk.exposed} open sides), ${cr.n} crystals lighting ${cr.glowFaces} faces, ${dec.hang}/${dec.stand} stalactites/stalagmites, underground factor ${deep.toFixed(2)}, ${spots} spots visited, edits/save/validation`)}
 {// Underground life: dark-loving monsters appear on cave floors only, and the surface is left alone while the player is below.
@@ -737,13 +737,13 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  d.api.edit(X,Y,Z,10);assert(!aquaQuads(d,cx,cz).some(q=>Math.floor(q[2])===X&&Math.floor(q[5])===Z&&q[3]===Y+1),'no plant left floating over a dug hole');d.api.edit(X,Y,Z,t);
  assert.deepEqual(aquaQuads(d,cx,cz),hi,'restoring the floor restores the plant');
  // Saves: nothing new is stored.
- const snap=JSON.parse(R('JSON.stringify(snapshot())'));assert.deepEqual(Object.keys(snap).sort(),['changes','creative','dayTime','flying','inventory','life','pitch','player','seed','settings','terrainVersion','version','worldHeight','worldWidth','yaw','gameMode','health','items','defeated'].sort());
+ const snap=JSON.parse(R('JSON.stringify(snapshot())'));assert.deepEqual(Object.keys(snap).sort(),['adventure','changes','creative','dayTime','flying','inventory','life','pitch','player','seed','settings','terrainVersion','version','worldHeight','worldWidth','yaw','gameMode','health','items','defeated'].sort());
  assert(!JSON.stringify(snap.life).includes('medaka'),'fish are not saved');
  console.log(`PASS: underwater flora: river ${[...found.river]} / lake ${[...found.lake]} / reef ${[...found.reef]} / kelp sea ${[...found.kelp]} (${Object.values(stat).join('/')} quads), on floors under water, deterministic, quality subset ${lo.length}/${hi.length}, edits, saves unchanged`)}
 {// Fish: models, habitats, staying in water, flight from the player, bounded numbers and determinism.
  const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
  const sp=J('FISH_SPECIES.map(s=>({id:s.id,nq:s.nq,q0:s.q0,tail:s.parts.filter(p=>p[0]==="tail").length,fins:s.parts.length,rare:!!s.rare,zone:s.zone,dims:[s.rad.toFixed(2),s.h.toFixed(2)]}))');
- assert(sp.length>=8,'at least eight new fish');assert.equal(R('LIFE_SPECIES.length'),32,'the 30 existing creatures are unchanged (plus the two v16 cave monsters)');
+ assert(sp.length>=8,'at least eight new fish');assert.equal(R('LIFE_SPECIES.length'),33,'the 30 existing creatures are unchanged (plus the two v16 cave monsters)');
  assert(sp.every(s=>!R(`!!LIFE_BY_ID['${s.id}']`)),'new ids');assert(sp.every(s=>s.tail>=1&&s.fins>=8),'every fish has a tail and fins');
  assert.equal(new Set(sp.map(s=>s.dims.join())).size,sp.length,'every species has its own shape');assert(sp.some(s=>s.rare)&&sp.some(s=>s.zone==='bottom')&&sp.some(s=>s.zone==='top'));
  assert(sp.every(s=>s.q0+s.nq*8<=R('MAXQ')),'shared index buffer covers every batch');
@@ -864,7 +864,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert.equal(r8('JSON.stringify(vista)'),'{"x":992,"z":736,"yaw":0,"eye":121.5}','v8 start point unchanged');
  // New worlds: every kind of wonder exists, the list is a pure function of the seed, giants stay rare and wonders keep apart.
  const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`)),G=(x,y,z)=>d.api.get(Math.floor(x),Math.floor(y),Math.floor(z));
- assert.equal(R('terrainVersion'),10);
+ assert.equal(R('terrainVersion'),11);
  const L=J('WLIST.map(s=>({k:s.kind,x:s.x,z:s.z,size:s.size,label:s.label}))'),count=k=>L.filter(s=>s.k===k).length;
  for(const [k,n] of [['canyon',1],['falls',3],['arch',1],['hoodoo',1],['seaArch',1],['uwArch',1],['reefHill',1]])assert(count(k)>=n,`${k} exists (${count(k)})`);
  assert(count('trench')+count('drop')>=1,'a trench or drop-off exists');
@@ -931,7 +931,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  for(let i=0;i<6;i++){R(`$('hint').textContent='';wonderNext=0;wonderTick(${i+2})`);assert.notEqual(d.nodes.hint.textContent,first,'a found wonder is not announced twice')}
  assert.equal(J('JSON.parse(localStorage.getItem(WONDER_FOUND_KEY+seed)).length'),J('wonderFound.size'),'found wonders are remembered on the device');
  // Save: an edit at a fall survives a reload of the v9 world.
- const f0=F[0];d.api.edit(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz),0);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(run(re,'terrainVersion'),10);assert.equal(re.api.get(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz)),0,'an edit at a fall survives reload');
+ const f0=F[0];d.api.edit(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz),0);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(run(re,'terrainVersion'),11);assert.equal(re.api.get(Math.floor(f0.x+f0.dx),f0.wu,Math.floor(f0.z+f0.dz)),0,'an edit at a fall survives reload');
  console.log(`PASS: v9 wonders: ${L.length} (${[...new Set(L.map(s=>s.k))].map(k=>k+' '+count(k)).join(', ')}), falls ${drops.join('/')}m with pools that run on, canyon river and sheer walls, worker matches on wonder tiles (${fallQuads} far falls quads), arches open with no loose blocks, ${al.length} hollows with crystals, reef hill ${reef.coral} coral quads, effects in 3 qualities, tour/discovery/save; v8 worlds identical`)}
 
 // ---- SURVIVAL Phase 1: game modes, hearts, swords, hostile zombies / skeletons / slimes, arrows, death and respawn, saves, touch.
@@ -1081,7 +1081,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  console.log('PASS: survival polish: life setting kept and explained (off/animals/all), title warning, stats flag, short exploration guide, safe zone vs outside, creative/peaceful untouched, stick+attack+look at once, release/cancel/menu/death stop attacks')}
 
 // ---- v16 ADVENTURE: ores (terrain v10), pickaxes and dig times, swords and armour, treasure chests, cave monsters, rare items.
-{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+{const d=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:10,seed:73219,changes:[],inventory:{}})),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
  assert.equal(R('terrainVersion'),10);assert.equal(R('ORES'),true);
  // Chunks around cave chambers in a v10 world and the same seed in v9: identical except where ore replaced stone and a chest sits on a floor.
  const v9=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:9,seed:73219,changes:[],inventory:{}}));assert.equal(run(v9,'ORES'),false);
@@ -1192,4 +1192,162 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert(!/@keyframes findPop\{[^}]*opacity:0/.test(html),'banners never start invisible');
  assert(d.api.fragmentSource.includes('v10 ores')&&d.api.fragmentSource.includes('v10 treasure chest'),'ore and chest shading');
  console.log('PASS: v16 goals (pickaxe -> iron -> chest), cave compass (entrance / way out), discovery banner, loot panel and 開ける button rules');
+}
+
+// ---- v17 ANCIENT RUINS: real generated routes, latched puzzles, encounter, rewards and resume.
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ assert.equal(R('terrainVersion'),11);assert.equal(R('ruins.length'),R('buildRuins().length'));
+ assert.equal(R('JSON.stringify(ruins)'),R('JSON.stringify(buildRuins())'),'seed plan reproduces exactly');
+ assert.deepEqual(new Set(J('ruins.map(r=>r.kind)')),new Set(['forest','coast','city']));
+ R(`var rr=ruins[0];var go=(u,v,y=rr.f+1)=>{const p=ruinWorld(rr,u,v);player.x=p.x+.5;player.z=p.z+.5;player.y=y;vy=0;pkX=1e9};
+ var localGet=(u,y,v)=>{const p=ruinWorld(rr,u,v);return get(p.x,y,p.z)};
+ // Walkability flood fill in actual voxels (no flight, digging, teleports or gates assumed open).
+ var reachable=()=>{const q=[[0,rr.base+1,-14]],seen=new Set(),key=(u,y,v)=>u+','+y+','+v;
+  const stand=(u,y,v)=>{if(u< -23||u>23||v< -16||v>56||y<rr.f+1||y>rr.base+3)return false;
+   return localGet(u,y-1,v)>0&&localGet(u,y-1,v)!==10&&localGet(u,y,v)===0&&localGet(u,y+1,v)===0};
+  for(let i=0;i<q.length;i++){const[u,y,v]=q[i];for(const[du,dv]of[[1,0],[-1,0],[0,1],[0,-1]])for(const dy of[0,1,-1]){const a=u+du,b=y+dy,c=v+dv,k=key(a,b,c);if(seen.has(k)||!stand(a,b,c))continue;
+   // Enough headroom for the rising step, not just an empty destination cell.
+   if(dy===1&&localGet(u,y+2,v)!==0)continue;seen.add(k);q.push([a,b,c])}}
+  return seen};
+ paused=false;setGameMode('survival');protectT=0;invulT=0;life.length=0;go(0,-14,rr.base+1);streamChunks(true);`);
+ for(const r of J('ruins')){
+  R(`rr=ruins.find(r=>r.id==='${r.id}');var path=reachable()`);
+  assert(R('path.has([rr.side*12,rr.f+1,26].join(","))'),'entrance stair reaches puzzle: '+r.id);
+  assert(R('path.has([-rr.side*14,rr.f+1,25].join(","))'),'branch chest reachable: '+r.id);
+  assert(!R('path.has([0,rr.f+1,46].join(","))'),'closed gate and secret passage actually seal the boss area');
+  assert(R('unlockRuin(rr)'));R('path=reachable()');assert(R('path.has([0,rr.f+1,52].join(","))'),'latched gate connects the boss chest and return stair');
+  for(const q of J('ruins'))if(q.id!==r.id)assert(Math.hypot(q.x-r.x,q.z-r.z)>=235);
+  assert(R(`![...WF,...WA].some(w=>w.bb&&rr.x+70>=w.bb[0]&&rr.x-70<=w.bb[1]&&rr.z+70>=w.bb[2]&&rr.z-70<=w.bb[3])`),'whole wonder bounds reserved');
+ }
+ // Trigger the actual pressure pad and save/reload; also preserve user-built blocks in its doorway.
+ R(`rr=ruins[0];ruinState(rr).gate=false;go(rr.side*12,26);dungeonTick(1)`);assert(R('ruinState(rr).gate'));
+ R(`var door=ruinWorld(rr,0,35);edit(door.x,rr.f+1,door.z,8);go(0,32);dungeonTick(1)`);assert(d.api.save());
+ const re=boot(d.storage['nisekura-v1']);assert.equal(run(re,'adventure.ruins.r0.gate'),true);assert.equal(re.api.get(R('door.x'),R('rr.f+1'),R('door.z')),8,'saved construction wins over unlocked door');
+ R('edit(door.x,rr.f+1,door.z,0);go(0,40);dungeonTick(1);pkX=1e9');
+ assert(R('life.some(c=>c.sp.id==="guardian")'),'guardian appears when its room is near');
+ R(`var boss=life.find(c=>c.sp.id==='guardian');boss.mode='guardianIdle';boss.timer=0;go(0,43);health=20;guardianThink(boss,.1)`);
+ assert.equal(R('boss.mode'),'guardianTell');assert.equal(R('health'),20,'visible tell precedes damage');
+ R('guardianThink(boss,2)');assert(R('health')<20,'arm attack deals damage in reach');
+ // A real wall blocks both perception and all damaging attacks. Charge checks full body + swept movement.
+ R(`health=20;invulT=0;protectT=0;var wall=ruinWorld(rr,0,44);for(let u=-3;u<=3;u++){const p=ruinWorld(rr,u,44);for(let y=rr.f+1;y<=rr.f+5;y++)set(p.x,y,p.z,36)}pkX=1e9;
+ boss.mode='guardianTell';boss.skill='slam';boss.timer=0;guardianThink(boss,.1)`);
+ assert.equal(R('health'),20,'slam cannot hit through a wall');assert.equal(R('canSee(boss)'),false,'wall blocks detection');
+ R(`boss.yaw=Math.atan2(player.x-boss.x,player.z-boss.z);var bx=boss.x,bz=boss.z;guardianMove(boss,.8,8)`);
+ assert(R('Math.hypot(boss.x-bx,boss.z-bz)<1.5'),'charge stops before body intersects the wall');
+ R(`for(let u=-3;u<=3;u++){const p=ruinWorld(rr,u,44);for(let y=rr.f+1;y<=rr.f+5;y++)set(p.x,y,p.z,0)}pkX=1e9;
+ boss.mode='guardianTell';boss.skill='slam';boss.timer=0;go(0,42);health=20;invulT=0;guardianThink(boss,.1)`);
+ assert(R('health')<20,'unobstructed slam hits');
+ // Attack the actual model through the existing player strike path, then resume its remaining HP.
+ R(`go(0,43);yaw=Math.atan2(boss.x-player.x,boss.z-player.z);pitch=.04;items.ironSword=1;atkCD=0;strike(true)`);
+ assert(R('ruinState(rr).hp<96&&ruinState(rr).hp>0'),'melee damage recorded');assert(d.api.save());
+ const mid=boot(d.storage['nisekura-v1']);assert.equal(run(mid,'adventure.ruins.r0.hp'),R('ruinState(rr).hp'),'boss HP survives interruption');
+ R(`ruinState(rr).hp=boss.mhp=40;boss.mode='guardianIdle';boss.timer=0;guardianThink(boss,.1)`);assert(R('boss.timer<1.25'),'phase two shortens tells but leaves readable time');
+ R(`go(0,53);var chest=ruinWorld(rr,0,53)`);assert.equal(R('openChest(chest.x,rr.f+1,chest.z)'),false,'boss reward is sealed before victory');
+ R(`go(0,43);boss.mhp=1;ruinState(rr).hp=1;yaw=Math.atan2(boss.x-player.x,boss.z-player.z);pitch=.04;atkCD=0;strike(true)`);
+ assert(R('ruinState(rr).defeated'));assert.equal(R('ruinState(rr).hp'),0);
+ R('go(0,52)');assert.equal(R('openChest(chest.x,rr.f+1,chest.z)'),true);assert(R('items.ancientSword===1&&items.eggClue===1&&items.coin>0&&items.crystal>0'));
+ assert(R('ruinState(rr).cleared&&ruinState(rr).claimed'));assert.equal(R('weapon().dmg'),9,'ancient sword does not exceed diamond damage');
+ const before=R('JSON.stringify(items)');assert.equal(R('openChest(chest.x,rr.f+1,chest.z)'),false);assert.equal(R('JSON.stringify(items)'),before);
+ assert(d.api.save());const done=boot(d.storage['nisekura-v1']);assert.equal(run(done,'adventure.ruins.r0.claimed'),true);assert.equal(run(done,'items.ancientSword'),1);
+ run(done,'paused=false');assert.equal(run(done,`openChest(${R('chest.x')},${R('rr.f+1')},${R('chest.z')})`),false,'reward cannot repeat after reload');
+ // A small chest opens the loop, and peaceful/creative grant treasure without recording a boss kill.
+ R(`rr=ruins[1];go(-rr.side*14,25);dungeonTick(1);var small=ruinWorld(rr,-rr.side*14,26);openChest(small.x,rr.f+1,small.z)`);assert(R('ruinState(rr).secret'));
+ assert(d.api.save());assert.equal(run(boot(d.storage['nisekura-v1']),'adventure.ruins.r1.secret'),true);
+ for(const [mode,i] of [['peaceful',2],['creative',3]]){R(`rr=ruins[${i}];setGameMode('${mode}');go(0,52);dungeonTick(1);var cc=ruinWorld(rr,0,53);openChest(cc.x,rr.f+1,cc.z)`);assert(R('ruinState(rr).cleared&&!ruinState(rr).defeated'));}
+ for(const quality of ['low','standard','high']){R(`setQuality('${quality}');go(0,42);dungeonTick(1);drawWorldDetails();adventureUI();updateCompass()`);assert.match(d.nodes.adventureLog.textContent,/冒険の記録/)}
+ assert.match(d.nodes.compassRuinText.textContent,/踏み石|出口|守護者/);
+ // Reject malformed progress without writing it or clobbering the existing save.
+ const raw=d.storage['nisekura-v1'];R('var badAdventure={ruins:{r0:{...ruinState(rr),hp:-1}}}');assert.throws(()=>R('encodeSave({...snapshot(),adventure:badAdventure})'));assert.equal(d.storage['nisekura-v1'],raw);
+ console.log('PASS: v17 seed plans, all ruin types and real walkable stair/branches/gates/return routes; wonder reservations, pressure pad and secret save/reload, guardian tell/melee/slam/charge/walls/phase/damage/victory, unique rewards, peaceful/creative, all qualities, record and compass');
+}
+
+// v1-v10 byte fixtures captured from v16 commit a40d15d, including the location now used by a v11 ruin.
+{const f=JSON.parse(fs.readFileSync(__dirname+'/docs/v16-terrain-fixtures.json','utf8'));
+ for(let v=1;v<=10;v++){const d=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:v>=4?192:96,terrainVersion:v,seed:f.seed,changes:[],inventory:{},items:{coin:3,ironArmor:1}}));
+  assert.equal(run(d,'RUINS'),false);assert.equal(run(d,'ruins.length'),0);
+  const hashes=f.chunks.map(([x,z])=>run(d,`(()=>{let h=2166136261;for(const t of generateChunk(${x},${z})){h^=t;h=Math.imul(h,16777619)}return h>>>0})()`));assert.deepEqual(hashes,f.versions[v],'legacy terrain bytes v'+v);
+  d.api.edit(306,20,429,8);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(306,20,429),8);assert.equal(run(re,'items.coin'),3);assert.equal(run(re,'items.ironArmor'),1);assert.equal(run(re,'terrainVersion'),v);assert(!('adventure' in JSON.parse(d.storage['nisekura-v1'])));
+ }
+ console.log('PASS: v1-v10 terrain chunk bytes match v16 fixtures; construction, gear, rare items and generator survive old-world reloads; no ruins or adventure field added');
+}
+// Chunk-boundary ownership and worker/main LOD geometry use the exact same plan, including rotated ruins.
+{const d=boot(),R=c=>run(d,c);assert(R(`(()=>{for(const r of ruins){const expected=new Map();for(const [u0,u1,y0,y1,v0,v1,t] of ruinPlan(r)){
+ for(const u of[u0,u1])for(const v of[v0,v1])for(const y of[y0,y1]){const p=ruinWorld(r,u,v);expected.set(p.x+','+y+','+p.z,[p.x,y,p.z])}}
+ const cache=new Map();for(const p of expected.values()){const key=(p[0]>>4)+','+(p[2]>>4);if(!cache.has(key))cache.set(key,generateChunk(p[0]>>4,p[2]>>4))}const reverse=new Map();for(const key of [...cache.keys()].reverse())reverse.set(key,generateChunk(...key.split(',').map(Number)));
+ for(const p of expected.values()){const u=ruinLocal(r,p[0],p[2]);let want;for(const[a,b,c,e,f,g,t]of ruinPlan(r))if(u.u>=a&&u.u<=b&&p[1]>=c&&p[1]<=e&&u.v>=f&&u.v<=g)want=t;
+ const key=(p[0]>>4)+','+(p[2]>>4),a=cache.get(key),b=reverse.get(key);if(a[localIdx(...p)]!==want||b[localIdx(...p)]!==want)return false}}
+ return true})()`),'overlapping operations agree at every plan boundary, for every rotation and chunk load order');
+ // The worker also executes the same tileMesh and ruinPlan, rather than a separate approximation.
+ const worker={Uint8Array,Int16Array,Float32Array,Float64Array,ArrayBuffer,Map,Set,Math,JSON,Number,postMessage:m=>worker.result=m};vm.createContext(worker);vm.runInContext(R('lodWorkerSource()'),worker);
+ for(const q of ['low','standard','high']){R(`setQuality('${q}')`);for(const r of JSON.parse(R('JSON.stringify(ruins.slice(0,2))'))){const x=Math.floor((r.x-8)/64)*64,z=Math.floor((r.z-8)/64)*64;worker.onmessage({data:{id:1,step:2,x0:x,z0:z}});
+  const bytes=R(`(()=>{const it=tileMesh(2,${x},${z});while(!it.next().done);return Array.from(lw.u8.slice(0,lw.n*12))})()`);
+  assert.deepEqual(Array.from(worker.result.bytes),Array.from(bytes),'worker LOD matches fallback with ruin silhouette');}}
+ console.log('PASS: all ruin plan boundaries and rotations agree across streamed chunks; low/standard/high worker and fallback LOD bytes match');
+}
+// Coast passages have a continuous, walkable stair into the ocean; additional seeds keep deterministic placement.
+{for(const seed of [73219,42,937]){const d=boot(JSON.stringify({version:1,terrainVersion:11,worldWidth:2048,worldHeight:192,seed,changes:[],inventory:{}})),R=c=>run(d,c);
+ assert(R('ruins.length>0&&ruins.length<=12'));assert.equal(R('JSON.stringify(ruins)'),R('JSON.stringify(buildRuins())'));
+ assert(R(`(()=>{for(const r of ruins.filter(r=>r.sea)){const e=r.sea,u=e.u||32,steps=[],add=(a,b)=>steps.push([a,b]);
+ for(let a=20;a!==u;a+=Math.sign(u-20))add(a,24);for(let b=24;b!==e.v;b+=Math.sign(e.v-24))add(u,b);add(u,e.v);
+ if(!e.u)for(let a=u-1;a>=0;a--)add(a,e.v);
+ const du=e.u?0:-1,dv=e.u?-1:0,rise=e.h-1-r.f;
+ for(const[a,b]of steps){const dist=(e.u-a)*du+(e.v-b)*dv,y=r.f+1+Math.max(0,rise-dist),p=ruinWorld(r,a,b),floor=get(p.x,y-1,p.z);
+  if(floor<=0||floor===10||![0,10].includes(get(p.x,y,p.z))||![0,10].includes(get(p.x,y+1,p.z)))return false}
+ const end=ruinWorld(r,e.u+du*4,e.v+dv*4);if(get(end.x,SEA,end.z)!==10)return false;
+ }return true})()`),'coast passage stair and underwater opening are continuous for seed '+seed);
+ }
+ console.log('PASS: multiple v11 seeds reproduce placements; coast passages have supported stairs/headroom and underwater exits');
+}
+
+// ---- v17 review fix: sealed ruin doors (block 39) cannot be dug in survival until their puzzle flag is set.
+{const hint=b=>b.nodes.hint.textContent;
+ const setup=b=>run(b,`var rr=ruins[0];var go=(u,v,y=rr.f+1)=>{const p=ruinWorld(rr,u,v);player.x=p.x+.5;player.z=p.z+.5;player.y=y;vy=0;pkX=1e9;streamChunks(true)};
+  var aimDoor=(u,v,dy)=>{const p=ruinWorld(rr,u,v),ex=player.x,ey=player.y+1.62,ez=player.z,tx=p.x+.5,ty=rr.f+dy+.5,tz=p.z+.5;yaw=Math.atan2(tx-ex,tz-ez);pitch=Math.atan2(ty-ey,Math.hypot(tx-ex,tz-ez));pkX=1e9};
+  var doorCells=(secret)=>{const o=[];const [u0,u1,v,h]=secret?[19,21,30,4]:[-2,2,35,5];for(let u=u0;u<=u1;u++){const p=ruinWorld(rr,u,v);for(let y=rr.f+1;y<=rr.f+h;y++)o.push([p.x,y,p.z])}return o};
+  var doorsGet=secret=>doorCells(secret).map(([x,y,z])=>get(x,y,z));
+  var digFor=n=>{mineHeld=true;for(let i=0;i<n;i++)update(1/30);mineHeld=false};
+  paused=false;protectT=1e9;life.length=0;1`);
+ const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));setup(d);R('setGameMode("survival");go(0,32)');
+ // Every ruin in the world: both doors stand sealed in the generated blocks and survival cannot dig them (hand and tools), through mine(), holding 壊す and breakBlock().
+ for(const r of J('ruins')){
+  R(`rr=ruins.find(r=>r.id==='${r.id}');for(const k in adventure.ruins)delete adventure.ruins[k];go(0,32)`);
+  assert(R('doorsGet(false).every(t=>t===39)&&doorsGet(true).every(t=>t===39)'),'both doors are generated: '+r.id);
+  assert.equal(R('sealedDoor(...doorCells(false)[0])'),'gate');assert.equal(R('sealedDoor(...doorCells(true)[0])'),'secret');
+  R('items.ironPick=1;items.diamondPick=1;inventory[39]=0');
+  R('aimDoor(0,35,2);hit=ray()');assert.equal(R('hit.t'),39,'the gate door is under the crosshair: '+r.id);
+  R('mine()');assert(R('doorsGet(false).every(t=>t===39)'),'mine() cannot break the sealed gate door');assert.match(hint(d),/封印の石扉.*踏み石/,'the player is told how to open it');
+  R('digFor(90)');assert(R('doorsGet(false).every(t=>t===39)'),'holding 壊す never digs it through');assert.equal(R('dig'),null,'no digging starts');
+  R('breakBlock(hit)');assert.equal(R('get(hit.x,hit.y,hit.z)'),39,'breakBlock() also refuses (any other caller)');assert.equal(R('inventory[39]||0'),0,'and gives no door block');
+  assert.match(R('targetLabel(hit)'),/🔒踏み石で開く/,'the label says how to open it');
+  R('go(20,27);aimDoor(20,30,2);hit=ray()');assert.equal(R('hit.t'),39,'the hidden-passage door is under the crosshair');
+  assert.match(R('targetLabel(hit)'),/🔒宝箱で開く/);R('mine();digFor(90)');assert(R('doorsGet(true).every(t=>t===39)'),'the secret door cannot be dug either');assert.match(hint(d),/かくし扉.*宝箱/);
+  R('breakBlock(hit)');assert.equal(R('get(hit.x,hit.y,hit.z)'),39);
+  assert(!R('ruinState(rr).gate')&&!R('ruinState(rr).secret'),'trying to dig never sets a progress flag');
+ }
+ // Opening the gate by the stepping stone frees only the gate: the passage is walkable, the secret door still holds.
+ R(`rr=ruins[0];for(const k in adventure.ruins)delete adventure.ruins[k];go(rr.side*12,26);dungeonTick(1)`);assert(R('ruinState(rr).gate'));
+ assert(R('doorsGet(false).every(t=>t===0)'),'the stepping stone opens the gate door');assert(R('doorsGet(true).every(t=>t===39)'),'but not the hidden door');
+ R('go(0,35);');assert(!R('collides(player)'),'the opened doorway can be walked through');R('go(0,38);');assert(!R('collides(player)'));
+ R('go(20,27);aimDoor(20,30,2);hit=ray();mine();digFor(60)');assert(R('doorsGet(true).every(t=>t===39)'),'the secret door is still sealed after the gate opened');
+ // Its chest opens the hidden door.
+ R(`rr=ruins[1];go(-rr.side*14,25);dungeonTick(1);var small=ruinWorld(rr,-rr.side*14,26);openChest(small.x,rr.f+1,small.z)`);assert(R('ruinState(rr).secret'));
+ assert(R('doorsGet(true).every(t=>t===0)'),'the matching chest opens the hidden door');R('go(20,31);');assert(!R('collides(player)'),'the hidden passage can be walked through');
+ assert(R('doorsGet(false).every(t=>t===39)&&sealedDoor(...doorCells(false)[0])==="gate"'),'and does not open the other ruin\'s main gate');
+ // Save and reload: the open gate stays open, the sealed ones stay sealed and still cannot be dug.
+ R('rr=ruins[0]');assert(d.api.save());const re=boot(d.storage['nisekura-v1']),RR=c=>run(re,c);setup(re);
+ assert.equal(RR('gameMode'),'survival');assert(RR('doorsGet(false).every(t=>t===0)'),'the opened gate is still open after reload');assert(RR('doorsGet(true).every(t=>t===39)'),'the sealed hidden door is still there after reload');
+ RR('go(0,36)');assert(!RR('collides(player)'),'walkable after reload');
+ RR('go(20,27);aimDoor(20,30,2);hit=ray();mine();digFor(90)');assert(RR('doorsGet(true).every(t=>t===39)'),'still cannot be dug after reload');
+ RR('rr=ruins[1]');assert(RR('doorsGet(true).every(t=>t===0)'),'the other ruin\'s hidden door stayed open after reload');
+ // A save written before anything was solved reloads with every door sealed.
+ const fresh=boot();setup(fresh);run(fresh,'setGameMode("survival")');assert(fresh.api.save());const fr=boot(fresh.storage['nisekura-v1']);setup(fr);
+ assert(run(fr,'doorsGet(false).every(t=>t===39)&&doorsGet(true).every(t=>t===39)'));run(fr,'go(0,32);aimDoor(0,35,2);hit=ray();mine();digFor(60)');assert(run(fr,'doorsGet(false).every(t=>t===39)'),'sealed after reloading an unsolved save');
+ // Creative mode is unchanged (free building); a block 39 that is not a ruin door cell is ordinary in survival.
+ const cr=boot();setup(cr);const C=c=>run(cr,c);C('setGameMode("creative");go(0,32);aimDoor(0,35,2);hit=ray();mine()');assert(C('get(hit.x,hit.y,hit.z)')===0&&C('inventory[39]')===1,'creative can still remove a door');
+ C('setGameMode("survival");var X0=Math.floor(player.x)+40,Z0=Math.floor(player.z)+40,Y0=150;for(let x=X0-2;x<=X0+3;x++)for(let z=Z0-2;z<=Z0+2;z++){edit(x,Y0,z,3);for(let y=Y0+1;y<Y0+4;y++)edit(x,y,z,0)}edit(X0+1,Y0+1,Z0,39);player.x=X0-.5+.5;player.z=Z0+.5;player.y=Y0+1;vy=0;yaw=Math.PI/2;pitch=Math.atan2(Y0+1.5-(player.y+1.62),1);pkX=1e9;hit=ray()');
+ assert(C('hit&&hit.t===39&&!sealedDoor(hit.x,hit.y,hit.z)'),'a block 39 outside the door cells is under the crosshair and not sealed');C('mine()');assert.equal(C('get(hit.x,hit.y,hit.z)'),0,'an ordinary block 39 can be broken in survival');
+ // Old worlds (no ruins at all): block 39 has no special rule, saves still load.
+ const old=boot(JSON.stringify({version:1,terrainVersion:10,worldWidth:2048,worldHeight:192,seed:73219,changes:[],inventory:{},gameMode:'survival'})),O=c=>run(old,c);
+ assert.equal(O('RUINS'),false);assert.equal(O('sealedDoor(1000,40,1000)'),null);O('paused=false;protectT=1e9;var ox=Math.floor(player.x)+2,oy=Math.floor(player.y)+1,oz=Math.floor(player.z);edit(ox,oy,oz,39);player.x=ox-.5;player.y=oy-1+.02;player.z=oz+.5;yaw=Math.PI/2;pitch=Math.atan2(oy+.5-(player.y+1.62),1);pkX=1e9;hit=ray()');assert.equal(O('hit&&hit.t'),39,'old world: block 39 is under the crosshair');O('mine()');assert.equal(O('get(ox,oy,oz)'),0,'old worlds have no sealed doors');
+ console.log('PASS: v17 sealed doors: every ruin\'s gate and hidden door cannot be dug in survival (mine, held 壊す, breakBlock, with pickaxes), kid-readable messages and label, stepping stone / chest unlock only their own door, passage walkable, saved and reloaded (open stays open, sealed stays sealed), creative and old worlds unchanged');
 }
