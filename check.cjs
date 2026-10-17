@@ -746,7 +746,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
 {// Fish: models, habitats, staying in water, flight from the player, bounded numbers and determinism.
  const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
  const sp=J('FISH_SPECIES.map(s=>({id:s.id,nq:s.nq,q0:s.q0,tail:s.parts.filter(p=>p[0]==="tail").length,fins:s.parts.length,rare:!!s.rare,zone:s.zone,dims:[s.rad.toFixed(2),s.h.toFixed(2)]}))');
- assert(sp.length>=8,'at least eight new fish');assert.equal(R('LIFE_SPECIES.length'),33,'the 30 existing creatures are unchanged (plus the two v16 cave monsters)');
+ assert(sp.length>=8,'at least eight new fish');assert.equal(R('LIFE_SPECIES.length'),35,'the 30 existing creatures are unchanged (plus the two v16 cave monsters and the v18 dragon and its nest egg)');
  assert(sp.every(s=>!R(`!!LIFE_BY_ID['${s.id}']`)),'new ids');assert(sp.every(s=>s.tail>=1&&s.fins>=8),'every fish has a tail and fins');
  assert.equal(new Set(sp.map(s=>s.dims.join())).size,sp.length,'every species has its own shape');assert(sp.some(s=>s.rare)&&sp.some(s=>s.zone==='bottom')&&sp.some(s=>s.zone==='top'));
  assert(sp.every(s=>s.q0+s.nq*8<=R('MAXQ')),'shared index buffer covers every batch');
@@ -1353,4 +1353,77 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  const old=boot(JSON.stringify({version:1,terrainVersion:10,worldWidth:2048,worldHeight:192,seed:73219,changes:[],inventory:{},gameMode:'survival'})),O=c=>run(old,c);
  assert.equal(O('RUINS'),false);assert.equal(O('sealedDoor(1000,40,1000)'),null);O('paused=false;protectT=1e9;var ox=Math.floor(player.x)+2,oy=Math.floor(player.y)+1,oz=Math.floor(player.z);edit(ox,oy,oz,39);player.x=ox-.5;player.y=oy-1+.02;player.z=oz+.5;yaw=Math.PI/2;pitch=Math.atan2(oy+.5-(player.y+1.62),1);pkX=1e9;hit=ray()');assert.equal(O('hit&&hit.t'),39,'old world: block 39 is under the crosshair');O('mine()');assert.equal(O('get(ox,oy,oz)'),0,'old worlds have no sealed doors');
  console.log('PASS: v17 sealed doors: every ruin\'s gate and hidden door cannot be dug in survival (mine, held 壊す, breakBlock, with pickaxes), kid-readable messages and label, stepping stone / chest unlock only their own door, passage walkable, saved and reloaded (open stays open, sealed stays sealed), creative and old worlds unchanged');
+}
+
+// ---- v18 DRAGON AWAKENING: egg from legendary chests, nest, hatching, growth, partner commands, riding flight, saves and modes.
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`)),near=()=>R('Math.hypot(pet.x-player.x,pet.z-player.z)');
+ R('paused=false;streamChunks(true);for(let i=0;i<40;i++)update(1/60)');assert(R('ground'),'standing');
+ assert.equal(R('dragon.stage'),'none');assert.equal(R('items.dragonEgg'),0);assert(!JSON.parse((d.api.save(),d.storage['nisekura-v1'])).dragon,'no dragon field until there is one');
+ // Legendary chests (crystal / falls / sea): the egg is guaranteed by the third one (or the first after the ancient clue).
+ const openLegend=()=>R(`(()=>{const x=Math.floor(player.x)+2,y=Math.floor(player.y),z=Math.floor(player.z);edit(x,y,z,B_CHEST);chestInfo.set(idx(x,y,z),'crystal');const ok=openChest(x,y,z);edit(x,y,z,0);return ok})()`);
+ R('items.eggClue=0;items.eggChests=0');for(let i=0;i<3;i++)assert(openLegend(),'legendary chest opens');assert(R('items.dragonEgg')>=1,'third legendary chest holds the egg');assert.equal(R('items.eggChests'),3);
+ R('items.dragonEgg=0;items.eggChests=0;items.eggClue=1');assert(openLegend());assert.equal(R('items.dragonEgg'),1,'the clue leads to the egg at once');
+ assert.equal(R('legendEgg(chestLoot(1,30,1,"cave"),"cave")'),undefined);assert.equal(R('items.eggChests'),1,'ordinary chests do not count');
+ // Nest: placed once, picked up again without loss, one dragon per world.
+ assert(R('placeDragonEgg()'));assert.equal(R('dragon.stage'),'egg');assert.equal(R('items.dragonEgg'),0);assert(R('nest&&dragonEnts.includes(nest)&&!life.includes(nest)'),'nest is outside the natural life list');
+ assert(R('peek(Math.floor(nest.x),nest.y-1,Math.floor(nest.z))>0&&peek(Math.floor(nest.x),nest.y-1,Math.floor(nest.z))!==10'),'nest on firm ground');
+ R('items.dragonEgg=1');assert(!R('placeDragonEgg()'));assert.equal(R('items.dragonEgg'),1,'no second nest');R('items.dragonEgg=0');
+ R('items.crystal=0;for(let i=0;i<20*30;i++)dragonTick(1/20)');const w1=R('dragon.warmth');assert(w1>29&&w1<31,'warms while the player is near: '+w1);
+ R('items.crystal=1;dragonTick(1);items.crystal=0');assert(Math.abs(R('dragon.warmth')-w1-1.5)<1e-6,'a mysterious crystal warms faster');R('dragon.warmth-=1.5');
+ assert(R('liftDragonEgg()'));assert.equal(R('dragon.stage'),'none');assert.equal(R('items.dragonEgg'),1);assert.equal(R('dragonEnts.length'),0);assert(!R('liftDragonEgg()'),'nothing to lift twice');
+ assert(R('placeDragonEgg()'));assert(Math.abs(R('dragon.warmth')-w1)<1e-6,'warmth is kept');
+ // Far away the egg stays cold; petting warms it; save / reload keeps the nest.
+ R('const hx=player.x;player.x+=40;for(let i=0;i<20*10;i++)dragonTick(1/20);player.x=hx');assert(Math.abs(R('dragon.warmth')-w1)<1e-6,'no warmth from far away');
+ R('dragonHUD(1)');assert.equal(d.nodes.dragonAct.textContent,'🥚 なでる','pet button beside the egg');assert(!d.nodes.dragonAct.classList.contains('hidden'));
+ R('petCD=0;dragonAct()');assert(Math.abs(R('dragon.warmth')-w1-5)<1e-6,'petting warms the egg');
+ assert(d.api.save());const eggSave=d.storage['nisekura-v1'],e1=boot(eggSave);assert.equal(run(e1,'dragon.stage'),'egg');assert(Math.abs(run(e1,'dragon.warmth')-w1-5)<.01,'warmth reloads');assert(run(e1,'nest!==null&&Math.abs(nest.x-dragon.x)<.01'));assert.equal(run(e1,'items.dragonEgg'),0,'no copy on reload');
+ // Hatching: cracks, then a baby with a name, standing where the nest was.
+ R('for(let i=0;i<20*130;i++)dragonTick(1/20)');assert.equal(R('dragon.stage'),'baby','hatched');assert(R('pet&&!nest&&dragonEnts.length===1'));assert(R('dragon.name.length>0'));
+ assert.equal(R('pet.size'),.5);assert(!R('life.includes(pet)'),'the partner never joins the culled list');R('placeDragonEgg()');assert.equal(R('dragon.stage'),'baby','no egg over a dragon');
+ // Following: walks after the player, comes back when lost, waits when told.
+ R('player.x+=12;for(let i=0;i<20;i++)update(1/60)');const f0=near();R('for(let i=0;i<20*10;i++)dragonTick(1/20)');assert(near()<f0-5,'follows ('+f0+' -> '+near()+')');
+ R('player.x+=60;streamChunks(true);for(let i=0;i<900&&!(ground&&i>30);i++)update(1/60);for(let i=0;i<10;i++)dragonTick(1/20)');assert(near()<8,'never lost: hops back beside the player');
+ assert(R('toggleFollow()'));assert.equal(R('dragon.follow'),false);const st0=J('[pet.x,pet.z]');R('player.x+=10;for(let i=0;i<20*6;i++)dragonTick(1/20)');assert(Math.hypot(R('pet.x')-st0[0],R('pet.z')-st0[1])<4.5,'waits near its spot');
+ R('player.x-=10');assert(R('callDragon()'));assert.equal(R('dragon.follow'),true);assert(near()<8,'called back');
+ // Growth: time together, apples (survival / peaceful use them, creative is free), petting; stages and sizes.
+ R('dragon.joy=0;items.apple=3;gameMode="peaceful"');assert(R('feedDragon()'));assert.equal(R('items.apple'),2);assert(R('dragon.joy')>=60);assert(R('feedDragon()'));assert(!R('feedDragon()'),'full after two apples');assert.equal(R('items.apple'),1);
+ R('dragon.joy=0;setGameMode("creative")');assert(R('feedDragon()'));assert.equal(R('items.apple'),1,'creative feeds for free');R('setGameMode("peaceful")');
+ const g0=R('dragon.growth');R('for(let i=0;i<20*20;i++)dragonTick(1/20)');assert(R('dragon.growth')>g0+19,'grows while together');
+ R('dragon.growth=359.9;dragonTick(.2)');assert.equal(R('dragon.stage'),'young');assert.match(d.nodes.find.innerHTML,/大きくなった/);
+ R('for(let i=0;i<200;i++)dragonTick(1/20)');assert(Math.abs(R('pet.size')-.95)<.01,'young size');R('dragonHUD(1)');assert.equal(d.nodes.dragonAct.textContent,'🐉 なでる');assert(!R('mount()'),'too young to ride');
+ R('dragon.growth=1199.9;dragonTick(.2)');assert.equal(R('dragon.stage'),'adult');R('for(let i=0;i<300;i++)dragonTick(1/20)');assert(Math.abs(R('pet.size')-1.9)<.01,'adult size');
+ // Names are cleaned (no markup) and kept.
+ d.c.prompt=()=>'<b>ルリ&</b>';assert(R('renameDragon()'));assert.equal(R('dragon.name'),'bルリ/b');d.c.prompt=()=>'  ';assert(!R('renameDragon()'));d.c.prompt=()=>null;assert(!R('renameDragon()'));assert.equal(R('dragon.name'),'bルリ/b');
+ R('craftUI()');assert.match(d.nodes.dragonBox.innerHTML,/bルリ\/b/);assert.match(d.nodes.dragonBox.innerHTML,/成体のドラゴン/);assert(!/<b>ルリ/.test(d.nodes.dragonBox.innerHTML));
+ // Riding: mount, take off, fly forward and up, land, get off on safe ground.
+ R('spawn();streamChunks(true);for(let i=0;i<60;i++)update(1/60);petTeleport();pet.mode="idle";dragonHUD(1)');assert(!R('waterBelow(player.x,player.y+1,player.z)'),'riding test starts on land');assert.equal(d.nodes.dragonAct.textContent,'🐉 乗る');assert(R('dragonAct()'),'mount');assert(R('riding'));assert(d.c.document.body.classList.contains('riding'));
+ R('dragonHUD(1)');assert.equal(d.nodes.dragonAct.textContent,'🐉 降りる');assert.equal(d.nodes.jump.textContent,'↑ 上昇');assert.equal(d.nodes.down.disabled,false);
+ const y0=R('pet.y'),s0=J('[pet.x,pet.z]');R('riseHeld=true;for(let i=0;i<60*3;i++)update(1/60);riseHeld=false');assert(R('pet.air'),'airborne');assert(R('pet.y')>y0+8,'climbs');assert.equal(R('dragon.flights'),1);
+ const p0=J('[pet.x,pet.z]');R('joy.y=-1;for(let i=0;i<60*4;i++)update(1/60);joy.y=0');const flown=Math.hypot(R('pet.x')-p0[0],R('pet.z')-p0[1]);assert(flown>25,'flies forward '+flown);assert(R('dragon.flyDist')>25);
+ assert(R('Math.abs(player.x-pet.x)<1e-9&&player.y>pet.y'),'the rider sits on the dragon');assert(R('mine()===undefined&&!hit'),'no digging from the saddle');
+ const cam=J('rideCamera()');assert(Math.hypot(cam.x-R('pet.x'),cam.z-R('pet.z'))>3,'third-person camera behind');
+ // A save in flight resumes in flight.
+ assert(d.api.save());const flySave=JSON.parse(d.storage['nisekura-v1']);assert.equal(flySave.dragon.riding,true);assert.equal(flySave.dragon.stage,'adult');
+ const e2=boot(d.storage['nisekura-v1']);assert(run(e2,'riding&&pet.air&&dragon.name==="bルリ/b"'),'same dragon, still flying');assert.equal(run(e2,'dragonEnts.length'),1);
+ // Over the sea: getting off is refused and holding ↓ hovers just above the water instead of sinking.
+ const sea=J(`(()=>{for(let r=20;r<900;r+=6)for(let a=0;a<16;a++){const x=Math.floor(pet.x+Math.cos(a*.39)*r),z=Math.floor(pet.z+Math.sin(a*.39)*r);if(x>8&&z>8&&x<W-8&&z<W-8&&height4(x,z)<SEA-4)return[x,z]}return null})()`);assert(sea,'sea nearby');
+ R(`pet.x=${sea[0]}+.5;pet.z=${sea[1]}+.5;pet.y=SEA+12;player.x=pet.x;player.z=pet.z;streamChunks(true)`);assert(R('waterBelow(pet.x,pet.y,pet.z)'));assert(R('!dismount()&&!rideLand&&riding'),'never get off over water');
+ R('descendHeld=true;for(let i=0;i<60*6;i++)update(1/60);descendHeld=false');assert(R('pet.air&&pet.y>=SEA+.3&&pet.y<SEA+2'),'hovers above the water: '+R('pet.y'));
+ R(`pet.x=${s0[0]};pet.z=${s0[1]}`);assert(!R('waterBelow(pet.x,pet.y,pet.z)'));R('dismount()');assert(R('rideLand'),'getting off in the air lands first');R('for(let i=0;i<60*20&&riding;i++)update(1/60)');assert(!R('riding'),'landed and got off');
+ assert(!R('collides(player)'),'safe footing');assert(!d.c.document.body.classList.contains('riding'));R('for(let i=0;i<60;i++)update(1/60)');assert(R('ground'),'standing after getting off');
+ // Survival: riding is allowed, the cold breath helps against a monster after the player, terrain is never edited.
+ R('setGameMode("survival");lifeMode="all";petTeleport();life.length=0');const ch=R('changes.size');
+ R('var zb=lifeNew(LIFE_BY_ID.zombie,pet.x+3,pet.y,pet.z,false,1);zb.aggro=4;zb.mhp=12;breathCD=0;dragonBreath(.1)');assert.equal(R('zb.mhp'),8,'breath hits for 4');assert.equal(R('breathCD'),7);assert.equal(R('changes.size'),ch,'no terrain change');
+ R('zb.aggro=0;zb.mhp=12;breathCD=0;dragonBreath(.1)');assert.equal(R('zb.mhp'),12,'only monsters that are after the player');
+ R('setGameMode("peaceful");zb.aggro=4;breathCD=0;dragonBreath(.1)');assert.equal(R('zb.mhp'),12,'no breath outside survival');R('setGameMode("survival");pet.mode="idle"');assert(R('mount()'),'survival can ride');R('endRide()');
+ // Death or a title-menu teleport always ends the ride.
+ assert(R('mount()'));R('spawn()');assert(!R('riding'));
+ // Saves: the dragon field validates; bad values are refused; old saves load with no dragon.
+ const ok=JSON.parse(d.storage['nisekura-v1']).dragon,bad=o=>{const v={version:1,seed:1,changes:[],inventory:{},terrainVersion:11,worldWidth:2048,worldHeight:192,dragon:{...ok,...o}};assert.throws(()=>R(`validateSave(${JSON.stringify(v)})`),undefined,JSON.stringify(o))};
+ assert(R(`!!validateSave(${JSON.stringify({version:1,seed:1,changes:[],inventory:{},terrainVersion:11,worldWidth:2048,worldHeight:192,dragon:ok})})`));
+ for(const o of [{stage:'dragon'},{name:'あ'.repeat(13)},{name:3},{riding:true,stage:'baby'},{growth:-1},{growth:'9'},{x:2048},{y:-1},{flights:1.5},{follow:'yes'},{joy:101},{fed:-1}])bad(o);
+ const old=boot(JSON.stringify({version:1,seed:9,changes:[],inventory:{1:3}}));assert.equal(run(old,'dragon.stage'),'none');assert.equal(run(old,'riding'),false);assert(old.api.save());assert(!JSON.parse(old.storage['nisekura-v1']).dragon,'old worlds stay without a dragon field');
+ // The egg book never lists the dragon.
+ assert(!R('LIFE_GROUPS.includes("ドラゴン")'));assert.equal(R('lifePick("pet","meadow",false,false)'),null);
+ console.log(`PASS: v18 dragon: legendary egg, nest (place/lift, one per world), warmth & petting, hatch, follow/wait/call, growth ${'baby→young→adult'}, names cleaned, riding (take-off, ${flown.toFixed(0)} blocks in 4 s, landing, safe dismount), save in flight, survival breath, validation, old saves`);
 }
