@@ -340,7 +340,7 @@ const chunkKey=(x,z)=>Math.floor(x/CHUNK)+','+Math.floor(z/CHUNK);
 const localIdx=(x,y,z)=>(y*CHUNK+(z&15))*CHUNK+(x&15);
 let lastCX=-1,lastCZ=-1,lastData=null;
 function get(x,y,z){if(!inside(x,y,z))return 0;const cx=x>>4,cz=z>>4;if(cx!==lastCX||cz!==lastCZ||!lastData){lastData=voxelChunk(cx,cz);lastCX=cx;lastCZ=cz}return lastData[localIdx(x,y,z)]}
-function set(x,y,z,t){if(!inside(x,y,z))return;const i=idx(x,y,z),key=chunkKey(x,z);if(!changes.has(i)){let list=changeIndex.get(key);if(!list)changeIndex.set(key,list=[]);list.push(i)}changes.set(i,t);const data=blocks.get(key);if(data)data[localIdx(x,y,z)]=t;if(CAVES){if(t>=26&&t<=29)glowChunks.add(key);if(glowChunks.has(key))glowCache.delete(key)}}
+function set(x,y,z,t){if(!inside(x,y,z))return;const i=idx(x,y,z),key=chunkKey(x,z);if(!changes.has(i)){let list=changeIndex.get(key);if(!list)changeIndex.set(key,list=[]);list.push(i)}changes.set(i,t);const data=blocks.get(key);if(data)data[localIdx(x,y,z)]=t;if(CAVES){if(isGlowBlock(t))glowChunks.add(key);if(glowChunks.has(key))glowCache.delete(key)}}
 function solid(x,y,z){const t=get(x,y,z);return t!==0&&t!==10}
 function rand(x,z){let n=Math.imul(x+seed,374761393)^Math.imul(z,668265263);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295}
 function noise(x,z,s){const a=Math.floor(x/s),b=Math.floor(z/s);let u=x/s-a,v=z/s-b;u=u*u*(3-2*u);v=v*v*(3-2*v);return(rand(a,b)*(1-u)+rand(a+1,b)*u)*(1-v)+(rand(a,b+1)*(1-u)+rand(a+1,b+1)*u)*v}
@@ -949,7 +949,7 @@ const vista=GRAND?findVista():null;
 // 16x16x192 voxel arrays. Everything stays 3+ blocks under the surface except the mouths and chimneys, which are cut on purpose.
 const CAVE_CELL=256,CAVE_Y0=6,CAVE_CRUST=3,CAVE_LAKE_Y=SEA,B_CRYSTAL0=26,B_MOSS=29;
 const caveCells=new Map();
-const isGlowBlock=t=>t>=26&&t<=29;
+const isGlowBlock=t=>t>=26&&t<=29||t===38||t===40;
 // Smooth 3D value noise in 0..1 from a seeded 64^3 lattice (wrapping), about ten times cheaper than hashing every corner.
 let NT=null;
 function vn3(x,y,z){if(!NT){NT=new Float32Array(262144);const r=treeRng(7,9,303);for(let i=0;i<NT.length;i++)NT[i]=r()}
@@ -1228,7 +1228,7 @@ function* scanCaveSpots(out){const spots=[];
  const res=[];for(const kind of Object.keys(CAVE_SPOT_KINDS)){const l=spots.filter(p=>p.kind===kind).sort((a,b)=>b.score-a.score),keep=[];for(const p of l){if(keep.length>=(kind==='entrance'?4:5))break;if(keep.every(k=>Math.hypot(k.x-p.x,k.z-p.z)>200))keep.push(p)}res.push(...keep)}
  out.spots=res;out.done=true}
 function glowSources(cx,cz,data){const key=cx+','+cz;if(!glowChunks.has(key))return null;let l=glowCache.get(key);if(l)return l;l=[];
- for(let y=CAVE_Y0;y<H;y++)for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const t=data[(y*CHUNK+z)*CHUNK+x];if(t>=26&&t<=29)l.push(cx*CHUNK+x,y,cz*CHUNK+z,t)}
+ for(let y=CAVE_Y0;y<H;y++)for(let z=0;z<CHUNK;z++)for(let x=0;x<CHUNK;x++){const t=data[(y*CHUNK+z)*CHUNK+x];if(isGlowBlock(t))l.push(cx*CHUNK+x,y,cz*CHUNK+z,t>=38?26:t)}
  if(glowCache.size>200)glowCache.clear();glowCache.set(key,l);return l}
 function voxelChunk(cx,cz){const key=cx+','+cz;let data=blocks.get(key);if(data)return data;const stamp=perfEnabled?performance.now():0;data=generateChunk(cx,cz);if(perfEnabled)perfSample('voxel',performance.now()-stamp);
  if(RUINS)ruinProgress(data,cx,cz);
@@ -1240,7 +1240,7 @@ const RUINS=terrainVersion>=11,RUIN_NAMES={forest:'森の古代神殿',coast:'�
 const adventure={ruins:{}};
 if(saved?.adventure)for(const [id,r] of Object.entries(saved.adventure.ruins))adventure.ruins[id]={...r};
 const ruins=buildRuins(),ruinChunks=new Map(),ruinPlans=new Map();
-for(const r of ruins)for(let cx=(r.x-70)>>4;cx<=(r.x+70)>>4;cx++)for(let cz=(r.z-70)>>4;cz<=(r.z+70)>>4;cz++){const k=cx+','+cz;if(!ruinChunks.has(k))ruinChunks.set(k,[]);ruinChunks.get(k).push(r)}
+for(const r of ruins)for(let cx=(r.x-76)>>4;cx<=(r.x+76)>>4;cx++)for(let cz=(r.z-76)>>4;cz<=(r.z+76)>>4;cz++){const k=cx+','+cz;if(!ruinChunks.has(k))ruinChunks.set(k,[]);ruinChunks.get(k).push(r)}
 function ruinState(r){return adventure.ruins[r.id]||(adventure.ruins[r.id]={discovered:false,gate:false,secret:false,defeated:false,claimed:false,cleared:false,hp:96,guards:0})}
 function ruinWorld(r,u,v){return{x:r.x+r.dx*u-r.dz*v,z:r.z+r.dz*u+r.dx*v}}
 function ruinLocal(r,x,z){const a=x-r.x,b=z-r.z;return{u:a*r.dx+b*r.dz,v:-a*r.dz+b*r.dx}}
@@ -1260,7 +1260,8 @@ function buildRuins(){if(!RUINS)return[];const out=[],R=treeRng(417,923,1700);
    if(v<=8&&Math.abs(u)<=8&&Math.abs(y-r.base)>2){ok=false;break}}
   if(!ok)continue;
   // A real coast nearby, rather than a low inland river bank. Never modify the water or reef itself.
-  if(coast&&![[70,0],[-70,0],[0,70],[0,-70]].some(([a,b])=>{const y=height4(x+a,z+b);return y<SEA&&gLand<0}))continue;
+  if(coast){const sea=[[70,0],[-70,0],[0,70],[0,-70]].find(([a,b])=>{const y=height4(x+a,z+b);return y<SEA&&y>=r.f+4&&gLand<0&&reefZone(x+a,z+b)<.3});if(!sea)continue;const p=ruinLocal(r,x+sea[0],z+sea[1]);r.sea={u:p.u,v:p.v,h:height4(x+sea[0],z+sea[1])};
+   if([...WF,...WA].some(w=>w.bb&&x+76>=w.bb[0]&&x-76<=w.bb[1]&&z+76>=w.bb[2]&&z-76<=w.bb[3]))continue;}
   out.push(r);
  }
  return out}
@@ -1268,8 +1269,10 @@ function ruinPlan(r){let ops=ruinPlans.get(r.id);if(ops)return ops;ops=[];const 
  const air=[];const room=(u0,u1,v0,v1,h=7)=>{b(u0-2,u1+2,f-2,f+h+2,v0-2,v1+2,36);air.push([u0,u1,f+1,f+h,v0,v1,0])};
  room(-2,2,9,39,5);room(-6,6,9,15);room(-8,8,38,54,r.kind==='city'?12:8);
  room(-17,-8,20,28);room(8,17,20,28);
+ if(r.variant)room(-8-r.variant*2,-2,29,31+r.variant,5);
  // Side branches are recognisable loops, with the puzzle and treasure on opposite sides each seed.
  room(-12,12,22,24,4);room(19,21,12,50,4);room(0,20,48,50,4);room(0,20,12,14,4);
+ if(r.sea){const e=r.sea,u=e.u||32;room(Math.min(20,u)-1,Math.max(20,u)+1,23,25,4);room(u-1,u+1,Math.min(24,e.v)-1,Math.max(24,e.v)+1,4);if(!e.u)room(-1,33,e.v-1,e.v+1,4);}
  ops.push(...air);
  // Re-open intersections after all room shells have been placed.
  b(-2,2,f+1,f+5,9,40,0);b(-12,12,f+1,f+4,22,24,0);b(0,20,f+1,f+4,12,14,0);b(0,20,f+1,f+4,48,50,0);b(19,21,f+1,f+4,12,50,0);
@@ -1287,11 +1290,16 @@ function ruinPlan(r){let ops=ruinPlans.get(r.id);if(ops)return ops;ops=[];const 
  for(const u of[-17,17])b(u,u,f+2,f+3,25,25,26);
  b(r.side*12,r.side*12,f,f,26,26,40);b(-r.side*14,-r.side*14,f+1,f+1,26,26,34);
  b(0,0,f+1,f+1,53,53,34);b(-1,1,f,f,42,42,38);
+ // A sealed sea passage rises one block per step to a small, reef-free underwater exit.
+ if(r.sea){const e=r.sea,rise=e.h-1-f,du=e.u?0:-1,dv=e.u?-1:0;for(let i=0;i<=rise+3;i++){const u=e.u-du*(rise-i),v=e.v-dv*(rise-i),y=f+Math.min(i,rise);b(u-2*Math.abs(dv),u+2*Math.abs(dv),y-2,y+5,v-2*Math.abs(du),v+2*Math.abs(du),36);b(u-Math.abs(dv),u+Math.abs(dv),y+1,y+4,v-Math.abs(du),v+Math.abs(du),0);if(i>=rise)b(u-Math.abs(dv),u+Math.abs(dv),y+1,SEA,v-Math.abs(du),v+Math.abs(du),10)}
+  b(e.u+du*4-Math.abs(dv),e.u+du*4+Math.abs(dv),e.h,SEA,e.v+dv*4-Math.abs(du),e.v+dv*4+Math.abs(du),10);}
+ // Vegetation clings to the outer wall; the stair and its approach stay clear.
+ if(r.kind==='forest')for(const u of[-8,8])for(const v of[-9,-1,3])b(u,u,r.base+2,r.base+4+(r.variant%2),v,v,5);
  ruinPlans.set(r.id,ops);return ops}
 function ruinVoxels(data,cx,cz){const list=ruinChunks.get(cx+','+cz);if(!list)return;const x0=cx*16,z0=cz*16;
  for(const r of list)for(const [u0,u1,y0,y1,v0,v1,t] of ruinPlan(r)){
   const a=ruinWorld(r,u0,v0),b=ruinWorld(r,u1,v1),xa=Math.max(x0,Math.min(a.x,b.x)),xb=Math.min(x0+15,Math.max(a.x,b.x)),za=Math.max(z0,Math.min(a.z,b.z)),zb=Math.min(z0+15,Math.max(a.z,b.z));
-  for(let z=za;z<=zb;z++)for(let x=xa;x<=xb;x++)for(let y=y0;y<=y1;y++){data[localIdx(x,y,z)]=t;if(t>=26&&t<=29)glowChunks.add(cx+','+cz)}
+  for(let z=za;z<=zb;z++)for(let x=xa;x<=xb;x++)for(let y=y0;y<=y1;y++){data[localIdx(x,y,z)]=t;if(isGlowBlock(t))glowChunks.add(cx+','+cz)}
  }
  for(const r of list)for(const [u,v,tier] of[[-r.side*14,26,'ruin'],[0,53,'guardian']]){const p=ruinWorld(r,u,v);if((p.x>>4)===cx&&(p.z>>4)===cz)chestInfo.set(idx(p.x,r.f+1,p.z),tier)}
 }
@@ -3522,7 +3530,7 @@ function chestTick(dt){if((chestScanT-=dt)>0)return;chestScanT=.12;let best=null
 $('openChest').addEventListener('pointerdown',e=>{e.preventDefault();if(nearChest)openChest(...nearChest)});
 // ---- Ruin encounters: only the nearby site is active. Progress belongs to the world, never to a streamed entity.
 let activeRuin=null,ruinTickT=0;
-function ruinAt(x,y,z){return ruins.find(r=>{const p=ruinLocal(r,x,z);return Math.abs(p.u)<25&&p.v>-17&&p.v<57&&y>r.f-3&&y<r.base+20})||null}
+function ruinAt(x,y,z){return ruins.find(r=>{const p=ruinLocal(r,x,z);return (r.sea?Math.abs(p.u)<76&&Math.abs(p.v)<76:Math.abs(p.u)<25&&p.v>-17&&p.v<57)&&y>r.f-3&&y<r.base+20})||null}
 function ruinChest(x,y,z){for(const r of ruins){if(y!==r.f+1)continue;const p=ruinLocal(r,x,z);if(p.u===0&&p.v===53)return{r,boss:true};if(p.u===-r.side*14&&p.v===26)return{r,boss:false}}return null}
 function ruinProgress(data,cx,cz){const list=ruinChunks.get(cx+','+cz);if(!list)return;
  for(const r of list){const s=adventure.ruins[r.id];if(!s)continue;
@@ -3544,7 +3552,7 @@ function dungeonTick(dt){if(!RUINS||paused||photoMode||dead)return;
  if(Math.abs(p.u-r.side*12)<1.4&&Math.abs(p.v-26)<1.4&&Math.abs(player.y-r.f-1)<.6)unlockRuin(r);
  if(!s.defeated&&Math.abs(player.y-r.f-1)<12){const pos=ruinWorld(r,0,46);
   if(Math.hypot(pos.x-player.x,pos.z-player.z)<32&&!life.some(c=>c.ruinId===r.id&&c.sp.id==='guardian')&&peek(pos.x,r.f+1,pos.z)===0){
-   const c=lifeNew(LIFE_BY_ID.guardian,pos.x+.5,r.f+1,pos.z+.5,false,1);c.ruinId=r.id;c.mhp=s.hp;c.mode='guardianIntro';c.timer=1.8;
+   const c=lifeNew(LIFE_BY_ID.guardian,pos.x+.5,r.f+1,pos.z+.5,false,1);c.ruinId=r.id;c.mhp=s.hp;c.yaw=c.want=Math.atan2(player.x-c.x,player.z-c.z);c.mode='guardianIntro';c.timer=1.8;
    if(gameMode==='survival')announce('古代の石の守護者','コアが目覚めた… 光る予兆を見て離れよう','first')}
  }
  if(gameMode==='survival'&&p.v>10&&p.v<36)for(let i=0;i<2;i++){if(s.guards&(1<<i)||life.some(c=>c.ruinId===r.id&&c.guardBit===(1<<i)))continue;
@@ -3559,7 +3567,7 @@ function guardianMove(c,dt,speed){const r=ruins.find(r=>r.id===c.ruinId),n=Math.
    if(floor<=0||floor===10)return false;for(let h=0;h<4;h++)if(peek(X,Y+h,Z)!==0)return false}
   c.x=x;c.z=z;c.ph+=step*3;
  }return true}
-function guardianThink(c,dt){c.speed=0;if(paused||photoMode||dead)return;const r=ruins.find(r=>r.id===c.ruinId),s=ruinState(r),dx=player.x-c.x,dz=player.z-c.z,d=Math.hypot(dx,dz),dy=Math.abs(player.y-c.y);
+function guardianThink(c,dt){c.speed=0;if(paused||photoMode||dead)return;c.shock=Math.max(0,c.shock-dt);const r=ruins.find(r=>r.id===c.ruinId),s=ruinState(r),dx=player.x-c.x,dz=player.z-c.z,d=Math.hypot(dx,dz),dy=Math.abs(player.y-c.y);
  c.timer-=dt;c.flash=0;
  if(gameMode!=='survival'){c.mode='guardianSleep';return}
  if(c.mode==='guardianSleep'){c.mode='guardianIntro';c.timer=1.8}
@@ -3589,7 +3597,6 @@ function updateBossHUD(){const c=life.find(c=>c.sp.id==='guardian'&&c.ruinId===a
 function defeatGuardian(c){const r=ruins.find(r=>r.id===c.ruinId),s=ruinState(r);if(s.defeated)return;s.defeated=true;s.hp=0;defeated++;dirty=true;
  burst(c.x,c.y+2,c.z,'#8ff5ff',qualityName==='low'||loadScale<1?12:30);lifeRemove(c,false);$('bossHUD').classList.add('hidden');sfx('defeat');announce('✨ 石の守護者をたおした！','封印がとけた。奥の特別な宝箱を持ち帰ろう！','rare');queueSave();refresh()}
 function drawRuinEffects(a){for(const c of life){if(c.sp.id!=='guardian'||c.dormant||Math.hypot(c.x-player.x,c.z-player.z)>32)continue;
- if(c.shock>0)c.shock=Math.max(0,c.shock-.03);
  if(c.mode!=='guardianTell'&&!(c.shock>0))continue;const col=c.shock>0?'#befaff':'#67cddd',n=qualityName==='low'||loadScale<1?12:20,rad=c.skill==='slam'?5.4:3.4;
  for(let i=0;i<n;i++){const ang=i/n*Math.PI*2;cuboid(a,c.x+Math.sin(ang)*rad,c.y+.04,c.z+Math.cos(ang)*rad,.18,.035,.18,col,26)}
  if(c.skill==='charge')for(let i=1;i<=6;i++)cuboid(a,c.x+Math.sin(c.yaw)*i,c.y+.045,c.z+Math.cos(c.yaw)*i,.2,.04,.2,col,26);
