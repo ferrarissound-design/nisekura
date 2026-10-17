@@ -208,16 +208,25 @@ body:not(.mode-survival) #guide{display:none!important}
 @media(max-height:480px){body.mode-survival .actions #attack{height:44px;margin-bottom:5px}#survHud{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 53px)}#guide{top:calc(max(6px,env(safe-area-inset-top)) + 62px);font-size:12px;padding:6px 12px}body.mode-survival #eggChip{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 72px)}}
 @media(max-width:450px){#hearts i{width:12px;height:11px}#survHud{height:13px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 53px)}}
 
+/* v18 dragon: one context button above the stick (pet / ride / get off); while riding only the stick and ↑↓ stay on screen. */
+#dragonAct{position:fixed;z-index:8;left:max(16px,env(safe-area-inset-left));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 186px);padding:9px 16px;font-size:14px;font-weight:800;border-radius:14px;background:#1d5a6ae6;border:2px solid #9ff3ff;color:#effeff;box-shadow:0 0 14px #6fe6ff66;touch-action:manipulation}
+body.photo-mode #dragonAct,body:has(#menu:not(.hidden)) #dragonAct,body:has(#craft:not(.hidden)) #dragonAct,body:has(#death:not(.hidden)) #dragonAct,body:has(#eggs:not(.hidden)) #dragonAct,body:has(#modePick:not(.hidden)) #dragonAct{display:none!important}
+body.riding .actions #mine,body.riding .actions #place,body.riding .actions #craftBtn,body.riding .actions #attack,body.riding .actions #fly,body.riding #bar,body.riding #cross,body.riding #target,body.riding #openChest{display:none!important}
+body.riding .actions #down{display:block!important}body.riding .actions #down,body.riding .actions #jump{background:#1d5a6acc;border-color:#9ff3ffaa}
+.dragon-box{margin:8px 0;padding:2px 12px 10px;background:#123a4a88;border:1px solid #8ff4ff44;border-radius:8px;font-size:12px;line-height:1.55}.dragon-box p{margin:4px 0}
+.dragon-bar{height:8px;background:#0d2a33;border:1px solid #8acbd1;border-radius:5px;overflow:hidden;margin:4px 0 2px}.dragon-bar i{display:block;height:100%;background:linear-gradient(90deg,#3a9b96,#a4f3ff)}
+.dragon-note{font-size:10px;color:#cfe3c7}.dragon-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.dragon-row button{margin:0;padding:8px 10px;font-size:12px;min-height:40px;touch-action:manipulation}.dragon-log{margin-top:6px;font-size:10px;color:#bfe9f0}
+@media(max-height:480px){#dragonAct{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 170px);padding:7px 13px;font-size:13px}}
 #compassRuin{display:flex;gap:4px;padding:2px 5px;background:#183f46bb;border-radius:5px;color:#bff7ee}
 #adventureLog{white-space:pre-line;font-size:12px;line-height:1.7;padding:12px;background:#183f3966;border:1px solid #8dceba55;border-radius:8px;margin:10px 0}
 #bossHUD{position:fixed;pointer-events:none;z-index:6;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 126px);transform:translateX(-50%);width:min(280px,60vw);text-align:center;font-size:12px;text-shadow:0 1px 3px #000}
 #bossTrack{height:8px;background:#163035;border:1px solid #8acbd1;border-radius:5px;overflow:hidden;margin:4px 0}#bossFill{height:100%;background:linear-gradient(90deg,#3a9b96,#a4f3ff)}#bossTell{font-size:11px;color:#d6fcff}
 body.photo-mode #bossHUD,body:has(#menu:not(.hidden)) #bossHUD,body:has(#craft:not(.hidden)) #bossHUD{display:none!important}
 @media(max-height:480px){#bossHUD{top:max(8px,env(safe-area-inset-top));width:180px;left:14px;transform:none;font-size:10px}}
-</style><div id="bossHUD" class="hidden" aria-label="古代の石の守護者の体力"><b>古代の石の守護者</b><div id="bossTrack"><div id="bossFill"></div></div><span id="bossTell"></span></div><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>ANCIENT RUINS · v17.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+</style><div id="bossHUD" class="hidden" aria-label="古代の石の守護者の体力"><b>古代の石の守護者</b><div id="bossTrack"><div id="bossFill"></div></div><span id="bossTell"></span></div><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>DRAGON AWAKENING · v18.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
  <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassCave" class="hidden"><span id="compassCaveArrow" aria-hidden="true">▲</span><span id="compassCaveText"></span></span><span id="compassRuin" class="hidden"><span id="compassRuinArrow">▲</span><span id="compassRuinText"></span></span><span id="compassWarning" class="hidden"></span></div>
-</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="attack" aria-label="攻撃">⚔ 攻撃<small>素手</small></button><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="survHud" aria-label="体力"><div id="hearts"></div><span id="armorIco"></span><span id="kills"></span></div><div id="hurtFx"></div><div id="guide" class="hidden" role="status"></div><div id="find" class="hidden" role="status"></div><div id="loot" class="hidden" role="status"></div><button id="openChest" class="hidden" aria-label="宝箱を開ける">🎁 開ける</button><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
+</div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="attack" aria-label="攻撃">⚔ 攻撃<small>素手</small></button><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="survHud" aria-label="体力"><div id="hearts"></div><span id="armorIco"></span><span id="kills"></span></div><div id="hurtFx"></div><div id="guide" class="hidden" role="status"></div><div id="find" class="hidden" role="status"></div><div id="loot" class="hidden" role="status"></div><button id="openChest" class="hidden" aria-label="宝箱を開ける">🎁 開ける</button><button id="dragonAct" class="hidden" aria-label="ドラゴン"></button><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
 <div class="title-stage">
  <div class="title-logo"><h1>JOCRAFT2</h1><span class="edition">BLOCK WORLD</span><span class="splash">あの山の向こうへ！</span></div>
  <div class="title-menu">
@@ -231,11 +240,11 @@ body.photo-mode #bossHUD,body:has(#menu:not(.hidden)) #bossHUD,body:has(#craft:n
   <div class="title-pair"><button id="exportWorld" class="title-button">ワールドをバックアップ</button><button id="importWorld" class="title-button">バックアップから復元</button></div>
 <input id="importFile" type="file" accept=".json,application/json" hidden>
 <details class="title-help"><summary>保存データの復旧</summary><button id="recoverWorld" class="title-button">保存データを復旧（直前の正常セーブ）</button><button id="restoreProtected" class="title-button">切り替え前の世界に戻す</button><button id="exportProtected" class="title-button">退避データを書き出す</button></details>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>サバイバル：⚔攻撃ボタン（PCは左クリック）で敵をたたく / 🍎・Rキーで回復<br>敵が白く光ったら攻撃の合図。出発地点のまわりは安全<br>石や鉱石は「壊す」を長押し（PCは左クリック長押し）。ツルハシで速く・鉄や金も掘れる<br>宝箱：近づいて「🎁 開ける」（PCは右クリック／T）。持ち物はクラフト画面で確認<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>サバイバル：⚔攻撃ボタン（PCは左クリック）で敵をたたく / 🍎・Rキーで回復<br>敵が白く光ったら攻撃の合図。出発地点のまわりは安全<br>石や鉱石は「壊す」を長押し（PCは左クリック長押し）。ツルハシで速く・鉄や金も掘れる<br>宝箱：近づいて「🎁 開ける」（PCは右クリック／T）。持ち物はクラフト画面で確認<br>ドラゴン：卵を巣に置いて温める→なでる・りんごで育てる→大人になったら「🐉 乗る」。スティックで進む・↑↓で高さ（PC：V 乗る/降りる・WASD・Space/Q）<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v17.0</span></div>
-</div><div id="craft" class="overlay hidden"><div class="panel craft-panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト・持ち物</h2><div id="gearRow" class="gear-row"></div><div id="matRow" class="mat-row"></div><div id="rareRow" class="rare-row"></div><div id="adventureLog" aria-label="冒険の記録"></div><div class="craft-head">🧱 ブロック</div><div class="craft-grid"><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button></div><div id="craftSurvival"><div id="craftGear"></div><div class="craft-head">🍎 食べ物</div><div class="craft-grid"><button id="craftApple">葉っぱ 4 → りんご 1（♥を回復）</button></div></div><button id="closeCraft" class="primary">戻る</button></div></div><div id="death" class="overlay death hidden" role="dialog" aria-label="やられてしまった"><div class="panel"><div class="eyebrow">GAME OVER</div><h2>やられてしまった…</h2><p>持ち物はそのまま。出発地点からすぐに再チャレンジできるよ。</p><button id="respawn" class="primary">復活する</button></div></div><div id="modePick" class="overlay hidden" role="dialog" aria-label="遊び方をえらぶ"><div class="panel mode-panel"><div class="eyebrow">GAME MODE</div><h2>遊び方をえらぼう</h2><p>あとからメニューの「モード」でいつでも変えられるよ。</p><button id="pickSurvival" class="mode-choice"><b>⚔ サバイバル</b><span>♥と剣でぼうけん。木の剣をつくって、夜のモンスターとたたかおう</span></button><button id="pickPeaceful" class="mode-choice"><b>🌿 ピースフル</b><span>素材を集めて建築・探検。モンスターはおそってこない</span></button><button id="pickCreative" class="mode-choice"><b>✦ クリエイティブ</b><span>ブロック使いほうだい・空を飛んで自由に建築</span></button><button id="closeModePick">もどる</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v18.0</span></div>
+</div><div id="craft" class="overlay hidden"><div class="panel craft-panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト・持ち物</h2><div id="gearRow" class="gear-row"></div><div id="matRow" class="mat-row"></div><div id="rareRow" class="rare-row"></div><div id="adventureLog" aria-label="冒険の記録"></div><div id="dragonBox" class="dragon-box" aria-label="ドラゴン"></div><div class="craft-head">🧱 ブロック</div><div class="craft-grid"><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button></div><div id="craftSurvival"><div id="craftGear"></div><div class="craft-head">🍎 食べ物</div><div class="craft-grid"><button id="craftApple">葉っぱ 4 → りんご 1（♥を回復）</button></div></div><button id="closeCraft" class="primary">戻る</button></div></div><div id="death" class="overlay death hidden" role="dialog" aria-label="やられてしまった"><div class="panel"><div class="eyebrow">GAME OVER</div><h2>やられてしまった…</h2><p>持ち物はそのまま。出発地点からすぐに再チャレンジできるよ。</p><button id="respawn" class="primary">復活する</button></div></div><div id="modePick" class="overlay hidden" role="dialog" aria-label="遊び方をえらぶ"><div class="panel mode-panel"><div class="eyebrow">GAME MODE</div><h2>遊び方をえらぼう</h2><p>あとからメニューの「モード」でいつでも変えられるよ。</p><button id="pickSurvival" class="mode-choice"><b>⚔ サバイバル</b><span>♥と剣でぼうけん。木の剣をつくって、夜のモンスターとたたかおう</span></button><button id="pickPeaceful" class="mode-choice"><b>🌿 ピースフル</b><span>素材を集めて建築・探検。モンスターはおそってこない</span></button><button id="pickCreative" class="mode-choice"><b>✦ クリエイティブ</b><span>ブロック使いほうだい・空を飛んで自由に建築</span></button><button id="closeModePick">もどる</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world');
@@ -252,6 +261,7 @@ if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてく�
 const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
 const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
 const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341'],null,null,null,null,null,null,null,null,null,['青い結晶','#4d8cff'],['紫の結晶','#b45cff'],['翠の結晶','#38f09a'],['光ゴケ','#3fbf9a'],['石炭鉱石','#2f3133'],['鉄鉱石','#d39a6e'],['金鉱石','#f2c93a'],['ダイヤモンド鉱石','#5ee8e4'],['宝箱','#a8742f'],['開いた宝箱','#7e5626'],['古代の石材','#8b9984'],['苔むした石材','#5c8261'],['古代の灯石','#70d9e0'],['封印の石扉','#537c88'],['光る踏み石','#84dbcc']];
+let riding=false,dragonReady=false; // v18: riding the grown dragon (see the DRAGON section)
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
 const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29,36,37,38];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
@@ -293,6 +303,12 @@ function validateSave(d){
    for(const k of ['discovered','gate','secret','defeated','claimed','cleared'])if(typeof r[k]!=='boolean')bad();
    if(!Number.isFinite(r.hp)||r.hp<0||r.hp>96||!Number.isInteger(r.guards)||r.guards<0||r.guards>3)bad();
    if(r.defeated&&r.hp!==0||r.claimed&&!r.cleared)bad();}}
+ // v18 dragon partner (optional). Riding is only possible on a grown dragon.
+ if(d.dragon!==undefined){const g=d.dragon,num=(v,a,b)=>Number.isFinite(v)&&v>=a&&v<=b;
+  if(!obj(g)||!['none','egg','baby','young','adult'].includes(g.stage)||typeof g.name!=='string'||g.name.length>12||typeof g.follow!=='boolean'||typeof g.riding!=='boolean')bad();
+  if(!num(g.warmth,0,1e6)||!num(g.growth,0,1e8)||!num(g.joy,0,100)||!num(g.x,0,2047.999)||!num(g.z,0,2047.999)||!num(g.y,0,tv>=4?192:96)||!Number.isFinite(g.yaw)||!num(g.flyDist,0,1e10))bad();
+  for(const k of ['fed','pets','flights','sense'])if(!Number.isSafeInteger(g[k])||g[k]<0)bad();
+  if(g.riding&&g.stage!=='adult')bad();}
  return d;
 }
 function checksum(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
@@ -317,7 +333,7 @@ creative=gameMode==='creative';if(gameMode==='survival')flying=false;
 if(!saved&&gameMode==='survival')dayTime=.52;
 // Items (save field `items`, whole counts). v16 adds gear (pickaxes, swords, armour), ore materials, leather, the rare collection and a chest count.
 const items={woodSword:0,stoneSword:0,ironSword:0,apple:0,diamondSword:0,woodPick:0,stonePick:0,ironPick:0,diamondPick:0,leatherArmor:0,ironArmor:0,diamondArmor:0,
- coal:0,iron:0,gold:0,diamond:0,leather:0,coin:0,crystal:0,dragonEgg:0,chests:0,found:0,ancientSword:0,eggClue:0}; // found: bit set of first finds (see FOUND_BIT)
+ coal:0,iron:0,gold:0,diamond:0,leather:0,coin:0,crystal:0,dragonEgg:0,chests:0,found:0,ancientSword:0,eggClue:0,eggChests:0}; // found: bit set of first finds (see FOUND_BIT); eggChests: legendary chests opened (v18)
 if(saved?.items)for(const k in items)if(Number.isSafeInteger(saved.items[k]))items[k]=saved.items[k];
 let health=Number.isFinite(saved?.health)?Math.max(0,Math.min(MAX_HP,saved.health)):MAX_HP,defeated=Number.isSafeInteger(saved?.defeated)?saved.defeated:0;
 let dead=false,atkCD=0,invulT=0,protectT=0,camKick=0,hurtGlow=0,kbx=0,kbz=0,sinceHurt=99,regenT=0,darkT=0,hostileT=2,duskWarned=false,nightWarned=false,attackHeld=false;
@@ -1363,7 +1379,7 @@ if(saved?.version===1&&Array.isArray(saved.changes)){
   const x=i%oldW,z=Math.floor(i/oldW)%oldW,y=Math.floor(i/(oldW*oldW));if(inside(x,y,z))set(x,y,z,t)
  }
 }
-function spawn(){const sx=vista?vista.x:ORIGIN,sz=vista?vista.z:ORIGIN;player.x=sx+.5;player.z=sz+.5;let y=H-3;while(y>0&&!solid(sx,y-1,sz))y--;player.y=y+.02;vy=0;if(vista){yaw=vista.yaw;pitch=-.08}}
+function spawn(){if(riding)endRide();const sx=vista?vista.x:ORIGIN,sz=vista?vista.z:ORIGIN;player.x=sx+.5;player.z=sz+.5;let y=H-3;while(y>0&&!solid(sx,y-1,sz))y--;player.y=y+.02;vy=0;if(vista){yaw=vista.yaw;pitch=-.08}}
 spawn();if(saved?.player&&['x','y','z'].every(k=>Number.isFinite(saved.player[k]))){Object.assign(player,saved.player);yaw=Number.isFinite(saved.yaw)?saved.yaw:0;pitch=Number.isFinite(saved.pitch)?Math.max(-1.5,Math.min(1.5,saved.pitch)):0}
 const faces=[{n:[1,0,0],v:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]],l:.79},{n:[-1,0,0],v:[[0,0,1],[0,1,1],[0,1,0],[0,0,0]],l:.68},{n:[0,1,0],v:[[0,1,0],[0,1,1],[1,1,1],[1,1,0]],l:1},{n:[0,-1,0],v:[[0,0,1],[0,0,0],[1,0,0],[1,0,1]],l:.48},{n:[0,0,1],v:[[1,0,1],[1,1,1],[0,1,1],[0,0,1]],l:.85},{n:[0,0,-1],v:[[0,0,0],[0,1,0],[1,1,0],[1,0,0]],l:.73}];
 function rgb(hex){return[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255)}
@@ -1983,7 +1999,32 @@ const LIFE_SPECIES=[
 {id:'crystalSlime',name:'クリスタルスライム',group:'洞窟',cat:'monster',move:'hop',rig:'slime',sc:1,sp:1.1,run:2.1,h:.75,r:.38,flee:0,herd:[1,1],hab:{},cave:1,voice:'squish',size:[1.05,1.35],
  bones:[['body','root',0,0,0]],
  parts:[['body',0,0,0,10,10,10,'#6f98ea','glow'],['body',0,.4,0,10.3,2.2,10.3,'#8f7ae8','glow'],['body',-2.2,5.4,5.05,1.8,2.4,.25,'#1d1640','flat',1],['body',-2.6,6.6,5.2,.7,.7,.15,'#ffffff','flat',1],
-  ['body',0,3.2,5.05,2,.7,.25,'#1d1640','flat'],['body',-2.4,10,-1,2,3.2,2,'#c58cff','glow'],['body',2.2,10,1.4,1.6,2.4,1.6,'#7fe8ff','glow'],['body',.4,10,-2.6,1.2,1.8,1.2,'#b7a4ff','glow']]}];
+  ['body',0,3.2,5.05,2,.7,.25,'#1d1640','flat'],['body',-2.4,10,-1,2,3.2,2,'#c58cff','glow'],['body',2.2,10,1.4,1.6,2.4,1.6,'#7fe8ff','glow'],['body',.4,10,-2.6,1.2,1.8,1.2,'#b7a4ff','glow']]},
+// v18 the dragon partner and its nest egg (cat 'pet': never spawned, never in the egg book, never culled; see the DRAGON section).
+// One model for every age: lifePose scales the head, neck, wings and tail per growth stage. 'shd' carries the contact shadow (hidden in flight).
+{id:'dragon',name:'ドラゴン',group:'ドラゴン',cat:'pet',move:'dragon',rig:'dragon',sc:1,sp:1.5,run:4.6,h:1.2,r:.5,flee:0,herd:[1,1],hab:{},voice:'kyu',stride:1.3,
+ bones:[['shd','root',0,0,0],['body','root',0,10,0],['neck','body',0,15,8,.55],['head','neck',0,25,9],['jaw','head',0,24,12],['tail','body',0,13,-8,-.12],['tip','tail',0,12.5,-19.5],
+  ['wl','body',-5,17,3],['l1','wl',-19,17,3],['fl','body',-4,9,6],['bl','body',-4,9,-5]],
+ parts:[['shd',0,.5,-3,22,.1,36,[11,18,-3/18],'shadow'],
+  ['body',0,8,0,10,9,18,'#2d7a8c','scale'],['body',0,7.4,0,8,1,15,'#a8e0cf','flat'],['body',0,16.6,-1,7,1,15,'#1f5568','scale'],
+  ['body',0,17.4,5,1.4,2.2,2,'#cfeff5','flat'],['body',0,17.4,0,1.4,2.6,2,'#cfeff5','flat'],['body',0,17.4,-5,1.4,2.2,2,'#cfeff5','flat'],['body',0,11,9.05,4,4,.4,'#7fe8ff','glow'],
+  ['neck',0,15,9,5.4,11,5.4,'#2d7a8c','scale'],['neck',0,16,11.75,3.4,9,.4,'#a8e0cf','flat'],['neck',0,24,6.7,1.2,1.8,1.6,'#cfeff5','flat'],
+  ['head',0,24,11,7,6,8,'#2d7a8c','scale'],['head',0,24.4,17,5,3.4,4.4,'#2f8396','scale'],['head',-1.3,26.9,19.25,.8,.6,.2,'#123844','flat',1],
+  ['head',-3.55,27,13,.3,1.5,1.9,'#aef9ff','glow',1],['head',-3.62,27.6,13.4,.2,.5,.6,'#ffffff','flat',1],
+  ['head',-2.2,30,9.5,1.2,3,1.2,'#ede4c8','bone',1],['head',-2.2,32,8,1,1,2.4,'#ede4c8','bone',1],['head',-3.9,26,9,1.6,2.4,1,'#1f5568','fur',1],
+  ['jaw',0,22.8,15.5,4.6,1.4,6,'#2a6f80','scale'],['jaw',0,22.6,15.5,4,.3,5,'#a8e0cf','flat'],
+  ['tail',0,10.5,-14,6,5,12,'#2d7a8c','scale'],['tail',0,15.4,-14,1.2,1.6,2,'#cfeff5','flat'],
+  ['tip',0,11,-26,3.8,3.2,13,'#2d7a8c','scale'],['tip',0,11.6,-33.5,6.4,.8,4,'#7fe8ff','glow'],
+  ['wl',-12,16.6,3,14,1.4,2.4,'#24566a','bone',1],['wl',-12,16.3,-2.8,14,.5,9,'#3f86b8','flat',1],
+  ['l1',-26,16.7,3,14,1.1,2,'#24566a','bone',1],['l1',-26,16.4,-3.5,14,.5,10,'#4a95c8','flat',1],['l1',-33.3,16.45,-3,.6,.5,9,'#8ff4ff','glow',1],['l1',-19,16.2,4.4,1,1.6,1,'#ede4c8','bone',1],
+  ['fl',-4.4,0,6.5,3.4,9.4,3.4,'#2a6f80','scale',1],['fl',-4.4,0,8.4,3.6,1.1,1.2,'#ede4c8','bone',1],
+  ['bl',-4.6,0,-5,4,9.6,4.6,'#2a6f80','scale',1],['bl',-4.6,0,-2.9,4.2,1.1,1.2,'#ede4c8','bone',1]]},
+{id:'dragonNest',name:'ドラゴンの卵',group:'ドラゴン',cat:'pet',move:'still',rig:'egg',sc:1,sp:0,run:0,h:.8,r:.4,flee:0,herd:[1,1],hab:{},
+ bones:[['nest','root',0,0,0],['egg','root',0,1,0],['crk','egg',0,5,0]],
+ parts:[['nest',0,.4,0,7,1,7,'#b8954f','fur'],['nest',0,0,-4,10,2.2,2,'#7a5a34','fur'],['nest',0,0,4,10,2.2,2,'#6b4c2a','fur'],['nest',-4,0,0,2,2.2,6,'#7a5a34','fur',1],
+  ['egg',0,1,0,5,2,5,'#2f8f9a','dots'],['egg',0,3,0,6,3.4,6,'#2f8f9a','dots'],['egg',0,6.4,0,5,2.4,5,'#3aa2ad','dots'],['egg',0,8.8,0,3.4,1.4,3.4,'#45b3bd','dots'],
+  ['egg',-1.5,4.6,3.02,1.4,1,.2,'#7fe8ff','glow'],['egg',1.6,6.8,2.52,1,.8,.2,'#7fe8ff','glow'],['egg',-3.02,3.6,-1,.2,1.2,1.2,'#7fe8ff','glow'],
+  ['crk',0,5.2,3.05,3.6,.4,.2,'#c8fbff','glow'],['crk',1.2,5.6,3.06,.4,1.6,.2,'#c8fbff','glow'],['crk',-3.05,4.4,0,.2,.4,3,'#c8fbff','glow'],['crk',3.05,6,.5,.2,1.4,.4,'#c8fbff','glow'],['crk',0,8.3,-1.5,.4,.4,2.6,'#c8fbff','glow']]}];
 const LIFE_BY_ID={};LIFE_SPECIES.forEach((s,i)=>{s.i=i;LIFE_BY_ID[s.id]=s});
 const lifeMirror=n=>/^[a-z]l$|^legl$/.test(n)?n.slice(0,-1)+'r':/^l\d$/.test(n)?'r'+n.slice(1):n;
 // Build all species into one static vertex array (shared by every individual). Vertex material = face + 8*pattern + 128*bone;
@@ -2638,7 +2679,7 @@ if(collides(player))spawn();
 function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
 const hotbarButtons=[];
-function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];if(typeof lifeModeText==='function')$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();survivalUI();if(typeof craftUI==='function')craftUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
+function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];if(typeof lifeModeText==='function')$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();survivalUI();if(typeof craftUI==='function')craftUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying||riding?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying&&!riding;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
 // v17 sealed doors (block 39). The main stone door opens with the stepping stone (adventure gate), the hidden-passage door with its chest
 // (adventure secret). While the matching flag is unset, survival cannot dig the door: both mine() and breakBlock() ask doorBlocked().
@@ -2650,7 +2691,7 @@ function sealedDoor(x,y,z){if(!RUINS)return null;
  return null}
 const DOOR_MSG={gate:'🔒 封印の石扉はこわせないよ。青く光る踏み石をふむと開くよ',secret:'🔒 かくし扉はこわせないよ。近くの小さな宝箱を開けると封印がとけるよ'};
 function doorBlocked(h){if(gameMode!=='survival'||h.t!==39)return false;const k=sealedDoor(h.x,h.y,h.z);if(!k)return false;dig=null;toast(DOOR_MSG[k]);sfx('clank');return true}
-function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;if(strike(false))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}
+function mine(){if(paused||photoMode||riding)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;if(strike(false))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}
  if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}
  if(doorBlocked(hit))return;
  // Survival: ore needs a strong enough pickaxe, and stone and ore take a moment to dig (hold 壊す / the mouse; a pickaxe is faster).
@@ -2680,10 +2721,10 @@ function targetLabel(h){const t=h.t;let s=defs[t][0];
  if(t===39&&gameMode==='survival'){const k=sealedDoor(h.x,h.y,h.z);if(k)s+=k==='gate'?' 🔒踏み石で開く':' 🔒宝箱で開く'}
  if(dig&&dig.x===h.x&&dig.y===h.y&&dig.z===h.z){const k=Math.min(5,Math.floor(dig.p*5));s+=' '+'▰'.repeat(k)+'▱'.repeat(5-k)}
  return s}
-function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
-function jump(){if(flying||photoMode)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
-function toggleFlight(){if(paused||suspended||photoMode)return;if(gameMode==='survival'){toast('サバイバルでは飛べないよ（ピースフル・クリエイティブで飛べる）');return}flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
-function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected:selected<8?selected:0,hotbar:selected,eggSp},gameMode,health,items:{...items},defeated,...(RUINS?{adventure}: {})}}
+function place(){if(paused||photoMode||riding)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
+function jump(){if(flying||photoMode||riding)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
+function toggleFlight(){if(paused||suspended||photoMode)return;if(riding){toast('🐉 ドラゴンに乗っている間は、↑↓で高さを変えよう');return}if(gameMode==='survival'){toast('サバイバルでは飛べないよ（ピースフル・クリエイティブで飛べる）');return}flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
+function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected:selected<8?selected:0,hotbar:selected,eggSp},gameMode,health,items:{...items},defeated,...(RUINS?{adventure}: {}),...(dragon.stage!=='none'||dragon.warmth>0?{dragon:dragonSave()}:{})}}
 function saveFailure(e){$('saveInfo').textContent='保存失敗：'+e.message+'。元の保存は保護されています。ファイルへのバックアップを試してください';toast('保存できません。メニューの保存状況を確認してください')}
 function checkCurrent(){if(localStorage.getItem(KEY)!==expectedRaw)throw Error('別タブで保存が変更されました。再読み込みしてください')}
 function save(){if(resettingWorld||benchLock||storageBlocked||saving)return false;saving=true;
@@ -2743,7 +2784,7 @@ let tapX=0,tapY=0,tapT=0,tapId=null;
 canvas.onpointerdown=e=>{if(paused)return;if(!photoMode&&e.pointerType==='mouse'&&document.pointerLockElement===canvas){if(e.button===0){mouseMine=true;actionClock=.3;mine()}if(e.button===2)place();return}lookId=e.pointerId;lx=tapX=e.clientX;ly=tapY=e.clientY;tapT=performance.now();tapId=e.pointerId;canvas.setPointerCapture(e.pointerId)};
 // With a spawn egg in hand, a quick tap (not a look-around drag) places the creature where the finger touched.
 canvas.addEventListener('pointerup',e=>{if(e.pointerId===tapId&&eggSp>=0&&!paused&&!photoMode&&Math.hypot(e.clientX-tapX,e.clientY-tapY)<12&&performance.now()-tapT<400)placeEgg(screenDir(e.clientX,e.clientY));tapId=null});
-canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.addEventListener('pointerup',e=>{if(e.button===0)mouseMine=false});document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(e.code==='KeyP'&&!e.repeat&&!paused){e.preventDefault();setPhotoMode(!photoMode);return}if(photoMode){if(e.code==='Escape'){e.preventDefault();setPhotoMode(false)}return}if(dead)return;if(e.code==='KeyR'&&!e.repeat&&!paused)eat();if(e.code==='KeyT'&&!e.repeat&&!paused&&nearChest)openChest(...nearChest);if(e.code==='KeyH'&&!e.repeat){toggleHUD();return}if(e.code==='F3'){e.preventDefault();if(!e.repeat)toggleDetails();return}if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;eggSp=-1;refresh()}if(e.code==='KeyG'&&!e.repeat&&!paused)openEggs();};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
+canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.addEventListener('pointerup',e=>{if(e.button===0)mouseMine=false});document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(e.code==='KeyP'&&!e.repeat&&!paused){e.preventDefault();setPhotoMode(!photoMode);return}if(photoMode){if(e.code==='Escape'){e.preventDefault();setPhotoMode(false)}return}if(dead)return;if(e.code==='KeyR'&&!e.repeat&&!paused)eat();if(e.code==='KeyT'&&!e.repeat&&!paused&&nearChest)openChest(...nearChest);if(e.code==='KeyV'&&!e.repeat&&!paused)dragonAct();if(e.code==='KeyH'&&!e.repeat){toggleHUD();return}if(e.code==='F3'){e.preventDefault();if(!e.repeat)toggleDetails();return}if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;eggSp=-1;refresh()}if(e.code==='KeyG'&&!e.repeat&&!paused)openEggs();};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
 // Suspend simulation on actual backgrounding, then resume the same play state.
 window.onblur=()=>{clearInput();save()};
 window.onfocus=()=>{clearInput();last=performance.now()};
@@ -2773,7 +2814,7 @@ function nextSpot(){
  spotIdx=(spotIdx+1)%spotList.length;const s=spotList[spotIdx];
  if(s.w){visitWonder(s.w);toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${s.w.label}`);return}
  const c=clearSpot(s);
- flying=false;player.x=c.x+.5;player.z=c.z+.5;player.y=c.y+.02;vy=0;yaw=s.yaw;pitch=s.kind==='cliff'?-.3:-.1;streamChunks(true);dirty=true;play();
+ endRide();flying=false;player.x=c.x+.5;player.z=c.z+.5;player.y=c.y+.02;vy=0;yaw=s.yaw;pitch=s.kind==='cliff'?-.3:-.1;streamChunks(true);dirty=true;play();
  toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${SPOT_KINDS[s.kind]}（標高${s.h-SEA}m）`)}
 // ---- v9 wonders on the tour and found on foot. The tour interleaves the kinds; each visit picks a viewpoint that frames the wonder
 // (downstream of a fall, on a canyon rim, through a rock window, beside a sea-floor arch) and finds real footing there.
@@ -2814,7 +2855,7 @@ function wonderView(s){const f=s.f,C=[];
   for(const o of opts){const cost=o.pen+10*sightCost(o.x,o.y+1.62,o.z,c[2],c[3],c[4]);if(!best||cost<best.cost)best={x:o.x,y:o.y,z:o.z,tx:c[2],ty:c[3],tz:c[4],fly:o.fly,cost}}
   if(best&&best.cost===0)break}
  if(best)return best;const c=C[0];return{x:c[0],z:c[1],y:Math.max(SEA+3,terrainH(Math.floor(c[0]),Math.floor(c[1]))+4),tx:c[2],ty:c[3],tz:c[4],fly:true}}
-function visitWonder(s){const v=wonderView(s);flying=v.fly;player.x=v.x;player.y=v.y;player.z=v.z;vy=0;yaw=Math.atan2(v.tx-v.x,v.tz-v.z);
+function visitWonder(s){endRide();const v=wonderView(s);flying=v.fly;player.x=v.x;player.y=v.y;player.z=v.z;vy=0;yaw=Math.atan2(v.tx-v.x,v.tz-v.z);
  pitch=Math.max(-.7,Math.min(.6,Math.atan2(v.ty-(v.y+1.62),Math.hypot(v.tx-v.x,v.tz-v.z)+.01)));streamChunks(true);dirty=true;play()}
 // Finding one on foot: the first time the player comes near a wonder (under water for the sea-floor ones) a short note names it.
 // Found wonders are remembered per world seed on this device (outside the save, so saves stay unchanged).
@@ -2836,7 +2877,7 @@ function nextCave(){
  if(!caveList.length){toast('この世界には洞窟が見つかりませんでした');return}
  caveIdx=(caveIdx+1)%caveList.length;const p=caveList[caveIdx];
  if(p.air){const f=caveStand(p.x,p.y+(p.kind==='entrance'?.5:1.5),p.z);if(f){p.x=f.x;p.y=f.y;p.z=f.z}p.air=0}
- flying=false;player.x=p.x;player.z=p.z;player.y=p.y+.02;vy=0;yaw=p.yaw;pitch=p.kind==='entrance'?-.05:-.12;streamChunks(true);caveRaw=caveF=p.kind==='entrance'?0:1;caveT=.3;dirty=true;play();
+ endRide();flying=false;player.x=p.x;player.z=p.z;player.y=p.y+.02;vy=0;yaw=p.yaw;pitch=p.kind==='entrance'?-.05:-.12;streamChunks(true);caveRaw=caveF=p.kind==='entrance'?0:1;caveT=.3;dirty=true;play();
  toast(`洞窟 ${caveIdx+1}/${caveList.length}：${CAVE_SPOT_KINDS[p.kind]}`)}
 function surface(x,z,from=H-3){for(let y=Math.min(H-3,Math.floor(from));y>=1;y--)if(solid(Math.floor(x),y,Math.floor(z)))return y+1;return 1}
 function cowFits(x,y,z){for(let dx of [-.44,.44])for(let dz of [-.44,.44])for(let dy of [.05,1,1.7])if(solid(Math.floor(x+dx),Math.floor(y+dy),Math.floor(z+dz)))return false;return true}
@@ -2846,12 +2887,13 @@ const dynamicCaps=new Map();
 function drawData(buffer,w){if(!w.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);const bytes=w.n*4;let capacity=dynamicCaps.get(buffer)||0;if(capacity<bytes){capacity=2**Math.ceil(Math.log2(Math.max(256,bytes)));gl.bufferData(gl.ARRAY_BUFFER,capacity,gl.DYNAMIC_DRAW);dynamicCaps.set(buffer,capacity)}gl.bufferSubData(gl.ARRAY_BUFFER,0,w.a.subarray(0,w.n));drawQuads(buffer,w.n/36,bind,36)}
 function animateWorld(dt){swing=Math.max(0,swing-dt*3.5);const moving=Math.hypot(joy.x,joy.y)> .1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD;if(moving&&ground)walkPhase+=dt*9;
 for(const p of particles){p.life-=dt;p.vy-=dt*8;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt}for(let i=particles.length-1;i>=0;i--)if(particles[i].life<=0)particles.splice(i,1);
-updateLife(dt,player);updateSurvival(dt);
+updateLife(dt,player);updateSurvival(dt);dragonTick(dt);
 }
 function drawWorldDetails(){const a=dyn;a.n=0;
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
 if(dig&&dig.p>.08)drawCrack(a);
 drawRuinEffects(a);
+if(riding&&pet)drawRider(a);
 if(arrows.length||gameMode==='survival')drawCombat(a);
 drawData(dynamicBuffer,a)}
 // Cracks spread over every face of the block being dug (dark slivers just outside the faces, more of them as the dig goes on).
@@ -2868,7 +2910,7 @@ function drawCombat(a){
   cuboid(a,-.42,0,0,.84,.13,.03,'#1d1414',30,T);cuboid(a,-.39,.03,-.01,.78*f,.07,.03,f>.5?'#6fdc58':f>.25?'#f0c53a':'#f0493a',30,T)}}
 // ---- LIFE runtime. Natural creatures appear around the player in loaded terrain and leave when it unloads; egg-placed ones are saved.
 // Creatures never edit the world and never hurt the player: monsters only watch, follow, stalk or puff harmless spores.
-const life=[],lifePool=[],COW=LIFE_BY_ID.cow;
+const life=[],lifePool=[],COW=LIFE_BY_ID.cow,dragonEnts=[]; // dragonEnts: the v18 partner and its nest egg, kept out of the natural life list
 const LIFE_Q={low:{cap:20,draw:56},standard:{cap:34,draw:84},high:{cap:50,draw:112}};
 const LIFE_SHARE={land:.42,water:.3,bird:.22,monster:.24},MANUAL_MAX=80,VOICE_KEY='jocraft2-voices';
 let lifeMode=['all','animals','off'].includes(saved?.life?.mode)?saved.life.mode:'all',lifeScale=1,lifeSpawnT=.5,lifeCullT=0,lifeVoiceT=0,lifeVoices=true,eggSp=-1,lifeSeq=1,lifeF=null,lifeDrawn=0;
@@ -3138,6 +3180,18 @@ function lifePose(c){c.poseVersion++;const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=s
    bRY('fe',Math.sin(t*4.3)*.25);bRX('fe',Math.sin(t*3.1)*.12);bRY('head',c.hy*.6);bRX('abd',Math.sin(t*2)*.04);bOY('body',Math.sin(t*1.5)*.1+(rear?0:Math.abs(s)*.3*gw));break}
   case'slime':{const q=c.sq+(c.ground?Math.sin(t*3.2)*.05:-.12);bSC('body',1+q*.6,1-q,1+q*.6);break}
   case'bomb':{const a=s*.6*gw;bRX('ll',a);bRX('lr',-a);const sw=1+c.swell*.35+Math.sin(t*40)*.04*c.swell;bSC('body',sw,sw,sw);bRZ('cap',Math.sin(t*2.5)*.06+Math.sin(ph)*.05*gw);bOY('body',Math.abs(Math.cos(ph))*.4*gw);break}
+  case'dragon':{const k=c.stageK??1,hs=1.45-.45*k,ns=.8+.2*k,ws=.5+.5*k;bSC('head',hs,hs,hs);bSC('neck',ns,ns,ns);bSC('tail',ns,ns,ns);bSC('wl',ws,ws,ws);bSC('wr',ws,ws,ws);
+   if(c.air){bSC('shd',0,0,0);const f=Math.sin(t*(5.2+2.5*(1-k)))*.7*(c.flap??1),g=.08;bRZ('wl',-f-g);bRZ('wr',f+g);bRZ('l1',-f*.55);bRZ('r1',f*.55);
+    bRX('fl',1);bRX('fr',1);bRX('bl',1.2);bRX('br',1.2);bOY('body',f*.8);bRX('neck',-.35-c.pitch*.4);bRX('head',.25+c.pitch*.3);
+    bRY('tail',Math.sin(t*1.7)*.14-c.roll*.3);bRY('tip',Math.sin(t*1.7-.8)*.22-c.roll*.3);bRX('tail',c.pitch*.35)}
+   else{const a=s*gw*.55,st=c.sit||0,lg=.74+.06*k;bRX('fl',a);bRX('br',a);bRX('fr',-a);bRX('bl',-a);for(const n of ['fl','fr','bl','br'])bSC(n,1.25,lg,1.2);
+    // Wings fold back along the flanks (membrane turned down, tip folded onto the arm); a flutter now and then, more when happy.
+    const fl=(c.flutter||0)>0?Math.abs(Math.sin(t*16)):0;bRX('wl',1.35-fl*.9);bRX('wr',1.35-fl*.9);bRY('wl',-1.45+fl*.4);bRY('wr',1.45-fl*.4);bRZ('wl',-.12-fl*.5);bRZ('wr',.12+fl*.5);bRY('l1',2.7-fl*1.4);bRY('r1',-2.7+fl*1.4);
+    bOY('body',9.4*lg-9.1+Math.abs(Math.cos(ph))*.4*gw+Math.sin(t*1.6)*.15-st*2.2);bRX('bl',-st*1.1);bRX('br',-st*1.1);bRX('body',-st*.12);
+    const joy=c.mode==='happy';bRX('neck',joy?-.2:0);bRX('head',c.hp+(joy?-.25:0));bRY('head',c.hy);bRY('neck',c.hy*.3);
+    bRY('tail',Math.sin(t*(joy?9:1.3)+c.id)*(joy?.4:.25));bRY('tip',Math.sin(t*(joy?9:1.3)+c.id-.9)*.35)}
+   bRX('jaw',c.talk>0?.35:0);break}
+  case'egg':{const w=c.wob||0;bRZ('egg',Math.sin(t*9)*.12*w);bRX('egg',Math.sin(t*7.3)*.06*w);const q=c.crack||0;bSC('crk',q,q,q);break}
   case'wisp':{bOY('body',Math.sin(t*1.8)*1.2);bRX('al',-.4+Math.sin(t*1.3)*.2);bRX('ar',-.9+Math.sin(t*1.1)*.12);bRZ('body',Math.sin(t*.9)*.06);bRY('head',c.hy);bRX('head',c.hp);break}}}
 // Root = position (relative to the camera) * yaw * pitch * roll * scale; each bone = parent * T(pivot+offset) * R * S * T(-pivot).
 function lifeMatrices(c,cam){
@@ -3151,13 +3205,13 @@ function lifeMatrices(c,cam){
   const l00=(a*u+e*h*w)*S[r],l01=(-a*w+e*h*u)*S[r+1],l02=e*f*S[r+2],l10=f*w*S[r],l11=f*u*S[r+1],l12=-h*S[r+2],l20=(-e*u+a*h*w)*S[r],l21=(e*w+a*h*u)*S[r+1],l22=a*f*S[r+2];
   const px=P[r],py=P[r+1],pz=P[r+2],tx=px+O[r]-(l00*px+l01*py+l02*pz),ty=py+O[r+1]-(l10*px+l11*py+l12*pz),tz=pz+O[r+2]-(l20*px+l21*py+l22*pz);
   for(let i=0;i<3;i++){const q0=M[p+i*4],q1=M[p+i*4+1],q2=M[p+i*4+2];M[o+i*4]=q0*l00+q1*l10+q2*l20;M[o+i*4+1]=q0*l01+q1*l11+q2*l21;M[o+i*4+2]=q0*l02+q1*l12+q2*l22;M[o+i*4+3]=q0*tx+q1*ty+q2*tz+M[p+i*4+3]}}}
-function drawLife(cam,F,env,fog,aspect,near,far){lifeF=F;lifeDrawn=0;fishDrawn=0;if(!lifeProg||(!life.length&&!fishSchools.length))return;
+function drawLife(cam,F,env,fog,aspect,near,far){lifeF=F;lifeDrawn=0;fishDrawn=0;if(!lifeProg||(!life.length&&!fishSchools.length&&!dragonEnts.length))return;
  const R=Math.min(LIFE_Q[qualityName].draw,Math.max(24,(readyR+.5)*CHUNK)),glow=env.night;let bound=-1;
  useProgram(lifeProg,4);setEnv(lifeU,env,fog);setView(lifeU,cam,aspect,near,far);gl.uniform3f(lifeU.eyeF,cam.x,cam.y,cam.z);
  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
  // Reuse the global quad indices with a per-species index offset; keep transparent draw order unchanged.
  const sharedIndices=lifeModel.n/36<=MAXQ;if(sharedIndices)bind(lifeBuffer);
- for(const c of life){c.seen=false;if(c.dormant)continue;const sp=c.sp,d=Math.hypot(c.x-cam.x,c.y-cam.y,c.z-cam.z);if(d>R)continue;const rr=sp.rad*c.size+.3;
+ for(const list of [life,dragonEnts])for(const c of list){c.seen=false;if(c.dormant)continue;const sp=c.sp,d=Math.hypot(c.x-cam.x,c.y-cam.y,c.z-cam.z);if(d>R)continue;const rr=sp.rad*c.size+.3;
   if(!sphereVisible(F,c.x,c.y+sp.top*c.size*.5,c.z,rr))continue;c.seen=true;lifeDrawn++;
   const poseInterval=d<45?0:d<70?1/30:1/20;if(c.t-c.poseAt>=poseInterval||c.t<c.poseAt){lifePose(c);c.poseAt=c.t}lifeMatrices(c,cam);gl.uniform4fv(lifeU.B,c.Mv);gl.uniform4f(lifeU.cL,c.sky,c.hurtF>0?-c.hurtF:c.flash,glow,c.y<SEA&&peek(Math.floor(c.x),Math.floor(c.y+.5),Math.floor(c.z))!==10?1:0); // w=1: below the sea level but in a dry cave, so no water tint
   if(!sharedIndices&&bound!==sp.i){bind(lifeBuffer,sp.q0*144);bound=sp.i}perfDraw();gl.drawElements(gl.TRIANGLES,sp.nq*6,gl.UNSIGNED_SHORT,sharedIndices?sp.q0*12:0)}
@@ -3290,7 +3344,9 @@ function lifeVoice(c,v,gm=1){if(!lifeVoices||!sound||sound.state!=='running'||pa
    case'groan':tone('sawtooth',92,72,1.3,.42,0,420,3);break;case'rattle':c.talk=.5;for(let i=0;i<8;i++)noise(.02,.3,'bandpass',2400,i*.055);break;case'hiss':noise(.5,.25,'highpass',3500);break;
    case'squish':tone('sine',220,70,.18,.35,0,900);noise(.12,.12,'lowpass',700);break;case'fuse':noise(1.5,.12,'highpass',4200);break;case'pop':noise(.35,.5,'lowpass',380);tone('sine',140,50,.3,.4,0,600);break;
    case'chime':tone('sine',660,660,1.2,.12,0,4000,2);tone('sine',990,990,1.4,.08,.15,4000,3);break;case'click2':for(let i=0;i<4;i++)noise(.02,.2,'bandpass',1200,i*.13);break;
-   case'splash':noise(.4,.3,'lowpass',1600);break}}catch(e){}}
+   case'splash':noise(.4,.3,'lowpass',1600);break;
+   case'kyu':c.talk=.3;tone('sine',900*p,1350*p,.16,.22,0,3200,7);tone('sine',1250*p,820*p,.24,.18,.18,3000,6);break;
+   case'roar':c.talk=.8;tone('sawtooth',210,130,.9,.32,0,900,5);noise(.7,.18,'lowpass',600);break}}catch(e){}}
 // ---- Spawn eggs: pick a creature, then tap the ground (or press 置く) to place it; 壊す on a creature sends it home.
 function screenDir(px,py){const r=canvas.getBoundingClientRect?canvas.getBoundingClientRect():{left:0,top:0,width:innerWidth,height:innerHeight},sx=((px-r.left)/(r.width||1))*2-1,sy=1-((py-r.top)/(r.height||1))*2,a=(r.width||1)/(r.height||1);
  const xx=sx*a/1.35,yy=sy/1.35,dd=1,Y=Math.cos(pitch)*yy+Math.sin(pitch)*dd,zz=-Math.sin(pitch)*yy+Math.cos(pitch)*dd,X=Math.cos(yaw)*xx+Math.sin(yaw)*zz,Z=-Math.sin(yaw)*xx+Math.cos(yaw)*zz,l=Math.hypot(X,Y,Z);return[X/l,Y/l,Z/l]}
@@ -3444,7 +3500,7 @@ function attackTarget(d,reach){const h=ray(d,reach),maxD=h?h.dist:reach,o=[playe
  // Small aim assist for touch screens: the nearest monster within arm's length in front, if nothing is in the way.
  let near=null,nd=Math.min(2.6,reach);for(const c of life){if(c.dormant||c.vanish>=0||c.sp.cat!=='monster')continue;const ex=c.x-player.x,ez=c.z-player.z,dd=Math.hypot(ex,ez);
   if(dd<nd&&Math.abs(c.y-player.y)<2&&(ex*d[0]+ez*d[2])/Math.max(.01,dd*Math.hypot(d[0],d[2]))>.75&&canSee(c,o[0],o[1],o[2])){nd=dd;near=c}}return near}
-function strike(button){if(paused||photoMode||dead||gameMode!=='survival')return false;const w=weapon(),c=attackTarget(viewDir(),w.reach);
+function strike(button){if(paused||photoMode||dead||riding||gameMode!=='survival')return false;const w=weapon(),c=attackTarget(viewDir(),w.reach);
  if(!c&&!button)return false;lastStrikeT=time;if(atkCD>0)return true;atkCD=w.cd;swing=1;if(!c){sfx('swing');return true}
  if(!(c.mhp>0))c.mhp=monsterMaxHP(c);c.mhp-=w.dmg;if(c.ruinId&&c.sp.id==='guardian'){ruinState(ruins.find(r=>r.id===c.ruinId)).hp=Math.max(0,c.mhp);dirty=true}c.hurtF=1;c.barT=4;c.aggro=6;c.los=true;sfx('hit',c);
  const ex=c.x-player.x,ez=c.z-player.z,el=Math.hypot(ex,ez)||1;c.kbx=c.sp.id==='guardian'?0:ex/el*8;c.kbz=c.sp.id==='guardian'?0:ez/el*8;if(c.ground&&c.sp.id!=='guardian'){c.vy=Math.max(c.vy,3.2);c.ground=false}
@@ -3465,7 +3521,7 @@ function hurtPlayer(n,src){if(gameMode!=='survival'||dead||paused||photoMode||be
  const ar=armor(),ease=defeated<3?.67:1;n=ar.def?Math.max(.5,Math.round(n*ease*(1-ar.def)*2)/2):Math.max(1,Math.round(n*ease));health=Math.max(0,health-n);invulT=.8;sinceHurt=0;regenT=0;hurtGlow=1;camKick=-.05;dirty=true;
  const ex=player.x-src.x,ez=player.z-src.z,el=Math.hypot(ex,ez)||1;kbx=ex/el*7;kbz=ez/el*7;if(ground){vy=Math.max(vy,4.5);ground=false}
  sfx('hurt');survivalUI();if(health<=0)die();return true}
-function die(){dead=true;paused=true;clearInput();rememberPlaying(false);document.exitPointerLock?.();kbx=kbz=0;arrows.length=0;
+function die(){endRide();dead=true;paused=true;clearInput();rememberPlaying(false);document.exitPointerLock?.();kbx=kbz=0;arrows.length=0;
  $('craft').classList.add('hidden');$('eggs').classList.add('hidden');$('death').classList.remove('hidden');sfx('down');save()}
 function respawn(){dead=false;health=MAX_HP;invulT=0;protectT=5;sinceHurt=99;hurtGlow=0;arrows.length=0;flying=false;spawn();
  for(let i=life.length-1;i>=0;i--){const c=life[i];if(!c.sp.hostile)continue;if(!c.manual&&Math.hypot(c.x-player.x,c.z-player.z)<20)lifeRemove(c,true);else{c.aggro=0;if(HOSTILE_MODES.has(c.mode))c.mode='idle'}}
@@ -3492,7 +3548,7 @@ function buildCraftGear(){const box=$('craftGear');if(!box||craftBuilt)return;cr
  for(const [head,set] of CRAFT_SECTIONS){const h=document.createElement('div');h.className='craft-head';h.textContent=head;box.appendChild(h);const g=document.createElement('div');g.className='craft-grid';box.appendChild(g);
   for(const id in set){const b=document.createElement('button');b.id='craft_'+id;b.className='recipe';b.onclick=()=>craftItem(id);g.appendChild(b)}}}
 let craftKey='';
-function craftUI(){const box=$('craftGear');if(!box)return;adventureUI();buildCraftGear();
+function craftUI(){const box=$('craftGear');if(!box)return;adventureUI();if(dragonReady)dragonUI();buildCraftGear();
  const key=JSON.stringify([items,inventory[3],inventory[7],inventory[5],inventory[14],inventory[15],inventory[16],gameMode]);if(key===craftKey)return;craftKey=key;
  for(const [,set] of CRAFT_SECTIONS)for(const id in set){const b=$('craft_'+id),r=set[id];const h=craftLabel(id,r);if(b.innerHTML!==h)b.innerHTML=h;b.classList.toggle('owned',items[id]>0);b.classList.toggle('ready',!(items[id]>0)&&!missingOf(r.need).length)}
  const w=weapon(),pk=pickaxe(),ar=armor();
@@ -3523,6 +3579,7 @@ function openChest(x,y,z){if(paused||photoMode||dead||get(x,y,z)!==B_CHEST||Math
  if(rc?.boss&&(rs.claimed||gameMode==='survival'&&!rs.defeated)){toast(rs.claimed?'この宝物はもう受け取った':'守護者が宝箱を封印している。コアをねらって戦おう');return false}
  const tier=rc?(rc.boss?'guardian':'ruin'):chestInfo.get(idx(x,y,z))||'cave',loot=chestLoot(x,y,z,tier),first=!(items.found&FOUND_BIT.chest);
  if(first){const fe=loot.find(l=>l[0]==='iron');if(fe)fe[1]=Math.max(fe[1],2);else loot.push(['iron',2])} // the first chest always helps toward iron gear
+ legendEgg(loot,tier);
  if(rc){rs.discovered=true;if(rc.boss){rs.claimed=rs.cleared=true;items.ancientSword=1;items.eggClue=1}else unlockRuin(rc.r,true)}
  edit(x,y,z,B_CHEST_OPEN);items.chests++;items.found|=FOUND_BIT.chest;nearChest=null;$('openChest').classList.add('hidden');
  const lines=rc?.boss?['⚔ 古代の剣（鉄と同じ攻撃力・青い光）','📜 竜の手がかり：結晶洞窟と海底の宝箱に卵が眠る']:[];let rare=false;
@@ -3537,7 +3594,7 @@ function openChest(x,y,z){if(paused||photoMode||dead||get(x,y,z)!==B_CHEST||Math
 // Every few frames: is there a closed chest within reach (under the crosshair first, else the nearest one around)? Nearby closed chests twinkle.
 let chestScanT=0;
 function chestTick(dt){if((chestScanT-=dt)>0)return;chestScanT=.12;let best=null;
- if(!paused&&!photoMode&&!dead&&ORES){if(hit&&hit.t===B_CHEST&&hit.dist<5.2)best=[hit.x,hit.y,hit.z];
+ if(!paused&&!photoMode&&!dead&&!riding&&ORES){if(hit&&hit.t===B_CHEST&&hit.dist<5.2)best=[hit.x,hit.y,hit.z];
   else{const X=Math.floor(player.x),Y=Math.floor(player.y),Z=Math.floor(player.z);let bd=9;for(let dy=-1;dy<=2;dy++)for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++)if(get(X+dx,Y+dy,Z+dz)===B_CHEST){const d=dx*dx+dz*dz+dy*dy;if(d<bd){bd=d;best=[X+dx,Y+dy,Z+dz]}}}
   if(Math.random()<.5){pkX=1e9;for(const [i] of chestInfo){const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W));if(Math.abs(x-player.x)>18||Math.abs(z-player.z)>18||Math.abs(y-player.y)>12||peek(x,y,z)!==B_CHEST)continue;particles.push({x:x+.2+Math.random()*.6,y:y+1.05,z:z+.2+Math.random()*.6,vx:0,vy:2.2,vz:0,life:.7,color:Math.random()<.5?'#ffe27a':'#fffbe0'})}}}
  nearChest=best;const el=$('openChest'),show=!!best;if(el.classList.contains('hidden')===show)el.classList.toggle('hidden',!show)}
@@ -3636,6 +3693,237 @@ function ruinCompass(heading){const el=$('compassRuin');if(!RUINS||paused||photo
  if(r)$('compassCave').classList.add('hidden');
 }
 
+// ---- v18 DRAGON AWAKENING. One partner per world: the egg comes from the legendary chests (crystal caves, behind falls, the sea
+// floor), rests in a nest (an entity, not a block), warms while the player stays near or pets it, hatches into a baby that follows,
+// grows with time together, apples and petting, and once grown can be ridden through the sky. All of it is world state in the save
+// field `dragon`; terrain is never touched, so every terrainVersion generates exactly as before.
+const DRAGON_SP=LIFE_BY_ID.dragon,NEST_SP=LIFE_BY_ID.dragonNest,DRAGON_STAGES=['none','egg','baby','young','adult'],LEGEND_TIERS=new Set(['crystal','falls','sea']);
+const HATCH_NEED=150,GROW_NEED={baby:360,young:1200},DRAGON_SIZE={baby:.5,young:.95,adult:1.9},DRAGON_K={baby:0,young:.55,adult:1},NEST_SIZE=1.3;
+const STAGE_NAME={egg:'卵',baby:'子ドラゴン',young:'若いドラゴン',adult:'成体のドラゴン'},DRAGON_NAMES=['ソラ','ルリ','アオ','ハク','ミズチ'];
+const RIDE_R=.85,RIDE_H=2.4,WALK_R=.45,FLY_SPEED=13,DIR8=['北','北東','東','南東','南','南西','西','北西'];
+const dragon={stage:'none',name:'',warmth:0,growth:0,joy:0,follow:true,riding:false,x:0,y:0,z:0,yaw:0,fed:0,pets:0,flights:0,flyDist:0,sense:0};
+// Names are shown as text; anything that could read as markup or control characters is dropped.
+function cleanName(s){return String(s??'').replace(/[\u0000-\u001f\u007f<>&"'`\\]/g,'').trim().slice(0,12)}
+if(saved?.dragon)for(const k in dragon)if(saved.dragon[k]!==undefined)dragon[k]=saved.dragon[k];
+dragon.name=cleanName(dragon.name);
+function dragonSave(){const e=pet||nest,f=(v,n)=>+v.toFixed(n);if(e){dragon.x=Math.max(0,Math.min(W-.01,e.x));dragon.y=Math.max(0,Math.min(H-1,e.y));dragon.z=Math.max(0,Math.min(W-.01,e.z));dragon.yaw=e.yaw}
+ dragon.riding=riding&&dragon.stage==='adult';const g=dragon;
+ return{stage:g.stage,name:g.name,warmth:f(g.warmth,2),growth:f(g.growth,1),joy:f(g.joy,1),follow:g.follow,riding:g.riding,x:f(g.x,2),y:f(g.y,2),z:f(g.z,2),yaw:f(g.yaw%6.2832,3),fed:g.fed,pets:g.pets,flights:g.flights,flyDist:Math.round(g.flyDist),sense:g.sense}}
+const isHatched=()=>dragon.stage==='baby'||dragon.stage==='young'||dragon.stage==='adult';
+const dragonName=()=>dragon.name||'ドラゴン';
+let pet=null,nest=null,petCD=0,breathCD=3,senseT=2,hatchT=0,rideV=0,rideVy=0,rideLand=false,camD=7,dragonActKey='',dragonHUDT=0,breathShown=false;
+const sensed=new Set();
+// Entities share the creature models and poses but live outside the natural life list (no culling, spawning caps or egg tools).
+function dragonEnt(sp,x,y,z,size){const c=lifeNew(sp,x,y,z,false,size);life.splice(life.indexOf(c),1);c.pet=true;c.sit=0;c.flutter=0;c.stuckT=0;c.idleT=0;c.flap=1;dragonEnts.push(c);return c}
+function dropEnt(c){const i=dragonEnts.indexOf(c);if(i>=0)dragonEnts.splice(i,1)}
+function dragonSpawnEnts(){
+ if(dragon.stage==='egg'&&!nest){nest=dragonEnt(NEST_SP,dragon.x,dragon.y,dragon.z,NEST_SIZE);nest.yaw=nest.want=dragon.yaw;nest.wob=0;nest.crack=0}
+ if(isHatched()&&!pet){pet=dragonEnt(DRAGON_SP,dragon.x,dragon.y,dragon.z,DRAGON_SIZE[dragon.stage]);pet.yaw=pet.want=dragon.yaw;pet.stageK=DRAGON_K[dragon.stage];pet.hx=dragon.x;pet.hz=dragon.z}}
+// Legendary chests: the egg is a rare roll, and guaranteed once the ancient clue is known or after two legendary chests without one,
+// so every world with caves can give its one partner. Extra eggs found later stay in the collection.
+function legendEgg(loot,tier){if(!LEGEND_TIERS.has(tier))return;
+ if(!loot.some(l=>l[0]==='dragonEgg')&&!items.dragonEgg&&dragon.stage==='none'&&(items.eggClue||items.eggChests>=2))loot.push(['dragonEgg',1]);items.eggChests++}
+// ---- Space for a body: every sample of a box (radius r, height h) is air or water in loaded terrain.
+function dragonFree(x,y,z,r,h){if(y<1||y+h>H-2)return false;
+ for(const ox of [-r,0,r])for(const oz of [-r,0,r]){const X=Math.floor(x+ox),Z=Math.floor(z+oz);for(let k=0;;k+=.9){const t=peek(X,Math.floor(y+Math.min(k,h-.02)),Z);if(t<0||(t>0&&t!==10))return false;if(k>=h-.02)break}}return true}
+function dragonMove(c,dx,dy,dz,r,h){const n=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy),Math.abs(dz))/.25)),hit={bx:false,by:false,bz:false};pkX=1e9;
+ for(let i=0;i<n;i++){if(dx&&!hit.bx){const x=c.x+dx/n;if(dragonFree(x,c.y,c.z,r,h))c.x=x;else hit.bx=true}
+  if(dz&&!hit.bz){const z=c.z+dz/n;if(dragonFree(c.x,c.y,z,r,h))c.z=z;else hit.bz=true}
+  if(dy&&!hit.by){const y=c.y+dy/n;if(dragonFree(c.x,y,c.z,r,h))c.y=y;else hit.by=true}}
+ c.x=Math.max(4,Math.min(W-4,c.x));c.z=Math.max(4,Math.min(W-4,c.z));return hit}
+// Out of rock first: a body that ended up overlapping terrain (uneven ground, a block placed into it) rises until it is free.
+function unstick(c,r,h,dt){if(dragonFree(c.x,c.y,c.z,r,h))return true;for(let k=1;k<=8;k++)if(dragonFree(c.x,c.y+k*.35,c.z,r,h)){c.y+=k*.35;return true}c.y=Math.min(H-8,c.y+dt*3);return false}
+function waterBelow(x,y,z){pkX=1e9;for(let k=0;k<48;k++){const t=peek(Math.floor(x),Math.floor(y)-k,Math.floor(z));if(t<0)return false;if(t===10)return true;if(t>0)return false}return false}
+// ---- The nest: in front of the player on firm, dry ground with room above (else at their feet).
+function nestSpot(){const fx=Math.sin(yaw),fz=Math.cos(yaw);pkX=1e9;
+ for(const d of [2,1.5,2.5,1,0]){const x=player.x+fx*d,z=player.z+fz*d,g=groundAt(x,z,player.y+1.5,4);if(g<-1e7)continue;const X=Math.floor(x),Z=Math.floor(z),u=peek(X,g-1,Z);
+  if(u<=0||u===10||peek(X,g,Z)!==0||peek(X,g+1,Z)!==0)continue;return{x:X+.5,y:g,z:Z+.5}}return null}
+function placeDragonEgg(){if(riding||dead)return false;
+ if(dragon.stage!=='none'){toast(dragon.stage==='egg'?'🥚 卵はもう巣で温めているよ':`🐉 ${dragonName()}がいるよ。ドラゴンは1つの世界に1匹`);return false}
+ if(!(items.dragonEgg>0)){toast('🥚 ドラゴンの卵を持っていないよ');return false}
+ const p=nestSpot();if(!p){toast('🥚 平らでかわいた地面の上で置いてね（水の中や空中には置けない）');return false}
+ items.dragonEgg--;Object.assign(dragon,{stage:'egg',x:p.x,y:p.y,z:p.z,yaw:Math.atan2(player.x-p.x,player.z-p.z)});dragonSpawnEnts();
+ for(let k=0;k<3;k++)burst(p.x,p.y+.5,p.z,k%2?'#c8fbff':'#e8d9a8',6);
+ announce('🥚 卵を巣に置いた','そばにいると温まる。「🥚 なでる」でも温めてあげよう','first');dirty=true;refresh();queueSave();return true}
+function liftDragonEgg(){if(dragon.stage!=='egg'||!nest)return false;if(Math.hypot(nest.x-player.x,nest.z-player.z)>6){toast('🥚 卵のそばで持ち上げてね');return false}
+ burst(nest.x,nest.y+.5,nest.z,'#e8d9a8',6);dropEnt(nest);nest=null;dragon.stage='none';items.dragonEgg++;hatchT=0;
+ toast('🥚 卵を大事に持った（ぬくもりはそのまま）');dirty=true;refresh();queueSave();return true}
+function nestTick(dt){const n=nest;if(!n)return;n.dormant=peek(Math.floor(n.x),1,Math.floor(n.z))<0;n.t+=dt;
+ const d=Math.hypot(player.x-n.x,player.y-n.y,player.z-n.z),before=dragon.warmth/HATCH_NEED;
+ if(d<10)dragon.warmth=Math.min(HATCH_NEED,dragon.warmth+dt*(items.crystal>0?1.5:1));
+ const f=dragon.warmth/HATCH_NEED;for(const [q,msg] of [[.34,'🥚 卵がコトッと動いた…'],[.67,'🥚 ひびが入った！ もう少し'],[.9,'🥚 中から小さな声がする…！']])if(before<q&&f>=q)toast(msg);
+ n.crack=Math.max(0,Math.min(1,(f-.3)/.5));n.wob=Math.max(0,(n.wob||0)-dt*1.6);if(Math.random()<dt*(.04+f*.25))n.wob=Math.max(n.wob,.7);
+ n.flash=f>.88?.1+.1*Math.sin(n.t*5):0;if((n.skyT-=dt)<=0){n.skyT=1.5;n.sky=skyOpen(n.x,n.y+.6,n.z)}
+ if(f>=1&&!hatchT&&d<14){hatchT=2.4;toast('🥚 卵が光っている…！')}
+ if(hatchT){n.wob=1.4;n.flash=.25+.2*Math.sin(n.t*14);if((hatchT-=dt)<=0){hatchT=0;hatch()}}}
+function hatch(){const n=nest;if(!n||dragon.stage!=='egg')return false;dropEnt(n);nest=null;
+ Object.assign(dragon,{stage:'baby',growth:0,joy:60,x:n.x,y:n.y,z:n.z,yaw:Math.atan2(player.x-n.x,player.z-n.z)});if(!dragon.name)dragon.name=DRAGON_NAMES[Math.floor(rand(seed&1023,917)*DRAGON_NAMES.length)%DRAGON_NAMES.length];
+ dragonSpawnEnts();pet.mode='happy';pet.timer=2.2;pet.flutter=2;
+ const fx=qualityName==='low'||loadScale<1?2:4;for(let k=0;k<fx;k++)burst(n.x,n.y+.5,n.z,k%2?'#2f8f9a':'#c8fbff',8);sfx('hatch');lifeVoice(pet,'kyu');
+ announce('🐉 ドラゴンが生まれた！',`名前は「${dragonName()}」。いっしょに冒険すると大きくなるよ`,'rare');dirty=true;refresh();queueSave();return true}
+// ---- Companion care: petting (the egg warms, the dragon is happy), apples, the name, follow / wait, calling it over.
+function petDragon(egg){if(petCD>0)return false;petCD=.7;dragon.pets++;dirty=true;
+ if(egg){if(!nest)return false;nest.wob=1.2;dragon.warmth=Math.min(HATCH_NEED,dragon.warmth+5);burst(nest.x,nest.y+.9,nest.z,'#ffb6d5',4);sfx('pet');toast(`🥚 ぬくもり ${Math.floor(dragon.warmth/HATCH_NEED*100)}%`);return true}
+ if(!pet)return false;dragon.joy=Math.min(100,dragon.joy+25);dragon.growth+=4;pet.mode='happy';pet.timer=1.4;pet.flutter=1;pet.sit=0;lifeVoice(pet,'kyu',.9);
+ burst(pet.x,pet.y+pet.sp.top*pet.size,pet.z,'#ffb6d5',4);toast(`🐉 ${dragonName()}はうれしそう ♥`);return true}
+function feedDragon(){if(!pet)return false;if(Math.hypot(pet.x-player.x,pet.z-player.z)>8){toast(`🍎 ${dragonName()}のそばであげてね`);return false}
+ if(dragon.joy>=90){toast(`🐉 ${dragonName()}はおなかいっぱい`);return false}
+ if(gameMode!=='creative'){if(!(items.apple>0)){toast('🍎 りんごがないよ（葉っぱ4つでクラフト）');return false}items.apple--}
+ dragon.fed++;dragon.joy=Math.min(100,dragon.joy+60);dragon.growth+=25;pet.mode='happy';pet.timer=1.6;pet.flutter=1.2;pet.sit=0;lifeVoice(pet,'kyu');sfx('eat');
+ burst(pet.x,pet.y+pet.sp.top*pet.size,pet.z,'#ff7a6a',4);toast(`🍎 ${dragonName()}がりんごを食べた！ ごきげん ♥`);dirty=true;refresh();return true}
+function renameDragon(){if(!isHatched())return false;let n=null;try{n=prompt('ドラゴンの名前（12文字まで）',dragon.name)}catch(e){}if(n===null||n===undefined)return false;
+ n=cleanName(n);if(!n){toast('名前を入れてね');return false}dragon.name=n;dirty=true;refresh();toast(`🐉 名前は「${n}」になった`);return true}
+function toggleFollow(){if(!pet)return false;dragon.follow=!dragon.follow;pet.hx=pet.x;pet.hz=pet.z;dirty=true;refresh();
+ toast(dragon.follow?`🐉 ${dragonName()}「ついていくね！」`:`🐉 ${dragonName()}はここで待っている`);return true}
+// A free spot beside the player for the dragon's body (dry floor, headroom, room sideways for a grown one).
+function petSpot(){const sz=pet.size,r=Math.min(.85,.45*sz),h=Math.max(.9,1.1*sz),r0=1.4+sz;pkX=1e9;
+ for(const rr of [r0,r0+1.5,r0+3])for(let i=0;i<9;i++){const a=yaw+Math.PI+(i%2?1:-1)*Math.ceil(i/2)*.62,x=player.x+Math.sin(a)*rr,z=player.z+Math.cos(a)*rr,g=groundAt(x,z,player.y+3,9);
+  if(g<-1e7)continue;const u=peek(Math.floor(x),g-1,Math.floor(z));if(u<=0||u===10)continue;if(!dragonFree(x,g+.05,z,r,h))continue;return{x,y:g,z}}return null}
+function petTeleport(){if(!pet)return false;const p=petSpot();if(!p)return false;if(!pet.dormant)burst(pet.x,pet.y+.6,pet.z,'#bff8ff',5);
+ Object.assign(pet,{x:p.x,y:p.y,z:p.z,vx:0,vy:0,vz:0,air:false,ground:true,stuckT:0,dormant:false,matrixValid:false,mode:'idle',timer:1});pet.yaw=pet.want=Math.atan2(player.x-p.x,player.z-p.z);pet.hx=p.x;pet.hz=p.z;
+ burst(p.x,p.y+.6,p.z,'#bff8ff',6);return true}
+function callDragon(){if(!pet||riding)return false;if(!petTeleport()){toast('📣 ここには呼べないみたい。ひらけた地面で呼んでね');return false}
+ dragon.follow=true;lifeVoice(pet,'kyu');toast(`📣 ${dragonName()}がとんできた！`);dirty=true;refresh();return true}
+// ---- Growth: time together (twice as fast while happy), apples and petting. Each stage is announced and the body grows smoothly.
+function growCheck(){const st=dragon.stage,need=GROW_NEED[st];if(!need||dragon.growth<need)return false;
+ dragon.stage=st==='baby'?'young':'adult';const adult=dragon.stage==='adult';if(pet){pet.mode='happy';pet.timer=2;pet.flutter=2;burst(pet.x,pet.y+1,pet.z,'#c8fbff',8);lifeVoice(pet,adult?'roar':'kyu')}
+ announce(adult?`🐉 ${dragonName()}が大人になった！`:`🐉 ${dragonName()}が大きくなった！`,adult?'背中に乗れるよ。近くで「🐉 乗る」→ ↑で空へ':'もう少しで背中に乗れそう','rare');dirty=true;refresh();queueSave();return true}
+function growthShare(){const st=dragon.stage;if(st==='egg')return dragon.warmth/HATCH_NEED;const need=GROW_NEED[st];if(!need)return 1;const from=st==='young'?GROW_NEED.baby:0;return Math.max(0,Math.min(1,(dragon.growth-from)/(need-from)))}
+// ---- The partner's behaviour when not ridden: follow (or wait), sit and look up, flutter, chirp; never lost for long.
+function petThink(c,dt){const dx=player.x-c.x,dy=player.y-c.y,dz=player.z-c.z,dist=Math.hypot(dx,dz),k=c.stageK??1,fol=dragon.follow;
+ c.t+=dt;c.timer-=dt;if(c.talk>0)c.talk=Math.max(0,c.talk-dt);if(c.flutter>0)c.flutter-=dt;if(c.sq)c.sq*=Math.max(0,1-dt*7);
+ if((c.skyT-=dt)<=0){c.skyT=1+Math.random();c.sky=skyOpen(c.x,c.y+c.sp.top*c.size,c.z)}
+ if(c.mode==='happy'&&c.timer<=0)c.mode='idle';
+ // Too far, stuck for a while, or left on another level: hop back beside the player.
+ if(fol&&(dist>40||(c.stuckT>3&&dist>6)||(!c.air&&Math.abs(dy)>10&&dist<20&&!flying))&&petTeleport())return;
+ const adult=dragon.stage==='adult';
+ if(c.air){petFly(c,dt,dx,dy,dz,dist);return}
+ if(fol&&adult&&(flying||dist>16||(dy>5&&dist<30))){c.air=true;c.vy=4;c.vx=c.vz=0;c.sit=0;lifeVoice(c,'kyu',.6);return}
+ let want=0;
+ if(fol&&dist>3.4){c.mode='walk';c.want=Math.atan2(dx,dz);want=dist>8?c.sp.run*(.75+.25*k):c.sp.sp*(.8+.4*k)}
+ else if(!fol&&Math.hypot(c.hx-c.x,c.hz-c.z)>4){c.mode='walk';c.want=Math.atan2(c.hx-c.x,c.hz-c.z);want=c.sp.sp}
+ else if(c.mode!=='happy')c.mode='idle';
+ if(want>0){c.idleT=0;c.sit=Math.max(0,c.sit-dt*3)}else{c.idleT+=dt;if(c.idleT>4&&c.mode==='idle')c.sit=Math.min(1,c.sit+dt*1.5);if(Math.random()<dt*.05)c.flutter=.7}
+ c.speed=want;const ox=c.x,oz=c.z;lifeWalk(c,dt);lifeGravity(c,dt);
+ if(want>0){const moved=Math.hypot(c.x-ox,c.z-oz);c.stuckT=moved<want*dt*.25?c.stuckT+dt:Math.max(0,c.stuckT-dt)}else c.stuckT=0;
+ lifeLook(c,dt,dx,dy,dz,Math.hypot(dx,dz));
+ if((c.voiceT-=dt)<=0){c.voiceT=12+Math.random()*24;if(dist<22)lifeVoice(c,'kyu',.7)}}
+// A grown dragon flies after a flying (or far) player and lands beside them on foot.
+function petFly(c,dt,dx,dy,dz,dist){const land=!flying&&!riding&&dist<7&&dy<2,tx=player.x-Math.sin(yaw)*3,tz=player.z-Math.cos(yaw)*3,ex=tx-c.x,ez=tz-c.z,eh=Math.hypot(ex,ez);
+ const ty=land?player.y-1:player.y+3,spd=Math.min(14,eh*1.1+1),kk=Math.min(1,dt*1.6);c.vx+=((eh>.5?ex/eh*spd:0)-c.vx)*kk;c.vz+=((eh>.5?ez/eh*spd:0)-c.vz)*kk;
+ c.vy+=(Math.max(-4,Math.min(5,(ty-c.y)*1.2))-c.vy)*Math.min(1,dt*2);unstick(c,RIDE_R,2.1,dt);
+ const h=dragonMove(c,c.vx*dt,c.vy*dt,c.vz*dt,RIDE_R,2.1);if(h.bx||h.bz)c.vy=Math.max(c.vy,4);
+ if(h.by&&c.vy<=0&&land){c.air=false;c.vx=c.vy=c.vz=0;c.ground=true;c.mode='idle';c.timer=1;return}
+ const hs=Math.hypot(c.vx,c.vz);if(hs>.6)c.yaw+=angTo(c.yaw,Math.atan2(c.vx,c.vz))*Math.min(1,dt*3);else c.yaw+=angTo(c.yaw,Math.atan2(dx,dz))*Math.min(1,dt*2);
+ c.pitch+=(Math.atan2(c.vy,Math.max(hs,2))*.6-c.pitch)*Math.min(1,dt*3);c.roll*=Math.max(0,1-dt*3);c.flap=1;c.speed=hs}
+// ---- Riding. Stick forward / back = speed, left / right = turn (swiping looks and turns too); ↑ / ↓ climb and descend.
+// On the ground the dragon walks and steps up one block; ↑ takes off. Bumping into a hill lifts it over; it hovers above water,
+// and 降りる in the air lands first (never over water).
+function seatY(c){return 17.6/16*c.size}
+function mount(){if(!pet||dragon.stage!=='adult'||riding||dead||paused)return false;if(Math.hypot(pet.x-player.x,pet.z-player.z)>6)return false;
+ flying=false;riding=true;dragon.riding=true;rideV=0;rideVy=0;rideLand=false;camD=4;yaw=pet.yaw;pitch=-.22;pet.sit=0;pet.mode='ride';dig=null;
+ document.body.classList.add('riding');player.x=pet.x;player.z=pet.z;player.y=pet.y+seatY(pet);lifeVoice(pet,'kyu');dirty=true;refresh();
+ toast(dragon.flights?`🐉 ${dragonName()}に乗った`:`🐉 ${dragonName()}に乗った！ ↑で空へ・スティックで進む`);return true}
+function footSpot(c){pkX=1e9;const r0=1.2+c.size*.6;
+ for(const rr of [r0,r0+1,r0+2])for(let i=0;i<8;i++){const a=c.yaw+Math.PI/2+i*.785,x=c.x+Math.sin(a)*rr,z=c.z+Math.cos(a)*rr,g=groundAt(x,z,c.y+2.5,6);
+  if(g<-1e7)continue;const u=peek(Math.floor(x),g-1,Math.floor(z));if(u<=0||u===10)continue;const p={x,y:g+.02,z};if(!collides(p))return p}return null}
+function dismount(){if(!riding||!pet)return false;const c=pet;
+ if(c.air){if(waterBelow(c.x,c.y,c.z)){toast('🌊 水の上では降りられないよ。陸まで飛ぼう');return false}if(!rideLand){rideLand=true;toast('🐉 着地するよ…')}return true}
+ const p=footSpot(c);if(!p){toast('ここでは降りられないみたい。少し動いてみて');return false}
+ riding=false;dragon.riding=false;rideLand=false;player.x=p.x;player.y=p.y;player.z=p.z;vy=0;ground=false;c.mode='idle';c.timer=1;c.idleT=0;c.speed=0;
+ document.body.classList.remove('riding');dirty=true;refresh();toast(`🐉 ${dragonName()}から降りた`);return true}
+// Forced end (respawn, teleports from the title menu): the player is moved elsewhere and the dragon comes down where it is.
+function endRide(){if(!riding)return;riding=false;dragon.riding=false;rideLand=false;document.body.classList.remove('riding');if(pet){pet.mode='idle';pet.vx=pet.vy=pet.vz=0}}
+function takeOff(c){c.air=true;rideVy=6.5;dragon.flights++;lifeVoice(c,'roar');sfx('flap');burst(c.x,c.y+.2,c.z,'#e9efe9',6);
+ if(dragon.flights===1)announce('🐉 はじめての空！','↑上昇・↓下降・スティックで進む。「降りる」で着地','rare');dirty=true}
+function rideStep(dt){const c=pet;if(!c||dragon.stage!=='adult'){endRide();return}
+ const right=Math.max(-1,Math.min(1,(keys.KeyD?1:0)-(keys.KeyA?1:0)+joy.x)),fwd=Math.max(-1,Math.min(1,(keys.KeyW?1:0)-(keys.KeyS?1:0)-joy.y));
+ const up=riseHeld||keys.Space,down=descendHeld||keys.KeyQ||keys.ControlLeft||keys.ControlRight;
+ yaw+=right*1.6*dt;c.yaw+=angTo(c.yaw,yaw)*Math.min(1,dt*(c.air?2.2:3.5));const turn=angTo(c.yaw,yaw);c.t+=dt;if(c.talk>0)c.talk=Math.max(0,c.talk-dt);
+ if((c.skyT-=dt)<=0){c.skyT=1;c.sky=skyOpen(c.x,c.y+c.sp.top*c.size,c.z)}
+ if(rideLand&&!c.air){rideLand=false;if(!dismount())return}
+ if(!c.air){const target=Math.max(0,fwd)*5.2-Math.max(0,-fwd)*2;rideV+=(target-rideV)*Math.min(1,dt*5);unstick(c,WALK_R,RIDE_H,dt);
+  const mv=dragonMove(c,Math.sin(c.yaw)*rideV*dt,0,Math.cos(c.yaw)*rideV*dt,WALK_R,RIDE_H);
+  if((mv.bx||mv.bz)&&Math.abs(rideV)>.5&&dragonFree(c.x,c.y+1.05,c.z,WALK_R,RIDE_H))c.y+=1.05;
+  rideVy-=22*dt;const g=dragonMove(c,0,rideVy*dt,0,WALK_R,RIDE_H);if(g.by&&rideVy<0)rideVy=0;
+  c.speed=Math.abs(rideV);c.ph+=rideV*dt*6.2832/(1.3*c.size);c.pitch*=.85;c.roll*=.85;
+  if(up||peek(Math.floor(c.x),Math.floor(c.y+.3),Math.floor(c.z))===10)takeOff(c)}
+ else{const boost=keys.ShiftLeft?1.45:1,target=Math.max(0,fwd)*FLY_SPEED*boost;rideV+=(target-rideV)*Math.min(1,dt*(target>rideV?1.6:2.2));
+  const vyT=rideLand?-5:((up?1:0)-(down?1:0))*6;rideVy+=(vyT-rideVy)*Math.min(1,dt*3);
+  unstick(c,RIDE_R,RIDE_H,dt);const x0=c.x,z0=c.z,mv=dragonMove(c,Math.sin(c.yaw)*rideV*dt,rideVy*dt,Math.cos(c.yaw)*rideV*dt,RIDE_R,RIDE_H);
+  if(mv.bx||mv.bz){rideVy=Math.max(rideVy,4);rideV*=.7}
+  // Hover just above water; touching firm ground while descending lands.
+  const X=Math.floor(c.x),Z=Math.floor(c.z);if(peek(X,Math.floor(c.y-.2),Z)===10||peek(X,Math.floor(c.y),Z)===10){let y=Math.floor(c.y);while(peek(X,y,Z)===10&&y<H-3)y++;if(c.y<y+.35){c.y=y+.35;rideVy=Math.max(0,rideVy)}if(rideLand){rideLand=false;toast('🌊 水の上では降りられないよ。陸まで飛ぼう')}}
+  else if(mv.by&&rideVy<0){c.air=false;rideVy=0;rideV*=.4;sfx('thunk');burst(c.x,c.y+.1,c.z,'#e9efe9',5)}
+  if(c.y>H-8){c.y=H-8;rideVy=Math.min(0,rideVy)}
+  dragon.flyDist+=Math.hypot(c.x-x0,c.z-z0);
+  c.pitch+=(Math.atan2(rideVy,Math.max(rideV,2))*.6-c.pitch)*Math.min(1,dt*3);c.roll+=(Math.max(-.55,Math.min(.55,-turn*1.3))-c.roll)*Math.min(1,dt*3);
+  const flapW=rideVy>.5||rideV<6||up?1:Math.sin(c.t*.45)>.55?.8:.12;c.flap+=(flapW-c.flap)*Math.min(1,dt*2.5);c.speed=rideV}
+ player.x=c.x;player.z=c.z;player.y=c.y+seatY(c);vy=0;ground=false}
+// Third person behind the dragon, looking where the player looks; it pulls in (at once) when rock is in the way, then eases back out.
+function rideCamera(){const c=pet,tx=c.x,ty=c.y+c.size*1.45+.6,tz=c.z,cp=Math.cos(pitch),dx=Math.sin(yaw)*cp,dy=Math.sin(pitch),dz=Math.cos(yaw)*cp,want=3.4+4.2*c.size/1.9;
+ let d=want;pkX=1e9;for(let t=.6;t<=want;t+=.35){const b=peek(Math.floor(tx-dx*t),Math.floor(ty-dy*t),Math.floor(tz-dz*t));if(b<0||(b>0&&b!==10)){d=Math.max(.8,t-.45);break}}
+ camD+=(d-camD)*(d<camD?1:.06);return{x:tx-dx*camD,y:ty-dy*camD,z:tz-dz*camD,yaw,pitch:pitch+camKick}}
+// The rider: a few blocks on the dragon's back that follow its heading, pitch and roll (same root transform as the creature model).
+function drawRider(a){const c=pet,cy=Math.cos(c.yaw),sy=Math.sin(c.yaw),cx=Math.cos(-c.pitch),sx=Math.sin(-c.pitch),cz=Math.cos(c.roll),sz=Math.sin(c.roll),s=seatY(c)-.05,zo=.12*c.size;
+ const T=p=>{const x=p[0],y=p[1],z=p[2]+zo;return[c.x+(cy*cz+sy*sx*sz)*x+(-cy*sz+sy*sx*cz)*y+sy*cx*z,c.y+cx*sz*x+cx*cz*y-sx*z,c.z+(-sy*cz+cy*sx*sz)*x+(sy*sz+cy*sx*cz)*y+cy*cx*z]};
+ const w=.62*c.size/1.9;cuboid(a,-w-.14,s-.5,-.12,.16,.62,.26,'#3a4a6a',0,T);cuboid(a,w-.02,s-.5,-.12,.16,.62,.26,'#3a4a6a',0,T);cuboid(a,-w,s-.04,-.14,w*2,.2,.3,'#3a4a6a',0,T);
+ cuboid(a,-.22,s+.12,-.14,.44,.62,.28,'#467e83',0,T);cuboid(a,-.36,s+.44,-.04,.13,.13,.46,'#467e83',0,T);cuboid(a,.23,s+.44,-.04,.13,.13,.46,'#467e83',0,T);
+ cuboid(a,-.2,s+.76,-.16,.4,.4,.4,'#d9a77c',0,T);cuboid(a,-.21,s+1.08,-.17,.42,.12,.42,'#3a2a1e',0,T);cuboid(a,-.21,s+.82,-.18,.42,.28,.1,'#3a2a1e',0,T)}
+// ---- Grown-up help, kept small: a cold breath at a monster that is after the player (no terrain change, survival only),
+// and a nose for treasure (a closed chest close by is pointed out once).
+function dragonBreath(dt){if(gameMode!=='survival'||dragon.stage!=='adult'||!pet||pet.dormant)return;if((breathCD-=dt)>0)return;breathCD=.5;
+ let best=null,bd=9;for(const m of life){if(!m.sp.hostile||m.dormant||m.vanish>=0||m.sp.id==='guardian'||!(m.aggro>0))continue;const d=Math.hypot(m.x-pet.x,m.z-pet.z);
+  if(d<bd&&Math.abs(m.y-pet.y)<5&&Math.hypot(m.x-player.x,m.z-player.z)<14){bd=d;best=m}}
+ const s=pet.size/16,mx=pet.x+Math.sin(pet.yaw)*19*s,my=pet.y+25*s,mz=pet.z+Math.cos(pet.yaw)*19*s;if(!best||!canSee(best,mx,my,mz))return;
+ breathCD=7;pet.want=Math.atan2(best.x-pet.x,best.z-pet.z);if(!riding)pet.yaw=pet.want;pet.talk=.6;
+ const n=qualityName==='low'||loadScale<1?5:9,tx=best.x,ty=best.y+best.sp.top*best.size*.5,tz=best.z;
+ for(let i=0;i<n;i++){const k=i/n;particles.push({x:mx+(tx-mx)*k,y:my+(ty-my)*k,z:mz+(tz-mz)*k,vx:(Math.random()-.5)*.8,vy:.6,vz:(Math.random()-.5)*.8,life:.45+k*.3,color:i%2?'#bff8ff':'#7fe8ff'})}
+ if(!(best.mhp>0))best.mhp=monsterMaxHP(best);best.mhp-=4;best.hurtF=1;best.barT=4;sfx('breath',pet);
+ const ex=best.x-pet.x,ez=best.z-pet.z,el=Math.hypot(ex,ez)||1;best.kbx=ex/el*5;best.kbz=ez/el*5;if(best.mode==='windup'||best.mode==='aim'){best.mode='recover';best.timer=.8;best.flash=0}
+ if(!breathShown){breathShown=true;toast(`❄ ${dragonName()}の氷のブレス！`)}if(best.mhp<=0)defeatMonster(best)}
+function dragonSense(dt){if(!pet||pet.dormant||(dragon.stage!=='young'&&dragon.stage!=='adult')||!ORES)return;if((senseT-=dt)>0)return;senseT=2.5;pkX=1e9;
+ for(const [i] of chestInfo){if(sensed.has(i))continue;const x=i%W,z=Math.floor(i/W)%W,y=Math.floor(i/(W*W)),dx=x+.5-pet.x,dz=z+.5-pet.z;
+  if(Math.abs(dx)>24||Math.abs(dz)>24||Math.abs(y-pet.y)>14||peek(x,y,z)!==B_CHEST)continue;sensed.add(i);dragon.sense++;dirty=true;
+  if(!riding){pet.want=Math.atan2(dx,dz);pet.mode='happy';pet.timer=1.2}lifeVoice(pet,'kyu');
+  toast(`🐉 ${dragonName()}が宝箱の気配に気づいた！ ${DIR8[Math.round(compassBearing(dx,dz)/45)%8]}の方`);return}}
+// ---- Per frame (play only).
+function dragonTick(dt){petCD=Math.max(0,petCD-dt);if(dragon.stage==='egg'){nestTick(dt);return}if(!pet)return;
+ pet.dormant=peek(Math.floor(pet.x),1,Math.floor(pet.z))<0;
+ if(riding){}else if(pet.dormant){if(dragon.follow&&readyR>=1)petTeleport()}else petThink(pet,dt);
+ const near=riding||(!pet.dormant&&Math.hypot(player.x-pet.x,player.z-pet.z)<18);dragon.joy=Math.max(0,dragon.joy-dt*.35);
+ if(dragon.stage!=='adult'&&near)dragon.growth+=dt*(dragon.joy>0?2:1);growCheck();
+ const S=DRAGON_SIZE[dragon.stage],K=DRAGON_K[dragon.stage];if(Math.abs(pet.size-S)>.002){pet.size+=(S-pet.size)*Math.min(1,dt*.8);pet.stageK+=(K-pet.stageK)*Math.min(1,dt*.8)}else{pet.size=S;pet.stageK=K}
+ dragonBreath(dt);dragonSense(dt)}
+// The one context button (left, above the stick): pet the egg or the young one, ride the grown one, get off.
+const DRAGON_ACT={egg:'🥚 なでる',pet:'🐉 なでる',ride:'🐉 乗る',off:'🐉 降りる'};
+function dragonActKind(){if(paused||photoMode||dead)return'';if(riding)return'off';
+ if(nest&&!nest.dormant&&Math.hypot(nest.x-player.x,nest.z-player.z)<3.2&&Math.abs(nest.y-player.y)<2.5)return'egg';
+ if(pet&&!pet.dormant&&Math.abs(pet.y-player.y)<3){const d=Math.hypot(pet.x-player.x,pet.z-player.z);if(dragon.stage==='adult'&&!pet.air&&d<2.6+pet.size)return'ride';if(dragon.stage!=='adult'&&d<3.4)return'pet'}return''}
+function dragonAct(){const k=dragonActKind();if(k==='off')return dismount();if(k==='ride')return mount();if(k==='egg')return petDragon(true);if(k==='pet')return petDragon(false);return false}
+function dragonHUD(dt){if((dragonHUDT-=dt)>0)return;dragonHUDT=.12;const k=dragonActKind(),el=$('dragonAct');if(k!==dragonActKey){dragonActKey=k;el.textContent=k?DRAGON_ACT[k]:'';el.classList.toggle('hidden',!k)}}
+$('dragonAct').addEventListener('pointerdown',e=>{e.preventDefault();dragonAct()});
+// ---- Craft / inventory screen: state, growth, care buttons and the dragon record (names are cleaned, so markup is safe).
+let dragonKey='';
+function dragonUI(){const box=$('dragonBox');if(!box)return;const st=dragon.stage,nm=dragonName(),key=JSON.stringify([dragon,items.dragonEgg,items.apple,items.crystal,items.found&FOUND_BIT.dragonEgg,gameMode,!!pet]);if(key===dragonKey)return;dragonKey=key;
+ const bar=(f,label)=>`<div class="dragon-bar"><i style="width:${Math.round(f*100)}%"></i></div><span class="dragon-note">${label}</span>`,btn=(a,t)=>`<button data-dact="${a}">${t}</button>`;
+ let h='<div class="craft-head">🐉 ドラゴン</div>';
+ if(st==='none'){h+=items.dragonEgg>0?`<p>🥚 ドラゴンの卵 ×${items.dragonEgg}。巣に置いて温めると…？</p><div class="dragon-row">${btn('place','🥚 卵を巣に置く（目の前の地面）')}</div>`:
+   `<p>まだ卵を見つけていない。結晶洞窟・滝の裏・海底の宝箱に眠るという…</p>`}
+ else if(st==='egg')h+=`<p>🥚 巣の卵（${dragon.warmth>=HATCH_NEED?'もうすぐ生まれる！':'温め中'}）</p>`+bar(dragon.warmth/HATCH_NEED,`ぬくもり ${Math.floor(dragon.warmth/HATCH_NEED*100)}% — そばにいると温まる・「🥚 なでる」でも${items.crystal>0?'（不思議な結晶の光で早い）':''}`)+`<div class="dragon-row">${btn('lift','卵を持ち上げる')}</div>`;
+ else{const joy=Math.round(dragon.joy/20);h+=`<p><b>${nm}</b>（${STAGE_NAME[st]}）　ごきげん ${'★'.repeat(joy)}${'☆'.repeat(5-joy)}</p>`+
+   (st==='adult'?`<span class="dragon-note">✓ 背中に乗れる！ 近くで「🐉 乗る」→ ↑で空へ</span>`:bar(growthShare(),`成長 ${Math.floor(growthShare()*100)}% — ${st==='baby'?'若いドラゴン':'成体（騎乗できる）'}まで。いっしょにいる・なでる・りんごで育つ`))+
+   `<div class="dragon-row">${btn('feed','🍎 りんごをあげる'+(gameMode==='creative'?'':'（'+items.apple+'）'))}${btn('follow',dragon.follow?'✋ ここで待って':'🐾 ついてきて')}${btn('call','📣 呼ぶ')}${btn('name','✏ 名前')}</div>`}
+ const km=dragon.flyDist>=1000?(dragon.flyDist/1000).toFixed(1)+'km':Math.round(dragon.flyDist)+'m';
+ h+=`<div class="dragon-log">📜 卵 ${items.found&FOUND_BIT.dragonEgg?'発見 ✓':'未発見'} / 孵化 ${isHatched()?'✓':'—'} / 騎乗 ${st==='adult'?'できる ✓':'まだ'}`+(dragon.flights?` / 飛んだ回数 ${dragon.flights}・距離 ${km}`:'')+(dragon.sense?` / 宝箱の気配 ${dragon.sense}`:'')+`</div>`;
+ box.innerHTML=h}
+$('dragonBox').onclick=e=>{const b=e.target?.closest?.('[data-dact]');if(!b)return;const a=b.getAttribute('data-dact');
+ if(a==='place'){play();placeDragonEgg()}else if(a==='lift')liftDragonEgg();else if(a==='feed')feedDragon();else if(a==='follow')toggleFollow();else if(a==='call'){play();callDragon()}else if(a==='name')renameDragon();dragonKey='';dragonUI()};
+dragonSpawnEnts();
+// A save made in flight resumes in flight (when the dragon is still under the saved player); otherwise the rider is on foot.
+if(dragon.riding&&pet&&dragon.stage==='adult'&&Math.hypot(pet.x-player.x,pet.z-player.z)<3){riding=true;pet.air=true;pet.mode='ride';camD=4;document.body.classList.add('riding')}else dragon.riding=false;
+dragonReady=true;
+
 // ---- Modes: switching is always safe (from the title menu). Entering survival lands the player and grants a short shield.
 function setGameMode(m){if(!GAME_MODES.includes(m))return;const was=gameMode;gameMode=m;creative=m==='creative';dirty=true;
  if(m==='survival'){if(flying){flying=false;vy=0}if(was!=='survival'){if(health<=0)health=MAX_HP;protectT=Math.max(protectT,3);if(monsterNotice())toast(monsterNotice())}}
@@ -3686,14 +3974,20 @@ function updateSurvival(dt){dungeonTick(dt);atkCD=Math.max(0,atkCD-dt);invulT=Ma
 const GUIDE=[()=>'🌳 木（原木）に向かって「壊す」で集めよう<small>PC：左クリック</small>',()=>'🛠 「クラフト」で 原木→木材、木材3つで<b>木の剣</b>をつくろう',
  ()=>inSafe(player.x,player.z)?'🧭 安全地帯の外へ冒険しよう！ 夜になるとモンスターが出るよ<small>出発地点のまわりは安全。上のコンパスの⌂が出発地点</small>':'⚔ 敵に向かって「攻撃」<small>PC：左クリック。敵が光ったら攻撃の合図、下がってよけよう</small>',()=>'🍎 ♥が減ったら りんご（右上）で回復<small>葉っぱ4つでクラフト・少しずつ自然にも回復するよ</small>'];
 // v16 adventure goals, in order: pickaxes -> iron -> iron gear -> a treasure chest -> diamonds -> the dragon egg.
-function goalHint(){if(!ORES)return'';const pk=pickaxe().tier;
+function goalHint(){if(!ORES)return dragonHint();const pk=pickaxe().tier;
  if(pk<1)return'⛏ 木材3で「木のツルハシ」をつくろう<small>クラフト画面で。石炭が掘れて、石もはやく掘れる</small>';
  if(pk<2)return'⛏ 石3＋木材2で「石のツルハシ」をつくろう<small>これで鉄鉱石（茶色の点がある石）が掘れる</small>';
  if(!(items.found&FOUND_BIT.iron))return'🕳 洞窟で鉄鉱石をさがそう<small>上のコンパスの🕳が近くの洞窟の入口</small>';
  if(!items.ironSword&&!items.ironPick&&!items.ironArmor)return'🛠 鉄で「鉄の剣」「鉄のツルハシ」をつくろう<small>クラフト画面の「つくれる！」が目印</small>';
  if(!items.chests)return'🎁 洞窟の奥で宝箱をさがそう<small>大きな空洞・地底湖・結晶洞窟。宝箱はキラキラ光る</small>';
  if(!(items.found&FOUND_BIT.diamond))return'💎 洞窟のいちばん深いところでダイヤをさがそう<small>水色に光る石。鉄のツルハシで掘れる</small>';
- if(!items.dragonEgg)return'🥚 伝説の「ドラゴンの卵」は結晶洞窟や海底の宝箱に…？';return''}
+ return dragonHint()}
+// v18: after the egg, the hints follow the dragon (old worlds without chests only see them once a dragon exists).
+function dragonHint(){const st=dragon.stage,n=dragonName();
+ if(st==='none')return items.dragonEgg>0?'🥚 クラフト画面の「ドラゴン」で卵を巣に置こう<small>そばにいると温まって、いつか…</small>':ORES?'🥚 伝説の「ドラゴンの卵」は結晶洞窟や海底の宝箱に…？':'';
+ if(st==='egg')return'🥚 卵のそばにいて温めよう<small>「🥚 なでる」でも温まる。不思議な結晶を持っていると早い</small>';
+ if(st!=='adult')return`🐉 ${n}といっしょに冒険して育てよう<small>なでたり、りんごをあげると ごきげんで早く育つ</small>`;
+ if(!dragon.flights)return`🐉 ${n}が大人になった！ 近くで「🐉 乗る」<small>↑で空へ・↓で下降・「降りる」で着地</small>`;return''}
 function guideTick(){const now=performance.now();let step=guideStep;
  if(step===0&&((inventory[4]||0)+(inventory[13]||0)>0||weapon()!==FIST))step=1;if(step===1&&weapon()!==FIST)step=2;if(step===2&&defeated>0){step=3;guideUntil=now+9000}if(step===3&&!guideUntil)guideUntil=now+9000;if(step===3&&now>guideUntil)step=4;
  if(step!==guideStep){guideStep=step;try{localStorage.setItem('jocraft2-guide',String(step))}catch(e){}}
@@ -3729,6 +4023,9 @@ function sfx(kind,src){if(!sound||sound.state!=='running')return;try{let vol=1;i
   case'first':[523,659,784,1047].forEach((f,i)=>tone('triangle',f,f,.2,.2,i*.08));tone('sine',1568,1568,.35,.12,.34);break;
   case'rare':[784,988,1175,1568,1976].forEach((f,i)=>tone('sine',f,f*1.005,.22,.18,i*.07));noise(.4,.08,'highpass',5000,.1);break;
   case'chest':noise(.25,.25,'lowpass',420);[523,659,784,1047,1319].forEach((f,i)=>tone('triangle',f,f,.18,.16,.12+i*.06));break;
+  case'hatch':for(let i=0;i<4;i++)noise(.06,.4,'bandpass',1800+i*300,i*.12);[659,784,988,1319,1568].forEach((f,i)=>tone('sine',f,f*1.004,.3,.16,.55+i*.09));break;
+  case'pet':tone('sine',880,1320,.16,.12);tone('sine',1320,1760,.18,.1,.12);break;case'flap':noise(.35,.35,'lowpass',380);noise(.3,.25,'lowpass',420,.32);break;
+  case'breath':noise(.6,.3,'bandpass',2600);tone('sine',1700,900,.5,.06);break;
   case'down':tone('triangle',392,196,.6,.3);tone('triangle',294,147,.8,.25,.3);break;case'revive':[392,523,659,784].forEach((f,i)=>tone('sine',f,f,.25,.2,i*.09));break}}catch(e){}}
 // A world saved on the respawn screen comes back at the start point with full hearts.
 if(gameMode==='survival'&&health<=0){health=MAX_HP;spawn();protectT=5}
@@ -3796,6 +4093,7 @@ function moveAxis(axis,d){
 }
 function update(dt){
  if(photoMode)return;
+ if(riding){rideStep(dt);return}
  let right=(keys.KeyD?1:0)-(keys.KeyA?1:0)+joy.x,forward=(keys.KeyW?1:0)-(keys.KeyS?1:0)-joy.y;
  const n=Math.max(1,Math.hypot(right,forward));right/=n;forward/=n;
  const water=get(Math.floor(player.x),Math.floor(player.y+1),Math.floor(player.z))===10;
@@ -3883,7 +4181,7 @@ function render(cam,titleOpen,w,h){
  for(const ch of visible)if(ch.waterQuads)drawQuads(ch.water,ch.waterQuads,bind,36);
  if(waterProg){useProgram(mainProg,4)}
  gl.depthMask(true);gl.disable(gl.BLEND);
- if(!titleOpen&&!photoMode){hit=ray();drawOutline();drawTool()}else hit=null;
+ if(!titleOpen&&!photoMode&&!riding){hit=ray();drawOutline();drawTool()}else hit=null;
 }
 // Navigation HUD uses only the existing player coordinates and yaw; it never queries terrain.
 const compassHUD=$('compass'),compassTrack=$('compassTrack'),compassHeading=$('compassHeading');
@@ -3955,7 +4253,7 @@ function frame(now){
  if(bench)benchStep(raw,dt);
  if(!paused){time+=dt;update(dt);animateWorld(dt);advanceDay(dt);wonderTick(now)}
  else if(titleOpen){time+=dt*.65;updateLife(dt*.65,titleCamera())} // Keep the background grass, water, clouds and creatures alive.
- chestTick(dt);
+ chestTick(dt);dragonHUD(dt);
  // Wind alternates between calm spells and gusty periods; grass, leaves and clouds share it.
  windStr=Math.min(1,Math.max(0,.45+.55*Math.sin(time*.07)*Math.sin(time*.031+1.7)+.25*Math.sin(time*.19)));cloudDrift+=dt*(.5+windStr*1.6);
  updateCave(dt,titleOpen);
@@ -3964,13 +4262,13 @@ function frame(now){
  const ratio=Math.min(devicePixelRatio||1,Q.dpr)*renderScale,w=Math.max(1,Math.floor(innerWidth*ratio)),h=Math.max(1,Math.floor(innerHeight*ratio));
  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}
  gl.viewport(0,0,w,h);
- const cam=titleOpen?titleCamera():{x:player.x,y:player.y+1.62,z:player.z,yaw,pitch:pitch+camKick};
+ const cam=titleOpen?titleCamera():riding&&pet?rideCamera():{x:player.x,y:player.y+1.62,z:player.z,yaw,pitch:pitch+camKick};
  frameCloudMs=0;if(renderReady){render(cam,titleOpen,w,h);if(perfEnabled)perfStats.renderFrames=(perfStats.renderFrames||0)+1}
  const lodStart=performance.now();lodWork(Q.budget*.6*loadScale,64);
  if(!paused){perfFrames++;perfTime+=raw;perfBuildMs+=buildMs+frameCloudMs+performance.now()-lodStart;if(perfTime>2){adaptPerformance(perfFrames/perfTime,perfBuildMs/perfFrames);perfFrames=0;perfTime=0;perfBuildMs=0}}
  if(!titleOpen){const label=hit?targetLabel(hit):'';if($('target').textContent!==label)$('target').textContent=label}
  frames++;fpsTime+=raw;
- if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;if(!paused){$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${flying?'飛行':MODE_LABEL[gameMode]}${gameMode==='survival'?' · ♥'+Math.ceil(health/2)+(lifeMode==='all'?'':' · 敵なし'):''}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}}
+ if(fpsTime>1){fps=Math.round(frames/fpsTime);frames=0;fpsTime=0;if(!paused){$('statsSummary').textContent=`${sunFromTime(dayTime)[1]>-.05?'☀':'☾'} ${clockText()} · ${riding?'🐉 騎乗':flying?'飛行':MODE_LABEL[gameMode]}${gameMode==='survival'?' · ♥'+Math.ceil(health/2)+(lifeMode==='all'?'':' · 敵なし'):''}`;$('statsDetails').textContent=`${Math.floor(player.x)}, ${Math.floor(player.y)}, ${Math.floor(player.z)} · ${fps} FPS · 画質${Q.label}${renderScale<1?' '+Math.round(renderScale*100)+'%':''} · 生き物${life.length}`}}
  if(findUntil&&now>findUntil){findUntil=0;$('find').classList.add('hidden')}else if(findUntil&&$('find').classList.contains('hidden'))$('find').classList.remove('hidden');
  if(lootUntil&&now>lootUntil){lootUntil=0;$('loot').classList.add('hidden')}
  const opacity=now>toastUntil?'0':'1';if($('hint').style.opacity!==opacity)$('hint').style.opacity=opacity;
