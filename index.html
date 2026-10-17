@@ -223,7 +223,16 @@ body.riding .actions #down{display:block!important}body.riding .actions #down,bo
 #bossTrack{height:8px;background:#163035;border:1px solid #8acbd1;border-radius:5px;overflow:hidden;margin:4px 0}#bossFill{height:100%;background:linear-gradient(90deg,#3a9b96,#a4f3ff)}#bossTell{font-size:11px;color:#d6fcff}
 body.photo-mode #bossHUD,body:has(#menu:not(.hidden)) #bossHUD,body:has(#craft:not(.hidden)) #bossHUD{display:none!important}
 @media(max-height:480px){#bossHUD{top:max(8px,env(safe-area-inset-top));width:180px;left:14px;transform:none;font-size:10px}}
-</style><div id="bossHUD" class="hidden" aria-label="古代の石の守護者の体力"><b>古代の石の守護者</b><div id="bossTrack"><div id="bossFill"></div></div><span id="bossTell"></span></div><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>DRAGON AWAKENING · v18.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+/* v19 building parts: pixel icons for the hotbar and the craft screen, recipe buttons with the icon beside the text. */
+#bar .block-51,.part-icon.block-51{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='3' width='10' height='16' fill='%235a391c'/%3E%3Crect x='4' y='1' width='8' height='15' fill='%23a5743f'/%3E%3Crect x='5' y='2' width='6' height='5' fill='%235a391c'/%3E%3Crect x='6' y='3' width='4' height='3' fill='%23c8eef5'/%3E%3Crect x='7.5' y='3' width='1' height='3' fill='%235a391c'/%3E%3Crect x='5' y='9' width='6' height='5' fill='%238a5c2f'/%3E%3Crect x='10' y='8' width='1.5' height='1.5' fill='%23ffd04a'/%3E%3C/svg%3E") center/contain no-repeat}
+#bar .block-41,.part-icon.block-41{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath d='M1 15V11h4V7h4V3h6v12z' fill='%23b78d55'/%3E%3Cpath d='M1 11h4V7h4V3h6' fill='none' stroke='%236e4b26'/%3E%3Cpath d='M1 15h14' stroke='%236e4b26'/%3E%3C/svg%3E") center/contain no-repeat}
+#bar .block-45,.part-icon.block-45{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath d='M1 15V11h4V7h4V3h6v12z' fill='%23a3abab'/%3E%3Cpath d='M1 11h4V7h4V3h6' fill='none' stroke='%235b6262'/%3E%3Cpath d='M1 15h14' stroke='%235b6262'/%3E%3C/svg%3E") center/contain no-repeat}
+#bar .block-49,.part-icon.block-49{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='14' height='14' fill='%238a6234'/%3E%3Crect x='3' y='3' width='4.5' height='4.5' fill='%23c8eef5'/%3E%3Crect x='8.5' y='3' width='4.5' height='4.5' fill='%23c8eef5'/%3E%3Crect x='3' y='8.5' width='4.5' height='4.5' fill='%23a9dfe9'/%3E%3Crect x='8.5' y='8.5' width='4.5' height='4.5' fill='%23a9dfe9'/%3E%3Crect x='3.5' y='3.5' width='1' height='2' fill='%23fff'/%3E%3C/svg%3E") center/contain no-repeat}
+#bar .block-41,#bar .block-45,#bar .block-49,#bar .block-51{border:0;transform:none}
+.part-icon{display:block;width:34px;height:34px;flex:0 0 34px;image-rendering:pixelated}
+#craft .craft-grid button.part-recipe{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px}#craft .part-recipe>span{flex:0 0 50px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;color:#ffe49e;white-space:nowrap}#craft .part-recipe div{display:flex;flex-direction:column}
+#craft .craft-head small{font-size:10px;letter-spacing:0;color:#cfe3c7;margin-left:4px}
+</style><div id="bossHUD" class="hidden" aria-label="古代の石の守護者の体力"><b>古代の石の守護者</b><div id="bossTrack"><div id="bossFill"></div></div><span id="bossTell"></span></div><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>HOME BUILDER · v19.0</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
  <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassCave" class="hidden"><span id="compassCaveArrow" aria-hidden="true">▲</span><span id="compassCaveText"></span></span><span id="compassRuin" class="hidden"><span id="compassRuinArrow">▲</span><span id="compassRuinText"></span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="attack" aria-label="攻撃">⚔ 攻撃<small>素手</small></button><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="survHud" aria-label="体力"><div id="hearts"></div><span id="armorIco"></span><span id="kills"></span></div><div id="hurtFx"></div><div id="guide" class="hidden" role="status"></div><div id="find" class="hidden" role="status"></div><div id="loot" class="hidden" role="status"></div><button id="openChest" class="hidden" aria-label="宝箱を開ける">🎁 開ける</button><button id="dragonAct" class="hidden" aria-label="ドラゴン"></button><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -240,11 +249,11 @@ body.photo-mode #bossHUD,body:has(#menu:not(.hidden)) #bossHUD,body:has(#craft:n
   <div class="title-pair"><button id="exportWorld" class="title-button">ワールドをバックアップ</button><button id="importWorld" class="title-button">バックアップから復元</button></div>
 <input id="importFile" type="file" accept=".json,application/json" hidden>
 <details class="title-help"><summary>保存データの復旧</summary><button id="recoverWorld" class="title-button">保存データを復旧（直前の正常セーブ）</button><button id="restoreProtected" class="title-button">切り替え前の世界に戻す</button><button id="exportProtected" class="title-button">退避データを書き出す</button></details>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>サバイバル：⚔攻撃ボタン（PCは左クリック）で敵をたたく / 🍎・Rキーで回復<br>敵が白く光ったら攻撃の合図。出発地点のまわりは安全<br>石や鉱石は「壊す」を長押し（PCは左クリック長押し）。ツルハシで速く・鉄や金も掘れる<br>宝箱：近づいて「🎁 開ける」（PCは右クリック／T）。持ち物はクラフト画面で確認<br>ドラゴン：卵を巣に置いて温める→なでる・りんごで育てる→大人になったら「🐉 乗る」。スティックで進む・↑↓で高さ（PC：V 乗る/降りる・WASD・Space/Q）<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>サバイバル：⚔攻撃ボタン（PCは左クリック）で敵をたたく / 🍎・Rキーで回復<br>敵が白く光ったら攻撃の合図。出発地点のまわりは安全<br>石や鉱石は「壊す」を長押し（PCは左クリック長押し）。ツルハシで速く・鉄や金も掘れる<br>宝箱：近づいて「🎁 開ける」（PCは右クリック／T）。持ち物はクラフト画面で確認<br>家づくり：クラフトの「🏠 建築パーツ」でドア・窓・階段をつくる。ドアはタップ（置く・右クリック）で開け閉め、「壊す」で回収。階段はジャンプなしで上れる<br>ドラゴン：卵を巣に置いて温める→なでる・りんごで育てる→大人になったら「🐉 乗る」。スティックで進む・↑↓で高さ（PC：V 乗る/降りる・WASD・Space/Q）<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v18.0</span></div>
-</div><div id="craft" class="overlay hidden"><div class="panel craft-panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト・持ち物</h2><div id="gearRow" class="gear-row"></div><div id="matRow" class="mat-row"></div><div id="rareRow" class="rare-row"></div><div id="adventureLog" aria-label="冒険の記録"></div><div id="dragonBox" class="dragon-box" aria-label="ドラゴン"></div><div class="craft-head">🧱 ブロック</div><div class="craft-grid"><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button></div><div id="craftSurvival"><div id="craftGear"></div><div class="craft-head">🍎 食べ物</div><div class="craft-grid"><button id="craftApple">葉っぱ 4 → りんご 1（♥を回復）</button></div></div><button id="closeCraft" class="primary">戻る</button></div></div><div id="death" class="overlay death hidden" role="dialog" aria-label="やられてしまった"><div class="panel"><div class="eyebrow">GAME OVER</div><h2>やられてしまった…</h2><p>持ち物はそのまま。出発地点からすぐに再チャレンジできるよ。</p><button id="respawn" class="primary">復活する</button></div></div><div id="modePick" class="overlay hidden" role="dialog" aria-label="遊び方をえらぶ"><div class="panel mode-panel"><div class="eyebrow">GAME MODE</div><h2>遊び方をえらぼう</h2><p>あとからメニューの「モード」でいつでも変えられるよ。</p><button id="pickSurvival" class="mode-choice"><b>⚔ サバイバル</b><span>♥と剣でぼうけん。木の剣をつくって、夜のモンスターとたたかおう</span></button><button id="pickPeaceful" class="mode-choice"><b>🌿 ピースフル</b><span>素材を集めて建築・探検。モンスターはおそってこない</span></button><button id="pickCreative" class="mode-choice"><b>✦ クリエイティブ</b><span>ブロック使いほうだい・空を飛んで自由に建築</span></button><button id="closeModePick">もどる</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v19.0</span></div>
+</div><div id="craft" class="overlay hidden"><div class="panel craft-panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト・持ち物</h2><div id="gearRow" class="gear-row"></div><div id="matRow" class="mat-row"></div><div id="rareRow" class="rare-row"></div><div id="adventureLog" aria-label="冒険の記録"></div><div id="dragonBox" class="dragon-box" aria-label="ドラゴン"></div><div class="craft-head">🧱 ブロック</div><div class="craft-grid"><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button></div><div class="craft-head">🏠 建築パーツ <small>木を集めて、自分の家を建てよう</small></div><div id="craftParts" class="craft-grid"></div><div id="craftSurvival"><div id="craftGear"></div><div class="craft-head">🍎 食べ物</div><div class="craft-grid"><button id="craftApple">葉っぱ 4 → りんご 1（♥を回復）</button></div></div><button id="closeCraft" class="primary">戻る</button></div></div><div id="death" class="overlay death hidden" role="dialog" aria-label="やられてしまった"><div class="panel"><div class="eyebrow">GAME OVER</div><h2>やられてしまった…</h2><p>持ち物はそのまま。出発地点からすぐに再チャレンジできるよ。</p><button id="respawn" class="primary">復活する</button></div></div><div id="modePick" class="overlay hidden" role="dialog" aria-label="遊び方をえらぶ"><div class="panel mode-panel"><div class="eyebrow">GAME MODE</div><h2>遊び方をえらぼう</h2><p>あとからメニューの「モード」でいつでも変えられるよ。</p><button id="pickSurvival" class="mode-choice"><b>⚔ サバイバル</b><span>♥と剣でぼうけん。木の剣をつくって、夜のモンスターとたたかおう</span></button><button id="pickPeaceful" class="mode-choice"><b>🌿 ピースフル</b><span>素材を集めて建築・探検。モンスターはおそってこない</span></button><button id="pickCreative" class="mode-choice"><b>✦ クリエイティブ</b><span>ブロック使いほうだい・空を飛んで自由に建築</span></button><button id="closeModePick">もどる</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('world');
@@ -261,9 +270,33 @@ if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてく�
 const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
 const blocks=new Map(),changes=new Map(),changeIndex=new Map(),chunks=new Map(),columns=new Map();
 const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木','#86613c'],['葉','#438449'],['砂','#d9c78d'],['木材','#b78d55'],['レンガ','#b66d54'],['ガラス','#afdce0'],['水','#417dc0'],['岩盤','#424c50'],['雪','#eef3f6'],['白樺','#e3ddcc'],['白樺の葉','#9cc95a'],['針葉','#2d5a40'],['低木の葉','#6aa341'],null,null,null,null,null,null,null,null,null,['青い結晶','#4d8cff'],['紫の結晶','#b45cff'],['翠の結晶','#38f09a'],['光ゴケ','#3fbf9a'],['石炭鉱石','#2f3133'],['鉄鉱石','#d39a6e'],['金鉱石','#f2c93a'],['ダイヤモンド鉱石','#5ee8e4'],['宝箱','#a8742f'],['開いた宝箱','#7e5626'],['古代の石材','#8b9984'],['苔むした石材','#5c8261'],['古代の灯石','#70d9e0'],['封印の石扉','#537c88'],['光る踏み石','#84dbcc']];
+// ---- v19 BUILDING PARTS: doors, stairs and windows. Every orientation and state is its own block id, so the voxel bytes, the saved
+// `changes` and chunk streaming stay as they were: 41-44 wooden stairs and 45-48 stone stairs (facing 0 +z, 1 +x, 2 -z, 3 -x = the way up),
+// 49/50 windows (pane across x / across z), 51-66 doors (51 + facing*4 + open*2 + upper half). The first id of each group is the item.
+const B_STAIR_W=41,B_STAIR_S=45,B_WINDOW=49,B_DOOR=51,PART_LAST=66;
+for(let t=41;t<=PART_LAST;t++)defs[t]=t<45?['木の階段','#b78d55']:t<49?['石の階段','#89918e']:t<51?['窓','#afdce0']:['木のドア','#9a6a3c'];
+// PART: 1 stairs, 2 window, 3 door. Stairs count as cover (roofs, corner shade); thin windows and doors do not.
+const PART=new Uint8Array(256),OCC=new Uint8Array(256);for(let t=1;t<256;t++)OCC[t]=t!==9&&t!==10;
+for(let t=41;t<=PART_LAST;t++){PART[t]=t<49?1:t<51?2:3;if(t>=49)OCC[t]=0}
+const partItem=t=>t<45?B_STAIR_W:t<49?B_STAIR_S:t<51?B_WINDOW:B_DOOR,isDoor=t=>t>=B_DOOR&&t<=PART_LAST;
+const DOOR_T=3/16,DIR4=[[0,1],[1,0],[0,-1],[-1,0]];
+// The door panel turns about a pivot in the hinge corner: width along u from -T/2 to 1-T/2, thickness along v (-T/2..T/2).
+// Closed (a=0) it covers the side facing the player who placed it; open (a=1) it lies along the hinge (left-hand) side.
+function doorFrame(d,a){const [fx,fz]=DIR4[d],rx=fz,rz=-fx,c=Math.cos(a*Math.PI/2),s=Math.sin(a*Math.PI/2),T=DOOR_T;
+ // hinge corner: the player's side (-f) and left side (-r) of the cell
+ const hx=fx?(fx>0?0:1):(rx>0?0:1),hz=fz?(fz>0?0:1):(rz>0?0:1);
+ return{px:hx+(fx+rx)*T/2,pz:hz+(fz+rz)*T/2,ux:rx*c+fx*s,uz:rz*c+fz*s,vx:fx*c-rx*s,vz:fz*c-rz*s}}
+// Axis-aligned boxes (block-local, 0..1) for collision, picking and outlines.
+const PART_BOX=[];
+for(let t=41;t<=PART_LAST;t++){const k=PART[t],l=[];
+ if(k===1){const d=(t-41)&3;l.push([0,0,0,1,.5,1],d===0?[0,.5,.5,1,1,1]:d===1?[.5,.5,0,1,1,1]:d===2?[0,.5,0,1,1,.5]:[0,.5,0,.5,1,1])}
+ else if(k===2)l.push(t===B_WINDOW?[0,0,7/16,1,1,9/16]:[7/16,0,0,9/16,1,1]);
+ else{const o=t-B_DOOR,f=doorFrame(o>>2,(o>>1)&1),T=DOOR_T,ex=[f.px-f.ux*T/2-f.vx*T/2,f.px+f.ux*(1-T/2)+f.vx*T/2],ez=[f.pz-f.uz*T/2-f.vz*T/2,f.pz+f.uz*(1-T/2)+f.vz*T/2];
+  const r=v=>Math.round(v*1e4)/1e4;l.push([r(Math.min(...ex)),0,r(Math.min(...ez)),r(Math.max(...ex)),1,r(Math.max(...ez))])}
+ PART_BOX[t]=l}
 let riding=false,dragonReady=false; // v18: riding the grown dragon (see the DRAGON section)
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
-const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29,36,37,38];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
+const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29,36,37,38,51,41,49,45];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
 const BENCH=(()=>{try{return new URLSearchParams(location.search).has('bench')}catch(e){return false}})();
 let perfEnabled=BENCH;try{perfEnabled=perfEnabled||new URLSearchParams(location.search).has('perf')}catch(e){}
@@ -1564,6 +1597,12 @@ else if(mat<5.5){float clump=hash(floor(q/2.));c=col*(.54+clump*.65+n*.18);}
 else if(mat<6.5){c=col*(.90+n*.16);if(n>.94)c*=.80;}
 else if(mat<7.5){float ov=floor(uv.x*.5+.25);
  if(ov<.5){float seam=step(3.,mod(q.y,4.));float knot=step(.86,hash(vec2(floor(q.x/3.),floor(q.y/4.))));c=col*(.93+n*.14-seam*.28-knot*.15);}
+ else if(ov>2.5){ // v19 wooden door (variant 3 lower half, 4 upper half). uv.x runs from the hinge, so the knob is on the free side from both faces.
+  q=floor((uv-vec2(ov*2.,0.))*16.);n=hash(q);float up=step(3.5,ov),rail=up>.5?step(14.,q.y)+step(q.y,1.):step(q.y,1.)+step(14.,q.y);
+  float frame=min(1.,step(q.x,1.)+step(14.,q.x)+rail),inner=step(3.,q.x)*step(q.x,12.)*step(3.,q.y)*step(q.y,12.),edge=inner*min(1.,step(q.x,3.)+step(12.,q.x)+step(q.y,3.)+step(12.,q.y));
+  c=col*(.94+n*.12-step(3.,mod(q.x,4.))*.2);c=mix(c,col*(.66+n*.1),frame);
+  if(up<.5){c=mix(c,col*(.74+n*.1),edge);c=mix(c,vec3(1.,.8,.32)*(.8+.35*n),step(11.,q.x)*step(q.x,12.)*step(13.,q.y)*step(q.y,14.));}
+  else if(inner>.5){if(edge>.5||abs(q.x-7.5)<1.||abs(q.y-7.5)<1.)c=col*(.6+n*.1);else discard;}}
  else{ // v10 treasure chest (variant 1 closed, 2 opened): planks in a dark frame, gold corners, a gold band at the lid and a lock on every side
   q=floor((uv-vec2(ov*2.,0.))*16.);n=hash(q);vec3 gold=vec3(1.,.78,.25)*(.85+.3*n),dark=vec3(.24,.15,.07);
   float frame=step(q.x,0.)+step(15.,q.x)+step(q.y,0.)+step(15.,q.y),corner=(1.-step(abs(q.x-7.5),5.5))*(1.-step(abs(q.y-7.5),5.5));
@@ -2402,7 +2441,53 @@ function bakeGlow(cx,cz,near){let any=false;
      const v=Math.round(7*amp*Math.pow(1-Math.sqrt(d2)/rad,1.2));if(v<1)continue;const gi=(yy*GW+zz)*GW+xx;if(v>(gbuf[gi]&7))gbuf[gi]=v|(tint<<3)}}}}}
  return any?gbuf:null}
 
-const occ=t=>t!==0&&t!==9&&t!==10;
+const occ=t=>OCC[t]===1;
+// ---- v19 building parts in the chunk mesh: real shapes built from boxes (stairs, framed windows, doors); glass goes to the translucent pass.
+// Faces on the cell boundary are dropped against full blocks. Light (roof shade, cave depth, crystal glow) comes from the part's own cell.
+const PFULL=new Uint8Array(256),PCOVER=new Uint8Array(256*6),doorHide=new Set(),DOOR_RGB=rgb('#9a6a3c'),DOOR_EDGE=DOOR_RGB.map(v=>v*.8),WFRAME=rgb('#b78d55').map(v=>v*.86);
+for(let t=1;t<256;t++)PFULL[t]=OCC[t]&&!PART[t]?1:0;
+// A stair covers the top face of the block below it and the face of the block behind its back.
+for(let t=41;t<49;t++){PCOVER[t*6+2]=1;PCOVER[t*6+[5,1,4,0][(t-41)&3]]=1}
+function partCull(p,b){let m=0;for(let fi=0;fi<6;fi++){const n=FACE[fi].n,a=n[0]?0:n[1]?1:2;if((n[a]>0?b[a+3]===1:b[a]===0)&&PFULL[pad[p+FACE[fi].off]])m|=1<<fi}return m}
+function boxQuads(w,bx,by,bz,b,mat,c,base,skip){
+ for(let fi=0;fi<6;fi++){if(skip>>fi&1)continue;const F=FACE[fi],n=F.n,code=mat+32*fi+base;grow(w,36);
+  for(let k=0;k<4;k++){const v=F.v[k],lx=b[v[0]*3],ly=b[1+v[1]*3],lz=b[2+v[2]*3];vert(w,bx+lx,by+ly,bz+lz,c[0],c[1],c[2],n[1]||n[2]?lx:lz,n[1]?lz:ly,code)}}}
+// One half of a door at opening a (0 closed .. 1 open): board faces carry the door pattern (uv.x runs from the hinge), the upper half a glass window.
+function emitDoor(w,gw,x,y,z,d,a,up,base,skip){const f=doorFrame(d,a),T=DOOR_T,h=T/2,U0=-h,U1=1-h;
+ const P=(u,v,yy,k)=>{DP[k*3]=x+f.px+f.ux*u+f.vx*v;DP[k*3+1]=y+yy;DP[k*3+2]=z+f.pz+f.uz*u+f.vz*v};
+ const fiOf=(nx,nz)=>Math.abs(nx)>Math.abs(nz)?(nx>0?0:1):(nz>0?4:5);
+ const quad=(ww,mat,c,fi,us,vs,uo)=>{grow(ww,36);const code=mat+32*fi+base;for(let k=0;k<4;k++)vert(ww,DP[k*3],DP[k*3+1],DP[k*3+2],c[0],c[1],c[2],us[k]+uo,vs[k],code)};
+ for(const s of [1,-1]){P(U0,s*h,0,0);P(U0,s*h,1,1);P(U1,s*h,1,2);P(U1,s*h,0,3);quad(w,7,DOOR_RGB,fiOf(f.vx*s,f.vz*s),DU,DV,up?8:6)}
+ for(const s of [-1,1]){const u=s<0?U0:U1;P(u,-h,0,0);P(u,-h,1,1);P(u,h,1,2);P(u,h,0,3);quad(w,7,DOOR_EDGE,fiOf(f.ux*s,f.uz*s),DT,DV,0)}
+ for(const yy of [1,0]){if(skip&(yy?4:8))continue;P(U0,-h,yy,0);P(U0,h,yy,1);P(U1,h,yy,2);P(U1,-h,yy,3);quad(w,7,DOOR_EDGE,yy?2:3,DU,DT,0)}
+ if(up&&gw){const g=defsRGB[9],a0=4/16-h,a1=12/16-h;P(a0,0,4/16,0);P(a0,0,12/16,1);P(a1,0,12/16,2);P(a1,0,4/16,3);quad(gw,9,g,fiOf(f.vx,f.vz),GU,GV,0)}}
+const DP=new Float32Array(12),DU=[0,0,1,1],DV=[0,1,1,0],DT=[0,0,DOOR_T,DOOR_T],GU=[.3,.3,.7,.7],GV=[.3,.7,.7,.3];
+function emitPart(t,wx,y,wz,p,col,gb){const k=PART[t];let base=roofs[col]>y?256:0;
+ if(CAVES){let dep=rroofs[col]-y;if(dep>1){for(let o=0;o<8;o++){const dn=rroofs[col+NB8[o]]-y+2;if(dn<dep)dep=dn}if(dep>1)base+=1024*Math.min(7,Math.round(7*smooth(1,22,dep)))}
+  if(gb){const gv=gb[(y*GW+(wz&15)+GR)*GW+(wx&15)+GR];if(gv)base+=8192*(gv&7)+65536*(gv>>3)}}
+ if(k===1){const d=(t-41)&3,mat=t>=B_STAIR_S?3:7,c=defsRGB[mat],B=PART_BOX[t],sa=d&1?4:0,sb=d&1?5:1;
+  // stairs of the same kind side by side join without inner walls
+  const join=(pad[p+FACE[sa].off]===t?1<<sa:0)|(pad[p+FACE[sb].off]===t?1<<sb:0);
+  boxQuads(opaqueW,wx,y,wz,[0,0,0,1,.5,1],mat,c,base,partCull(p,[0,0,0,1,.5,1])|join|4);
+  boxQuads(opaqueW,wx,y,wz,d===0?[0,0,0,1,.5,.5]:d===1?[0,0,0,.5,.5,1]:d===2?[0,0,.5,1,.5,1]:[.5,0,0,1,.5,1],mat,c,base,59);
+  boxQuads(opaqueW,wx,y,wz,B[1],mat,c,base,partCull(p,B[1])|join|8)}
+ else if(k===2){const ax=t-B_WINDOW,sO=ax?PW:1,sN=ax?5:1,sP=ax?4:0,F1=2/16,P0=6/16,P1=10/16,M0=7/16,M1=9/16;
+  // A window joins the same window beside, above and below it: frames stay only on the outside, every cell keeps its cross.
+  const L=pad[p-sO]===t,R=pad[p+sO]===t,D=pad[p-PA]===t,U=pad[p+PA]===t,sL=L?0:F1,sR=R?1:1-F1,yB=D?0:F1,yT=U?1:1-F1;
+  const put=(s0,y0,q0,s1,y1,q1,sk)=>{const b=ax?[q0,y0,s0,q1,y1,s1]:[s0,y0,q0,s1,y1,q1];boxQuads(opaqueW,wx,y,wz,b,7,WFRAME,base,sk|partCull(p,b))},ends=(a,b)=>(a?1<<sN:0)|(b?1<<sP:0);
+  if(!L)put(0,0,P0,F1,1,P1,(D&&pad[p-PA-sO]!==t?8:0)|(U&&pad[p+PA-sO]!==t?4:0));
+  if(!R)put(1-F1,0,P0,1,1,P1,(D&&pad[p-PA+sO]!==t?8:0)|(U&&pad[p+PA+sO]!==t?4:0));
+  if(!D)put(sL,0,P0,sR,F1,P1,ends(!L||pad[p-sO-PA]!==t,!R||pad[p+sO-PA]!==t));
+  if(!U)put(sL,1-F1,P0,sR,1,P1,ends(!L||pad[p-sO+PA]!==t,!R||pad[p+sO+PA]!==t));
+  // the cross bars are decoration: low quality leaves them out (switching quality re-meshes chunks with reefShafts, the same Q.water flag)
+  if(Q.water>=1){put(M0,yB,M0,M1,yT,M1,12);put(sL,M0,M0,M0,M1,M1,ends(1,1));put(M1,M0,M0,sR,M1,M1,ends(1,1))}
+  // one glass sheet in the middle plane (uv kept inside the glass edge lines, so joined panes show no seam)
+  const g=defsRGB[9],code=9+32*(ax?0:4),V=(s,yy,gu,gv)=>vert(waterW,wx+(ax?.5:s),y+yy,wz+(ax?s:.5),g[0],g[1],g[2],.04+.92*gu,.04+.92*gv,code);
+  grow(waterW,36);V(sL,yB,sL,yB);V(sL,yT,sL,yT);V(sR,yT,sR,yT);V(sR,yB,sR,yB)}
+ else{const o=t-B_DOOR,up=o&1;if(doorHide.size&&doorHide.has(idx(wx,y-up,wz)))return;
+  // the two halves meet without inner faces; the bottom rests on the floor, the top under a lintel
+  const pair=pad[up?p-PA:p+PA]===t+(up?-1:1);
+  emitDoor(opaqueW,waterW,wx,y,wz,o>>2,(o>>1)&1,up,base,(pair?(up?8:4):0)|(!up&&PFULL[pad[p-PA]]?8:0)|(up&&PFULL[pad[p+PA]]?4:0))}}
 const FACE=faces.map(f=>{const st=[1,PA,PW],axes=[0,1,2].filter(a=>!f.n[a]);return{off:f.n[0]+f.n[1]*PA+f.n[2]*PW,dcol:f.n[0]+f.n[2]*PW,dy:f.n[1],n:f.n,l:f.l,v:f.v,uv:f.v.map(v=>faceUV(v,f)),
  ao:f.v.map(v=>{const oa=(v[axes[0]]?1:-1)*st[axes[0]],ob=(v[axes[1]]?1:-1)*st[axes[1]];return[oa,ob,oa+ob]})}});
 const CHEST_RGB=rgb('#a8742f'),LOG_TOP=rgb('#b9955d'),BIRCH_TOP=rgb('#d8cfa8'),WHITE=[1,1,1],ZERO2=[0,0],wfl=[0,0];
@@ -2455,9 +2540,10 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
   else if(info){const alt=info.h[k]-SEA;gcol=grassColor(alt,info.hum[k]);lcol=leafColor(alt,info.hum[k],info.birch[k]);for(let i=0;i<3;i++)grassSide[i]=gcol[i]/defsRGB[1][i]}else grassSide[0]=grassSide[1]=grassSide[2]=1;
   for(let y=ystart;y<=ymax;y++){
    const p=(y+1)*PA+(z+1)*PW+x+1,t=pad[p];if(!t)continue;
+   if(PART[t]){emitPart(t,wx,y,wz,p,(z+1)*PW+x+1,gb);continue}
    const water=t===10;
    for(let fi=0;fi<6;fi++){const F=FACE[fi],nt=pad[p+F.off];
-    if(nt&&!(nt===10&&t!==10)&&!(nt===9&&t!==9))continue;
+    if(nt&&!(nt===10&&t!==10)&&!(nt===9&&t!==9)&&(!PART[nt]||PCOVER[nt*6+fi]))continue;
     let mat=t,c=defsRGB[t];
     if(t===1){if(F.n[1]>0)c=gcol;else if(F.n[1]===0){mat=12;c=grassSide}else{mat=2;c=defsRGB[2]}}
     else if(t===4||t===13){if(F.n[1]){mat=13;c=t===13?BIRCH_TOP:LOG_TOP}else if(t===13||(!GRAND&&rand(wx*9,wz*7)>.62)){mat=14;c=WHITE}}
@@ -2676,9 +2762,15 @@ const originalChunks=new Map();
 function compactEdit(x,y,z,t){if(!inside(x,y,z))return;const key=chunkKey(x,z);let data=originalChunks.get(key);if(!data){data=generateChunk(x>>4,z>>4);if(originalChunks.size>=4)originalChunks.delete(originalChunks.keys().next().value);originalChunks.set(key,data)}
  if(data[localIdx(x,y,z)]===t){const i=idx(x,y,z);changes.delete(i);const list=changeIndex.get(key);if(list){const at=list.indexOf(i);if(at>=0)list.splice(at,1);if(!list.length)changeIndex.delete(key)}}}
 function edit(x,y,z,t){set(x,y,z,t);compactEdit(x,y,z,t);dirty=true;const near=new Set();for(const dx of[-1,0,1])for(const dz of[-1,0,1])near.add(chunkKey(x+dx,z+dz));for(const c of near)if(chunks.has(c))rebuild(...c.split(',').map(Number))}
-function collides(p){if(p.x<.3||p.z<.3||p.x>W-.3||p.z>W-.3||p.y<1||p.y+1.8>=H)return true;for(let x=Math.floor(p.x-.29);x<=Math.floor(p.x+.29);x++)for(let y=Math.floor(p.y+.001);y<=Math.floor(p.y+1.79);y++)for(let z=Math.floor(p.z-.29);z<=Math.floor(p.z+.29);z++)if(solid(x,y,z))return true;return false}
+function collides(p){if(p.x<.3||p.z<.3||p.x>W-.3||p.z>W-.3||p.y<1||p.y+1.8>=H)return true;for(let x=Math.floor(p.x-.29);x<=Math.floor(p.x+.29);x++)for(let y=Math.floor(p.y+.001);y<=Math.floor(p.y+1.79);y++)for(let z=Math.floor(p.z-.29);z<=Math.floor(p.z+.29);z++){const t=get(x,y,z);if(t&&t!==10&&(!PART[t]||partHit(t,x,y,z,p)))return true}return false}
+// v19: stairs, doors and windows collide with their real boxes (the player is 0.58 wide and 1.8 tall).
+function partHit(t,x,y,z,p){for(const b of PART_BOX[t])if(x+b[0]<p.x+.29&&x+b[3]>p.x-.29&&y+b[1]<p.y+1.79&&y+b[4]>p.y+.001&&z+b[2]<p.z+.29&&z+b[5]>p.z-.29)return true;return false}
+// A ray only picks a part where it meets one of the boxes, so the floor beyond an open door or above a stair step stays reachable.
+function rayPart(t,c,o,d){for(const b of PART_BOX[t]){let t0=0,t1=1e9;for(let i=0;i<3&&t0<=t1;i++){const lo=c[i]+b[i],hi=c[i]+b[i+3];
+  if(Math.abs(d[i])<1e-9){if(o[i]<lo||o[i]>hi)t0=2e9}else{let a=(lo-o[i])/d[i],e=(hi-o[i])/d[i];if(a>e){const s=a;a=e;e=s}if(a>t0)t0=a;if(e<t1)t1=e}}
+  if(t0<=t1)return true}return false}
 if(collides(player))spawn();
-function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10)return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
+function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10&&(!PART[t]||rayPart(t,cell,o,d)))return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
 const hotbarButtons=[];
 function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];if(typeof lifeModeText==='function')$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();survivalUI();if(typeof craftUI==='function')craftUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying||riding?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying&&!riding;$('fly').classList.toggle('active',flying)}
@@ -2704,6 +2796,7 @@ function mine(){if(paused||photoMode||riding)return;swing=1;if(eggSp>=0&&shooEgg
 const FOUND_BIT={coal:1,iron:2,gold:4,diamond:8,coin:16,crystal:32,dragonEgg:64,chest:128};
 const FIRST_FIND={coal:['⚫ はじめての石炭！','将来はたいまつの材料に。まずは集めておこう'],iron:['🎉 はじめての鉄！','クラフトで 鉄のツルハシ・鉄の剣・鉄の防具 がつくれるよ'],gold:['🌟 はじめての金！','めずらしい金属。宝物として集めよう'],diamond:['💎 ダイヤモンド発見！！','とても貴重。ダイヤの剣やツルハシの材料だよ']};
 function breakBlock(h){const t=h.t;if(doorBlocked(h))return;dig=null;
+ if(PART[t]){breakPart(h);return}
  if(ORE_DROP[t]){const k=ORE_DROP[t],n=t===ORE_COAL&&Math.random()<.35?2:1;items[k]+=n;burst(h.x+.5,h.y+.5,h.z+.5,defs[t][1]);edit(h.x,h.y,h.z,0);dirty=true;
   if(!(items.found&FOUND_BIT[k])){items.found|=FOUND_BIT[k];announce(FIRST_FIND[k][0],FIRST_FIND[k][1],k==='diamond'||k==='gold'?'rare':'first')}else{toast(`${MAT_ICON[k]} ${MAT_NAME[k]} +${n}（${items[k]}個）`);sfx('ore')}
   refresh();return}
@@ -2718,12 +2811,71 @@ function digTick(dt){if(!dig)return;if(!(mineHeld||mouseMine)||paused){dig.idle+
  if((dig.chipT-=dt)<=0){dig.chipT=.17;burst(dig.x+.5+(Math.random()-.5)*.6,dig.y+.5+(Math.random()-.5)*.6,dig.z+.5+(Math.random()-.5)*.6,defs[dig.t][1],qualityName==='low'?2:3);sfx('dig')}
  if(dig.p>=1)breakBlock(h)}
 function targetLabel(h){const t=h.t;let s=defs[t][0];
+ if(isDoor(t))s=`🚪 ${s}（タップ・置くで${(t-B_DOOR)&2?'閉める':'開ける'}）`;
  if(gameMode==='survival'&&(ORE_TIER[t]||0)>pickaxe().tier)s+=' 🔒'+TIER_NAME[ORE_TIER[t]];
  if(t===B_CHEST)s='🎁 宝箱（タップ／右クリックで開ける）';
  if(t===39&&gameMode==='survival'){const k=sealedDoor(h.x,h.y,h.z);if(k)s+=k==='gate'?' 🔒踏み石で開く':' 🔒宝箱で開く'}
  if(dig&&dig.x===h.x&&dig.y===h.y&&dig.z===h.z){const k=Math.min(5,Math.floor(dig.p*5));s+=' '+'▰'.repeat(k)+'▱'.repeat(5-k)}
  return s}
-function place(){if(paused||photoMode||riding)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
+function place(rep){if(paused||photoMode||riding)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}
+ // v19: 置く (right click, a tap) on a door opens or closes it; holding the button does not flap it.
+ if(isDoor(hit.t)){if(rep!==true)toggleDoor(hit.x,hit.y,hit.z);return}
+ const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast(PART[t]?`${defs[t][0]}がないよ。クラフトの「🏠 建築パーツ」でつくろう`:'素材が足りないよ。掘るか、クラフトしよう');return}
+ if(PART[t]){placePart(t,x,y,z);return}
+ const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
+// ---- v19 building parts: placing, opening doors, breaking, walking up stairs and the placement preview.
+// Several cells change together (a door is two cells), then each touched chunk is rebuilt once.
+function editMany(list){const near=new Set();for(const [x,y,z,t] of list){set(x,y,z,t);compactEdit(x,y,z,t);for(const dx of[-1,0,1])for(const dz of[-1,0,1])near.add(chunkKey(x+dx,z+dz))}
+ dirty=true;for(const c of near)if(chunks.has(c))rebuild(...c.split(',').map(Number))}
+const facing4=()=>((Math.round(yaw/(Math.PI/2))%4)+4)%4;
+// What placing item t at (x,y,z) would do: the cells with their oriented ids, or why it cannot go there.
+// Stairs rise away from the player. A window lines up with the wall or the windows beside it, else it faces the player.
+// A door needs a floor and two free cells (aiming at the top of a doorway also works), and opens away from the player.
+function partCells(t,x,y,z){const d=facing4(),free=(x,y,z)=>inside(x,y,z)&&y>0&&(get(x,y,z)===0||get(x,y,z)===10);
+ if(t===B_STAIR_W||t===B_STAIR_S)return{cells:[[x,y,z,t+d]]};
+ if(t===B_WINDOW){const score=ax=>{const ox=ax?0:1,oz=ax?1:0;let s=0;for(const k of [-1,1]){const n=get(x+ox*k,y,z+oz*k);s+=n===B_WINDOW+ax?2:PFULL[n]?1:0}
+   for(const k of [-1,1])if(get(x,y+k,z)===B_WINDOW+ax)s+=2;return s},a=score(0),b=score(1);return{cells:[[x,y,z,B_WINDOW+(a>b?0:b>a?1:d&1)]]}}
+ let y0=y;if(!solid(x,y0-1,z)&&free(x,y0-1,z)&&solid(x,y0-2,z))y0--;
+ if(!solid(x,y0-1,z)||PART[get(x,y0-1,z)]===3)return{cells:[[x,y0,z,B_DOOR+d*4],[x,y0+1,z,B_DOOR+d*4+1]],why:'ドアは床の上に置こう'};
+ if(!free(x,y0,z)||!free(x,y0+1,z))return{cells:[[x,y0,z,B_DOOR+d*4],[x,y0+1,z,B_DOOR+d*4+1]],why:'ドアには高さ2マスのすき間がいるよ'};
+ return{cells:[[x,y0,z,B_DOOR+d*4],[x,y0+1,z,B_DOOR+d*4+1]]}}
+function placePart(t,x,y,z){const p=partCells(t,x,y,z);if(p.why){toast(p.why);sfx('clank');return false}
+ const old=p.cells.map(([x,y,z])=>get(x,y,z));for(const [x,y,z,id] of p.cells)set(x,y,z,id);
+ if(collides(player)){p.cells.forEach(([x,y,z],i)=>{set(x,y,z,old[i]);compactEdit(x,y,z,old[i])});toast('自分のいる場所には置けない');return false}
+ if(!creative)inventory[t]--;editMany(p.cells);clickSound();refresh();
+ if(t===B_DOOR)toast('🚪 ドアを置いた！ タップ（置く）で開け閉め・壊すで回収');return true}
+// Doors: the state lives in the block id; the swing is drawn for a quarter second while the chunk mesh leaves that door out.
+const doorAnims=[];let stepEye=0;
+function toggleDoor(x,y,z){const t=get(x,y,z);if(!isDoor(t))return false;const o=t-B_DOOR,y0=y-(o&1),lo=B_DOOR+(o&~1),open=(o>>1)&1,nl=B_DOOR+((o&~1)^2),cells=[];
+ if(get(x,y0,z)===lo)cells.push([x,y0,z,nl]);if(get(x,y0+1,z)===lo+1)cells.push([x,y0+1,z,nl+1]);
+ // the panel never swings into the player (closing in the doorway, or opening onto someone beside the hinge)
+ for(const [cx,cy,cz,id] of cells)set(cx,cy,cz,id);const blocked=collides(player);for(const [cx,cy,cz,id] of cells)set(cx,cy,cz,B_DOOR+((id-B_DOOR)^2));
+ if(blocked){toast(open?'ドアの前から少しはなれると閉められるよ':'ドアのうしろから少しはなれると開けられるよ');sfx('clank');return false}
+ const key=idx(x,y0,z);if(doorAnims.length<8&&!doorHide.has(key)){let base=0;for(let k=y0+2;k<H&&k<y0+40;k++)if(OCC[get(x,k,z)]){base=256;break}
+  doorAnims.push({x,y:y0,z,key,d:o>>2,from:open,to:1-open,t:0,up:cells.length>1,base});doorHide.add(key)}
+ editMany(cells);sfx(open?'doorShut':'door',{x:x+.5,y:y0+1,z:z+.5});return true}
+function doorTick(dt){for(let i=doorAnims.length-1;i>=0;i--){const a=doorAnims[i];a.t+=dt/.25;
+ if(a.t>=1||!isDoor(get(a.x,a.y,a.z))){doorAnims.splice(i,1);doorHide.delete(a.key);const cx=a.x>>4,cz=a.z>>4;if(chunks.has(cx+','+cz))rebuild(cx,cz)}}}
+function drawDoors(w){for(const a of doorAnims){const k=Math.min(1,a.t),e=k*k*(3-2*k),ang=a.from+(a.to-a.from)*e;
+ emitDoor(w,null,a.x,a.y,a.z,a.d,ang,0,a.base,a.up?4:0);if(a.up)emitDoor(w,null,a.x,a.y+1,a.z,a.d,ang,1,a.base,8)}}
+// A tap picks the door it touches; an open door is seen edge-on, so a tap anywhere in its doorway (within reach) closes it.
+function tapDoor(d){const h=ray(d);if(h&&isDoor(h.t))return h;const lim=h?h.dist+.05:6;
+ for(let s=.1;s<lim;s+=.1){const x=Math.floor(player.x+d[0]*s),y=Math.floor(player.y+1.62+d[1]*s),z=Math.floor(player.z+d[2]*s),t=get(x,y,z);if(isDoor(t)&&(t-B_DOOR)&2)return{x,y,z,t}}return null}
+function breakPart(h){const t=h.t,cells=[[h.x,h.y,h.z,0]];
+ if(isDoor(t)){const up=(t-B_DOOR)&1,oy=up?-1:1;if(get(h.x,h.y+oy,h.z)===t+oy)cells.push([h.x,h.y+oy,h.z,0])}
+ const item=partItem(t);inventory[item]=(inventory[item]||0)+1;burst(h.x+.5,h.y+.5,h.z+.5,defs[t][1]);editMany(cells);clickSound();refresh()}
+// Stairs: walking into a rise of half a block or less steps up onto it, and walking off one steps down; the eye follows smoothly.
+function stepUp(axis,d){const y0=player.y,top=Math.ceil((y0+.002)*2)/2,old=player[axis];if(top-y0>.55)return false;
+ player.y=top;player[axis]=old+d;if(collides(player)){player.y=y0;player[axis]=old;return false}stepEye=Math.max(-.6,stepEye-(top-y0));return true}
+const probe={x:0,y:0,z:0};
+function stepDown(){probe.x=player.x;probe.z=player.z;probe.y=player.y-.02;if(collides(probe))return;
+ const low=Math.floor((player.y-.002)*2)/2;if(player.y-low>.55)return;probe.y=low;if(collides(probe))return;probe.y=low-.02;if(!collides(probe))return;
+ stepEye=Math.min(.6,stepEye+player.y-low);player.y=low}
+// Preview: the shape about to be placed, outlined in warm yellow (red when it cannot go there). Recomputed only when the aim changes.
+let previewKey=-1,preview=null;
+function partPreview(){const t=slots[selected];if(!hit||!PART[t]||eggSp>=0||isDoor(hit.t)||hit.t===B_CHEST){previewKey=-1;return null}
+ const [x,y,z]=hit.prev;if(!inside(x,y,z)||get(x,y,z)&&get(x,y,z)!==10){previewKey=-1;return null}
+ const key=((idx(x,y,z)*4+facing4())*4+PART[t])*2+(t===B_STAIR_S?1:0);if(key!==previewKey){previewKey=key;preview=partCells(t,x,y,z)}return preview}
 function jump(){if(flying||photoMode||riding)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
 function toggleFlight(){if(paused||suspended||photoMode)return;if(riding){toast('🐉 ドラゴンに乗っている間は、↑↓で高さを変えよう');return}if(gameMode==='survival'){toast('サバイバルでは飛べないよ（ピースフル・クリエイティブで飛べる）');return}flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
 function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected:selected<8?selected:0,hotbar:selected,eggSp},gameMode,health,items:{...items},defeated,...(RUINS?{adventure}: {}),...(dragon.stage!=='none'||dragon.warmth>0?{dragon:dragonSave()}:{})}}
@@ -2770,7 +2922,7 @@ $('photoBtn').onclick=$('photoMenu').onclick=()=>setPhotoMode(true);$('photoExit
 applyHUD();
 function pause(){paused=true;setPhotoMode(false);rememberPlaying(false);clearInput();document.exitPointerLock?.();$('eggs').classList.add('hidden');$('menu').classList.remove('hidden');save()}
 function rememberPlaying(on){try{sessionStorage.setItem('nisekura-playing',on?'1':'0')}catch(e){}}
-function play(){if(storageBlocked){toast('セーブを保護中です。保存データの復旧を選んでください');return}if(dead){respawn();return}$('modePick').classList.add('hidden');paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast(monsterNotice()||(gameMode==='survival'?'木を集める → 木の剣をクラフト → 夜のモンスターにそなえよう':'木を集める → 木材にクラフト → 家を建てる'))}
+function play(){if(storageBlocked){toast('セーブを保護中です。保存データの復旧を選んでください');return}if(dead){respawn();return}$('modePick').classList.add('hidden');paused=false;suspended=false;rememberPlaying(true);$('menu').classList.add('hidden');$('craft').classList.add('hidden');$('eggs').classList.add('hidden');try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume()}catch(e){}streamChunks(true);if(matchMedia('(pointer:fine)').matches){try{const lock=canvas.requestPointerLock?.();lock?.catch?.(()=>{})}catch(e){}}toast(monsterNotice()||(gameMode==='survival'?'木を集める → 木の剣をクラフト → 夜のモンスターにそなえよう':'木を集める → 木材にクラフト → ドア・窓・階段で家を建てる'))}
 function setQuality(name){if(!QUALITY[name])return;qualityName=name;qualityAuto=false;Q=QUALITY[name];renderScale=1;streamDirty=true;try{localStorage.setItem(QUALITY_KEY,name)}catch(e){}refresh()}
 $('play').onclick=()=>{if(!modeChosen&&!storageBlocked)openModePick();else play()};$('menuBtn').onclick=pause;$('mode').onclick=()=>{setGameMode(GAME_MODES[(GAME_MODES.indexOf(gameMode)+1)%GAME_MODES.length]);modeChosen=true};$('quality').onclick=()=>setQuality(qualityName==='low'?'standard':qualityName==='standard'?'high':'low');$('home').onclick=()=>{spawn();streamChunks(true);save();play()};$('spots').onclick=nextSpot;$('caves').onclick=nextCave;$('save').onclick=()=>toast(save()?'世界を保存した':'保存に失敗した');$('reset').onclick=()=>{if(resettingWorld||benchLock)return;if(storageBlocked){toast('元データを保護中です。先に復旧またはバックアップしてください');return}
  if(!confirm('現在の世界を退避して、新しい世界を作成しますか？端末故障に備え、先に「ワールドをバックアップ」でファイル保存をおすすめします。'))return;
@@ -2785,7 +2937,11 @@ $('stick').onpointerdown=e=>{if(paused||photoMode)return;stickId=e.pointerId;$('
 let tapX=0,tapY=0,tapT=0,tapId=null;
 canvas.onpointerdown=e=>{if(paused)return;if(!photoMode&&e.pointerType==='mouse'&&document.pointerLockElement===canvas){if(e.button===0){mouseMine=true;actionClock=.3;mine()}if(e.button===2)place();return}lookId=e.pointerId;lx=tapX=e.clientX;ly=tapY=e.clientY;tapT=performance.now();tapId=e.pointerId;canvas.setPointerCapture(e.pointerId)};
 // With a spawn egg in hand, a quick tap (not a look-around drag) places the creature where the finger touched.
-canvas.addEventListener('pointerup',e=>{if(e.pointerId===tapId&&eggSp>=0&&!paused&&!photoMode&&Math.hypot(e.clientX-tapX,e.clientY-tapY)<12&&performance.now()-tapT<400)placeEgg(screenDir(e.clientX,e.clientY));tapId=null});
+canvas.addEventListener('pointerup',e=>{const tap=e.pointerId===tapId&&!paused&&!photoMode&&Math.hypot(e.clientX-tapX,e.clientY-tapY)<12&&performance.now()-tapT<400;
+ if(tap&&eggSp>=0)placeEgg(screenDir(e.clientX,e.clientY));
+ // v19: a quick tap on a door opens or closes it (破壊は「壊す」だけ)
+ else if(tap&&!riding&&!dead){const h=tapDoor(screenDir(e.clientX,e.clientY));if(h){swing=1;toggleDoor(h.x,h.y,h.z)}}
+ tapId=null});
 canvas.onpointermove=e=>{if(paused||e.pointerId!==lookId)return;yaw+=(e.clientX-lx)*.005;pitch=Math.max(-1.5,Math.min(1.5,pitch-(e.clientY-ly)*.005));lx=e.clientX;ly=e.clientY};for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,()=>lookId=null);document.addEventListener('pointerup',e=>{if(e.button===0)mouseMine=false});document.onmousemove=e=>{if(!paused&&document.pointerLockElement===canvas){yaw+=e.movementX*.0025;pitch=Math.max(-1.5,Math.min(1.5,pitch-e.movementY*.0025))}};document.oncontextmenu=e=>e.preventDefault();document.onkeydown=e=>{if(e.code==='KeyP'&&!e.repeat&&!paused){e.preventDefault();setPhotoMode(!photoMode);return}if(photoMode){if(e.code==='Escape'){e.preventDefault();setPhotoMode(false)}return}if(dead)return;if(e.code==='KeyR'&&!e.repeat&&!paused)eat();if(e.code==='KeyT'&&!e.repeat&&!paused&&nearChest)openChest(...nearChest);if(e.code==='KeyV'&&!e.repeat&&!paused)dragonAct();if(e.code==='KeyH'&&!e.repeat){toggleHUD();return}if(e.code==='F3'){e.preventDefault();if(!e.repeat)toggleDetails();return}if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='Space')jump();if(e.code==='KeyF'&&!e.repeat)toggleFlight();if(e.code==='Escape')pause();if(e.code==='KeyE'&&!paused)$('craftBtn').click();if(/^Digit[1-8]$/.test(e.code)){selected=+e.code.slice(-1)-1;eggSp=-1;refresh()}if(e.code==='KeyG'&&!e.repeat&&!paused)openEggs();};document.onkeyup=e=>keys[e.code]=false;// Transient browser focus changes must NEVER open the title/menu.
 // Suspend simulation on actual backgrounding, then resume the same play state.
 window.onblur=()=>{clearInput();save()};
@@ -2889,11 +3045,12 @@ const dynamicCaps=new Map();
 function drawData(buffer,w){if(!w.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);const bytes=w.n*4;let capacity=dynamicCaps.get(buffer)||0;if(capacity<bytes){capacity=2**Math.ceil(Math.log2(Math.max(256,bytes)));gl.bufferData(gl.ARRAY_BUFFER,capacity,gl.DYNAMIC_DRAW);dynamicCaps.set(buffer,capacity)}gl.bufferSubData(gl.ARRAY_BUFFER,0,w.a.subarray(0,w.n));drawQuads(buffer,w.n/36,bind,36)}
 function animateWorld(dt){swing=Math.max(0,swing-dt*3.5);const moving=Math.hypot(joy.x,joy.y)> .1||keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD;if(moving&&ground)walkPhase+=dt*9;
 for(const p of particles){p.life-=dt;p.vy-=dt*8;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt}for(let i=particles.length-1;i>=0;i--)if(particles[i].life<=0)particles.splice(i,1);
-updateLife(dt,player);updateSurvival(dt);dragonTick(dt);
+updateLife(dt,player);updateSurvival(dt);dragonTick(dt);if(doorAnims.length)doorTick(dt);
 }
 function drawWorldDetails(){const a=dyn;a.n=0;
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
 if(dig&&dig.p>.08)drawCrack(a);
+if(doorAnims.length)drawDoors(a);
 drawRuinEffects(a);
 if(riding&&pet)drawRider(a);
 if(arrows.length||gameMode==='survival')drawCombat(a);
@@ -3550,7 +3707,7 @@ function buildCraftGear(){const box=$('craftGear');if(!box||craftBuilt)return;cr
  for(const [head,set] of CRAFT_SECTIONS){const h=document.createElement('div');h.className='craft-head';h.textContent=head;box.appendChild(h);const g=document.createElement('div');g.className='craft-grid';box.appendChild(g);
   for(const id in set){const b=document.createElement('button');b.id='craft_'+id;b.className='recipe';b.onclick=()=>craftItem(id);g.appendChild(b)}}}
 let craftKey='';
-function craftUI(){const box=$('craftGear');if(!box)return;adventureUI();if(dragonReady)dragonUI();buildCraftGear();
+function craftUI(){partsUI();const box=$('craftGear');if(!box)return;adventureUI();if(dragonReady)dragonUI();buildCraftGear();
  const key=JSON.stringify([items,inventory[3],inventory[7],inventory[5],inventory[14],inventory[15],inventory[16],gameMode]);if(key===craftKey)return;craftKey=key;
  for(const [,set] of CRAFT_SECTIONS)for(const id in set){const b=$('craft_'+id),r=set[id];const h=craftLabel(id,r);if(b.innerHTML!==h)b.innerHTML=h;b.classList.toggle('owned',items[id]>0);b.classList.toggle('ready',!(items[id]>0)&&!missingOf(r.need).length)}
  const w=weapon(),pk=pickaxe(),ar=armor();
@@ -3558,6 +3715,21 @@ function craftUI(){const box=$('craftGear');if(!box)return;adventureUI();if(drag
  const mats=[[4,'原木'],[7,'木材'],[3,'石']].map(([t,n])=>`<span>${n} <b>${inventory[t]||0}</b></span>`).join('')+['coal','iron','gold','diamond','leather','apple'].map(k=>`<span>${MAT_ICON[k]} ${MAT_NAME[k]} <b>${items[k]}</b></span>`).join('');
  $('matRow').innerHTML=mats;
  $('rareRow').innerHTML='<span class="rare-title">✨ コレクション</span>'+Object.entries(RARE).map(([k,r])=>items[k]>0?`<span class="got">${r.icon} ${r.name} <b>×${items[k]}</b></span>`:`<span class="unknown">？ ？？？</span>`).join('')+`<span class="chest-count">🎁 開けた宝箱 <b>${items.chests}</b></span>`}
+// v19 building parts: wood from logs, glass from sand, then doors, stairs and windows. Every mode lists them; creative needs no materials.
+const PARTS={door:{id:B_DOOR,make:1,need:{7:4},tip:'タップで開け閉め'},stairW:{id:B_STAIR_W,make:4,need:{7:3},tip:'ジャンプなしで上れる'},
+ window:{id:B_WINDOW,make:2,need:{9:2,7:2},tip:'外の景色が見える'},stairS:{id:B_STAIR_S,make:4,need:{3:3},tip:'石の家やお城に'}};
+function showSlot(t){const i=slots.indexOf(t);if(i<0)return;selected=i;eggSp=-1;refresh();const b=hotbarButtons[i],bar=$('bar');if(b&&typeof b.offsetLeft==='number'&&bar.clientWidth)bar.scrollLeft=Math.max(0,b.offsetLeft-bar.clientWidth/2+b.offsetWidth/2)}
+function craftPart(k){const r=PARTS[k],name=defs[r.id][0];
+ if(creative){showSlot(r.id);toast(`クリエイティブでは材料なしで置けるよ。ホットバーの「${name}」を選んだよ`);return true}
+ const miss=missingOf(r.need);if(miss.length){toast('材料が足りないよ：'+miss.join('・')+(r.need[7]&&haveOf(7)<r.need[7]?'（原木→木材をクラフト）':r.need[9]&&haveOf(9)<r.need[9]?'（砂→ガラスをクラフト）':''));sfx('clank');refresh();return false}
+ for(const [t,n] of Object.entries(r.need))inventory[t]-=n;inventory[r.id]=(inventory[r.id]||0)+r.make;dirty=true;sfx('craft');showSlot(r.id);
+ toast(`${name}を${r.make}個つくった！ 「戻る」→「置く」で建てよう`);return true}
+const partButtons={};
+function partsUI(){const g=$('craftParts');if(!g)return;
+ for(const k in PARTS){const r=PARTS[k],name=defs[r.id][0];let b=partButtons[k];if(!b){b=partButtons[k]=document.createElement('button');b.id='craft_'+k;b.className='recipe part-recipe';b.onclick=()=>craftPart(k);g.appendChild(b)}
+  const miss=creative?'':missingOf(r.need).join('・'),need=needList(r.need).map(([t,n])=>needName(t)+' '+n).join(' + ');
+  const h=`<span><i class="part-icon block-${r.id}"></i>${creative?'':'もってる '+(inventory[r.id]||0)}</span><div><b>${name} ×${r.make}</b><span>${need} → ${r.tip}</span>${creative?'<em class="ok">材料なしで置ける</em>':miss?'<em>たりない：'+miss+'</em>':'<em class="ok">つくれる！</em>'}</div>`;
+  if(b.innerHTML!==h)b.innerHTML=h;b.classList.toggle('ready',creative||!miss)}}
 $('craftApple').onclick=()=>craftItem('apple');
 $('eat').onclick=()=>eat();$('respawn').onclick=()=>respawn();
 // ---- v16 treasure chests: opening. The loot is a pure function of the chest's place and kind (reloading never re-rolls it), and the
@@ -4028,6 +4200,7 @@ function sfx(kind,src){if(!sound||sound.state!=='running')return;try{let vol=1;i
   case'hatch':for(let i=0;i<4;i++)noise(.06,.4,'bandpass',1800+i*300,i*.12);[659,784,988,1319,1568].forEach((f,i)=>tone('sine',f,f*1.004,.3,.16,.55+i*.09));break;
   case'pet':tone('sine',880,1320,.16,.12);tone('sine',1320,1760,.18,.1,.12);break;case'flap':noise(.35,.35,'lowpass',380);noise(.3,.25,'lowpass',420,.32);break;
   case'breath':noise(.6,.3,'bandpass',2600);tone('sine',1700,900,.5,.06);break;
+  case'door':tone('triangle',190,240,.28,.08);noise(.06,.25,'lowpass',600,.02);break;case'doorShut':noise(.08,.45,'lowpass',380);tone('square',120,80,.1,.12);break;
   case'down':tone('triangle',392,196,.6,.3);tone('triangle',294,147,.8,.25,.3);break;case'revive':[392,523,659,784].forEach((f,i)=>tone('sine',f,f,.25,.2,i*.09));break}}catch(e){}}
 // A world saved on the respawn screen comes back at the start point with full hearts.
 if(gameMode==='survival'&&health<=0){health=MAX_HP;spawn();protectT=5}
@@ -4086,8 +4259,15 @@ cuboid(a,-.055,.01,.0,.11,.62,.1,w.blade,3,transform);cuboid(a,-.025,.01,.1,.05,
 else{cuboid(a,-.045,-.30,.02,.09,.66,.09,'#93612e',4,transform);
 cuboid(a,-.20,.28,-.02,.40,.09,.14,'#48545a',0,transform);cuboid(a,-.16,.37,-.02,.32,.19,.14,'#9aa8aa',3,transform);cuboid(a,-.10,.56,-.02,.20,.07,.14,'#79888d',0,transform)}
 gl.clear(gl.DEPTH_BUFFER_BIT);drawData(toolBuffer,a)}
-const outlineData=new Float32Array(432);let outlineKey=-1;
-function drawOutline(){if(!hit)return;const key=idx(hit.x,hit.y,hit.z);bind(outline);if(key!==outlineKey){let n=0;for(const f of faces)for(let i=0;i<4;i++)for(const k of [i,(i+1)%4]){const v=f.v[k];outlineData[n++]=hit.x+(v[0]-.5)*1.007+.5;outlineData[n++]=hit.y+(v[1]-.5)*1.007+.5;outlineData[n++]=hit.z+(v[2]-.5)*1.007+.5;outlineData[n++]=.10;outlineData[n++]=.14;outlineData[n++]=.10;outlineData[n++]=0;outlineData[n++]=0;outlineData[n++]=224}gl.bufferData(gl.ARRAY_BUFFER,outlineData,gl.DYNAMIC_DRAW);outlineKey=key}perfDraw();gl.drawArrays(gl.LINES,0,48)}
+const outlineData=new Float32Array(432*3);let outlineKey=-1,outlineKey2=-1,outlineN=48;
+function outlineBox(n,b,ox,oy,oz,r,g,bl){for(const f of faces)for(let i=0;i<4;i++)for(const k of [i,(i+1)%4]){const v=f.v[k];
+ outlineData[n++]=ox+(v[0]?b[3]+.0035:b[0]-.0035);outlineData[n++]=oy+(v[1]?b[4]+.0035:b[1]-.0035);outlineData[n++]=oz+(v[2]?b[5]+.0035:b[2]-.0035);outlineData[n++]=r;outlineData[n++]=g;outlineData[n++]=bl;outlineData[n++]=0;outlineData[n++]=0;outlineData[n++]=224}return n}
+const UNIT_BOX=[0,0,0,1,1,1],PART_BOUND=[];for(let t=41;t<=PART_LAST;t++){const l=PART_BOX[t];PART_BOUND[t]=[0,1,2].map(i=>Math.min(...l.map(b=>b[i]))).concat([3,4,5].map(i=>Math.max(...l.map(b=>b[i]))))}
+// The aimed block's outline (a part shows its own shape), plus the v19 placement preview when a building part is in hand.
+function drawOutline(){if(!hit)return;const pv=partPreview(),key=idx(hit.x,hit.y,hit.z)*64+(PART[hit.t]?hit.t-40:0),key2=pv?previewKey:-1;bind(outline);
+ if(key!==outlineKey||key2!==outlineKey2){let n=outlineBox(0,PART[hit.t]?PART_BOUND[hit.t]:UNIT_BOX,hit.x,hit.y,hit.z,.10,.14,.10);
+  if(pv){const ok=!pv.why;for(const [x,y,z,id] of pv.cells)for(const b of PART_BOX[id])if(n<outlineData.length)n=outlineBox(n,b,x,y,z,ok?.98:.95,ok?.9:.3,ok?.45:.25)}
+  gl.bufferData(gl.ARRAY_BUFFER,outlineData.subarray(0,n),gl.DYNAMIC_DRAW);outlineKey=key;outlineKey2=key2;outlineN=n/9}perfDraw();gl.drawArrays(gl.LINES,0,outlineN)}
 function moveAxis(axis,d){
  const steps=Math.max(1,Math.ceil(Math.abs(d)/.18)),step=d/steps;
  for(let i=0;i<steps;i++){const old=player[axis];player[axis]+=step;if(collides(player)){player[axis]=old;return false}}
@@ -4102,10 +4282,12 @@ function update(dt){
  const speed=flying?(keys.ShiftLeft?16:10):water?2.8:keys.ShiftLeft?6.2:4.3;
  const dx=(Math.cos(yaw)*right+Math.sin(yaw)*forward)*speed*dt,dz=(-Math.sin(yaw)*right+Math.cos(yaw)*forward)*speed*dt;
  if(kbx||kbz){moveAxis('x',kbx*dt);moveAxis('z',kbz*dt);const k=Math.max(0,1-dt*7);kbx*=k;kbz*=k;if(Math.abs(kbx)+Math.abs(kbz)<.08)kbx=kbz=0}
- for(const [axis,d]of [['x',dx],['z',dz]])if(!moveAxis(axis,d)&&!flying&&ground&&Math.hypot(joy.x,joy.y)>.2){const test={...player,[axis]:player[axis]+d,y:player.y+1.05};if(!collides(test)){vy=7;ground=false}}
+ for(const [axis,d]of [['x',dx],['z',dz]])if(!moveAxis(axis,d)&&!flying&&ground&&!stepUp(axis,d)&&Math.hypot(joy.x,joy.y)>.2){const test={...player,[axis]:player[axis]+d,y:player.y+1.05};if(!collides(test)){vy=7;ground=false}}
+ if(!flying&&ground&&vy<=0&&!water)stepDown();
+ stepEye*=Math.exp(-dt*14);if(Math.abs(stepEye)<.003)stepEye=0;
  if(flying){vy=0;ground=false;const up=riseHeld||keys.Space,down=descendHeld||keys.KeyQ||keys.ControlLeft||keys.ControlRight;moveAxis('y',((up?1:0)-(down?1:0))*7*dt)}
  else {vy-=(water?5:20)*dt;if(water)vy=Math.max(vy,-2);ground=false;if(!moveAxis('y',vy*dt)){ground=vy<=0;vy=0}}
- actionClock-=dt;if(actionClock<=0&&(mineHeld||placeHeld||mouseMine&&gameMode==='survival')){if(mineHeld||mouseMine)mine();else place();actionClock=.23}
+ actionClock-=dt;if(actionClock<=0&&(mineHeld||placeHeld||mouseMine&&gameMode==='survival')){if(mineHeld||mouseMine)mine();else place(true);actionClock=.23}
  digTick(dt);
  if(attackHeld&&atkCD<=0)strike(true);
 }
@@ -4264,7 +4446,7 @@ function frame(now){
  const ratio=Math.min(devicePixelRatio||1,Q.dpr)*renderScale,w=Math.max(1,Math.floor(innerWidth*ratio)),h=Math.max(1,Math.floor(innerHeight*ratio));
  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}
  gl.viewport(0,0,w,h);
- const cam=titleOpen?titleCamera():riding&&pet?rideCamera():{x:player.x,y:player.y+1.62,z:player.z,yaw,pitch:pitch+camKick};
+ const cam=titleOpen?titleCamera():riding&&pet?rideCamera():{x:player.x,y:player.y+1.62+stepEye,z:player.z,yaw,pitch:pitch+camKick};
  frameCloudMs=0;if(renderReady){render(cam,titleOpen,w,h);if(perfEnabled)perfStats.renderFrames=(perfStats.renderFrames||0)+1}
  const lodStart=performance.now();lodWork(Q.budget*.6*loadScale,64);
  if(!paused){perfFrames++;perfTime+=raw;perfBuildMs+=buildMs+frameCloudMs+performance.now()-lodStart;if(perfTime>2){adaptPerformance(perfFrames/perfTime,perfBuildMs/perfFrames);perfFrames=0;perfTime=0;perfBuildMs=0}}

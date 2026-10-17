@@ -698,7 +698,7 @@ const SEA_=62;
  d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),11);
  assert.equal(run(re,`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),R(`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),'reloading does not change the caves');
  // Save format: new block ids are accepted, the unused plant-material ids are not, and future versions are rejected.
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},false]]){
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},true],[{changes:[[5000,66]]},true],[{changes:[[5000,67]]},false]]){
   const t=()=>run(d,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  console.log(`PASS: caves: lake ${lk.water} water voxels (${lk.exposed} open sides), ${cr.n} crystals lighting ${cr.glowFaces} faces, ${dec.hang}/${dec.stand} stalactites/stalagmites, underground factor ${deep.toFixed(2)}, ${spots} spots visited, edits/save/validation`)}
 {// Underground life: dark-loving monsters appear on cave floors only, and the surface is left alone while the player is below.
@@ -1426,4 +1426,91 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  // The egg book never lists the dragon.
  assert(!R('LIFE_GROUPS.includes("ドラゴン")'));assert.equal(R('lifePick("pet","meadow",false,false)'),null);
  console.log(`PASS: v18 dragon: legendary egg, nest (place/lift, one per world), warmth & petting, hatch, follow/wait/call, growth ${'baby→young→adult'}, names cleaned, riding (take-off, ${flown.toFixed(0)} blocks in 4 s, landing, safe dismount), save in flight, survival breath, validation, old saves`);
+}
+// ---- v19 BUILDING PARTS: wood → doors, stairs and windows; real shapes for collision, picking and the mesh; saves keep orientation and state.
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ R('paused=false;gameMode="peaceful";creative=false;lifeMode="off";life.length=0;streamChunks(true);for(let i=0;i<40;i++)update(1/60)');
+ // 1-2. A log from a tree near the start, then the unchanged block recipes (log → planks, sand → glass).
+ const log=J(`(()=>{const px=Math.floor(player.x),pz=Math.floor(player.z);for(let r=2;r<40;r++)for(let x=px-r;x<=px+r;x++)for(let z=pz-r;z<=pz+r;z++)for(let y=SEA;y<H-2;y++)if(get(x,y,z)===4&&!solid(x-1,y,z)&&!solid(x-1,y-1,z)&&solid(x-1,y-2,z))return[x,y,z];return null})()`);
+ assert(log,'a reachable log near the start');
+ R(`flying=true;player.x=${log[0]}-1.5;player.z=${log[2]}+.5;player.y=${log[1]}-1.62+.5;yaw=Math.PI/2;pitch=0;hit=ray()`);assert.deepEqual(J('[hit.x,hit.y,hit.z,hit.t]'),[...log,4],'aiming at the trunk');
+ const logs0=R('inventory[4]||0');R('mine()');assert.equal(R('inventory[4]'),logs0+1,'breaking a tree gives a log');
+ assert.deepEqual(J('recipes'),{plank:[4,1,7,4],brick:[3,3,8,4],glass:[6,2,9,2]},'log→planks and sand→glass recipes are kept');
+ // 3-4. Building parts: exact costs and outputs, refusals when short, nothing consumed in creative.
+ R('inventory[7]=9;inventory[9]=2;inventory[3]=3;for(const t of [41,45,49,51])inventory[t]=0;flying=false');
+ assert(R('craftPart("door")'));assert(R('craftPart("stairW")'));assert(R('craftPart("window")'));assert(R('craftPart("stairS")'));
+ assert.deepEqual(J('[inventory[51],inventory[41],inventory[49],inventory[45],inventory[7],inventory[9],inventory[3]]'),[1,4,2,4,0,0,0],'door 4 planks→1, stairs 3 planks→4, window 2 glass+2 planks→2, stone stairs 3 stone→4');
+ assert.equal(R('slots[selected]'),45,'the new part is selected in the hotbar');assert(R('slots.includes(51)&&slots.includes(41)&&slots.includes(49)&&slots.includes(45)'));
+ assert.equal(R('craftPart("door")'),false,'no planks, no door');assert.equal(R('inventory[51]'),1);
+ R('partsUI()');assert.match(R('partButtons.door.innerHTML'),/木のドア ×1[\s\S]*木材 4[\s\S]*たりない：木材 あと4/);R('inventory[7]=4;partsUI()');assert.match(R('partButtons.door.innerHTML'),/つくれる！/);
+ assert(R('partButtons.door.classList.contains("ready")'));
+ R('creative=true;gameMode="creative";inventory[7]=0');assert(R('craftPart("window")'));assert.equal(R('inventory[7]'),0,'creative crafting consumes nothing');R('creative=false;gameMode="peaceful";inventory[7]=4');
+ // A flat yard with a wall and a doorway.
+ const X=Math.floor(R('player.x')),Y=Math.floor(R('player.y'))+4,Z=Math.floor(R('player.z'));
+ R(`(()=>{const l=[];for(let x=${X}-8;x<=${X}+8;x++)for(let z=${Z}-8;z<=${Z}+12;z++){l.push([x,${Y}-1,z,3]);for(let y=${Y};y<${Y}+9;y++)l.push([x,y,z,0])}
+  for(let x=${X}-4;x<=${X}+4;x++)for(let y=${Y};y<${Y}+4;y++)if(!(x===${X}&&y<${Y}+2)&&!(x===${X}+3&&y===${Y}+1))l.push([x,y,${Z}+2,8]);editMany(l)})()`);
+ const stand=(x,z,yw,p)=>R(`flying=false;vy=0;player.x=${x};player.y=${Y};player.z=${z};yaw=${yw};pitch=${p};doorAnims.length=0;doorHide.clear();hit=ray()`);
+ // Door: placed by aiming at the floor of the doorway, two cells, closed, facing the player; the hand loses one door.
+ stand(X+.5,Z-.5,0,-.55);assert.deepEqual(J('hit.prev'),[X,Y,Z+2]);R('selected=slots.indexOf(51);hit=ray();drawOutline()');
+ assert.deepEqual(J('partPreview()'),{cells:[[X,Y,Z+2,51],[X,Y+1,Z+2,52]]},'preview shows the door that would be placed');assert.equal(R('outlineN'),144,'aim outline + two preview boxes');
+ R('place()');assert.deepEqual([R(`get(${X},${Y},${Z}+2)`),R(`get(${X},${Y}+1,${Z}+2)`)],[51,52]);assert.equal(R('inventory[51]'),0);
+ assert.equal(R(`partCells(51,${X}-2,${Y}+5,${Z}-2).why`),'ドアは床の上に置こう');assert.equal(R(`partCells(51,${X}+3,${Y}+1,${Z}+2).why`),'ドアには高さ2マスのすき間がいるよ');
+ // Closed: walking into it stops at the thin panel. Open (置く, then a tap): walk straight through.
+ const walk=(n,yw)=>R(`yaw=${yw};keys.KeyW=true;for(let i=0;i<${n};i++)update(1/60);keys.KeyW=false;player.z`);
+ assert(walk(80,0)<Z+2-.28,'a closed door blocks');stand(X+.5,Z-.5,0,0);assert.match(R('targetLabel(hit)'),/ドア.*開ける/);
+ R('place()');assert.deepEqual([R(`get(${X},${Y},${Z}+2)`),R(`get(${X},${Y}+1,${Z}+2)`)],[53,54],'置く opens the door');assert.equal(R('doorAnims.length'),1);
+ R('place(true)');assert.equal(R(`get(${X},${Y},${Z}+2)`),53,'holding 置く does not flap the door');
+ R('for(let i=0;i<20;i++)animateWorld(1/60)');assert.equal(R('doorAnims.length+doorHide.size'),0,'the swing ends and the mesh shows the door again');
+ assert(walk(90,0)>Z+4,'an open door lets the player through');
+ R(`player.x=${X}+.5;player.z=${Z}+2.3`);assert.equal(R(`toggleDoor(${X},${Y},${Z}+2)`),false,'it never closes on the player');assert.equal(R(`get(${X},${Y},${Z}+2)`),53);
+ stand(X+.5,Z+4.5,Math.PI,0);assert(R(`toggleDoor(${X},${Y}+1,${Z}+2)`));
+ R(`doorAnims.length=0;doorHide.clear();player.x=${X}+.4;player.z=${Z}+2.6`);assert.equal(R(`toggleDoor(${X},${Y},${Z}+2)`),false,'nor opens onto a player beside the hinge');R(`player.z=${Z}+4.5`);assert.deepEqual([R(`get(${X},${Y},${Z}+2)`),R(`get(${X},${Y}+1,${Z}+2)`)],[51,52],'either half closes the whole door');
+ R('doorAnims.length=0;doorHide.clear()');stand(X+.5,Z-.5,0,0);
+ const tap=(x,y)=>{d.nodes.world.onpointerdown({pointerId:9,clientX:x,clientY:y,pointerType:'touch',button:0});for(const f of d.nodes.world.listeners.pointerup)f({pointerId:9,clientX:x,clientY:y,pointerType:'touch'})};
+ tap(56,56);assert.equal(R(`get(${X},${Y},${Z}+2)`),53,'a quick tap on a door opens it');R('doorAnims.length=0;doorHide.clear()');tap(56,56);assert.equal(R(`get(${X},${Y},${Z}+2)`),51,'and closes it');
+ // Breaking either half gives back one door and removes both halves.
+ R('doorAnims.length=0;doorHide.clear();hit=ray()');assert.equal(R('hit.t'),52);R('mine()');assert.deepEqual([R(`get(${X},${Y},${Z}+2)`),R(`get(${X},${Y}+1,${Z}+2)`),R('inventory[51]')],[0,0,1]);
+ // Windows line up with the wall (pane across x in this wall), else face the player; a joined pair drops the inner posts.
+ assert.equal(R(`partCells(49,${X}+3,${Y}+1,${Z}+2).cells[0][3]`),49);R('yaw=Math.PI/2');assert.equal(R(`partCells(49,${X}-6,${Y}+1,${Z}-5).cells[0][3]`),50);R('yaw=0');
+ const cq=()=>R(`(()=>{rebuild(${X}>>4,${Z+2}>>4);const c=chunks.get((${X}>>4)+','+(${Z+2}>>4));return[c.quads,c.waterQuads]})()`),[q0,w0]=cq();
+ R(`inventory[49]=4;placePart(49,${X}+3,${Y}+1,${Z}+2)`);assert.equal(R(`get(${X}+3,${Y}+1,${Z}+2)`),49);R('inventory[49]=4');const [q1,w1]=cq();assert.equal(w1-w0,1,'one glass sheet per window cell (translucent pass)');
+ R(`editMany([[${X}+2,${Y}+1,${Z}+2,0]]);placePart(49,${X}+2,${Y}+1,${Z}+2)`);const [q2,w2]=cq();assert.equal(w2-w1,1);assert(q2-q1<q1-q0,'a joined window draws fewer frame faces than a lone one');
+ R('setQuality("low")');assert(cq()[0]<q2,'low quality leaves out the window cross bars');assert.equal(cq()[1],w2,'but keeps every pane');R('setQuality("standard")');
+ // Glass edge lines stay hidden in a joined window (uv kept inside .04-.96), and every quad is finite (the WebGL mock checks uploads).
+ R(`rebuild(${X}>>4,${Z+2}>>4)`);assert.equal(R(`(()=>{const a=waterW.a;let g=0;for(let i=0;i<waterW.n;i+=9)if(a[i+8]%32===9){g++;if(a[i+6]<.03||a[i+6]>.97)return -1}return g})()`),8,'two glass sheets, no visible edge lines');
+ // Stairs: placed facing the way the player looks; four in a row climbed and descended by walking (never a jump), smooth eye.
+ R(`(()=>{const l=[];for(let x=${X}-8;x<=${X}+8;x++)for(let y=${Y};y<${Y}+4;y++)l.push([x,y,${Z}+2,0]);editMany(l)})()`);
+ R(`inventory[41]=4;selected=slots.indexOf(41);yaw=0`);assert.deepEqual(J(`partCells(41,${X},${Y},${Z}+1).cells`),[[X,Y,Z+1,41]]);R('yaw=Math.PI/2');assert.equal(R(`partCells(41,0,0,0).cells[0][3]`),42);R('yaw=-Math.PI/2');assert.equal(R(`partCells(45,0,0,0).cells[0][3]`),48);
+ R(`(()=>{const l=[];for(let k=0;k<4;k++)for(let dx=-1;dx<=1;dx++){l.push([${X}+dx,${Y}+k,${Z}+1+k,41]);for(let y=${Y};y<${Y}+k;y++)l.push([${X}+dx,y,${Z}+1+k,3])}for(let dx=-1;dx<=1;dx++)for(let y=${Y};y<${Y}+4;y++)for(let z=${Z}+5;z<${Z}+9;z++)l.push([${X}+dx,y,z,3]);editMany(l)})()`);
+ stand(X+.5,Z-.5,0,0);let maxVy=0,eye=0;for(let i=0;i<100;i++){R('keys.KeyW=true;update(1/60)');maxVy=Math.max(maxVy,R('vy'));eye=Math.min(eye,R('stepEye'))}R('keys.KeyW=false');
+ assert.equal(R('player.y'),Y+4,'walked up four stairs');assert.equal(maxVy,0,'without jumping');assert(eye<-.1&&eye>=-.6,'the eye follows each step smoothly');
+ let minVy=0;R('yaw=Math.PI');for(let i=0;i<100;i++){R('keys.KeyW=true;update(1/60)');minVy=Math.min(minVy,R('vy'))}R('keys.KeyW=false');assert.equal(R('player.y'),Y,'walked back down');assert(minVy>-.5,'stepping down, not falling');
+ R(`(()=>{const l=[];for(let x=${X}-8;x<=${X}+8;x++)for(let z=${Z};z<=${Z}+9;z++)for(let y=${Y};y<${Y}+5;y++)l.push([x,y,z,0]);l.push([${X}+5,${Y},${Z}+3,3]);editMany(l)})()`);
+ stand(X+5.5,Z+.5,0,0);walk(60,0);assert(R('player.z')<Z+3&&R('player.y')===Y,'a full block still needs a jump');
+ // Collision and picking follow the real shapes: half a stair is open above, a window is a thin pane.
+ R(`editMany([[${X},${Y},${Z}+6,41],[${X}+2,${Y},${Z}+6,49]])`);
+ assert.equal(R(`collides({x:${X}+.5,y:${Y}+.5,z:${Z}+6.2})`),false,'standing on the low step');assert.equal(R(`collides({x:${X}+.5,y:${Y}+.5,z:${Z}+6.8})`),true,'the high step is solid');
+ assert.equal(R(`collides({x:${X}+2.5,y:${Y},z:${Z}+6.1})`),false,'beside the pane');assert.equal(R(`collides({x:${X}+2.5,y:${Y},z:${Z}+6.5})`),true,'the pane itself');
+ R(`player.x=${X}+.5;player.z=${Z}+6.25;player.y=${Y}+2;flying=true`);const down=J('ray([0,-1,0])');assert.deepEqual([down.y,down.t],[Y,41],'picks the low step');
+ // Full blocks beside parts keep their faces (no holes), and a stair hides the face under it.
+ const quads=(cx,cz,f)=>R(`(()=>{rebuild(${cx}>>4,${cz}>>4);const a=opaqueW.a,q=[0,9,18,27];let n=0;for(let i=0;i<opaqueW.n;i+=36){const X=q.map(k=>a[i+k]),Y=q.map(k=>a[i+k+1]),Z=q.map(k=>a[i+k+2]);if((${f})(X,Y,Z,a[i+8]%32))n++}return n})()`);
+ R(`edit(${X}+4,${Y},${Z}+6,3);edit(${X}+5,${Y},${Z}+6,51)`);
+ assert.equal(quads(X+4,Z+6,`(X,Y,Z,m)=>m===3&&X.every(v=>v===${X+5})&&Y.every(v=>v>=${Y}&&v<=${Y+1})&&Z.every(v=>v>=${Z+6}&&v<=${Z+7})`),1,'a stone face beside a door stays');
+ assert.equal(quads(X,Z+6,`(X,Y,Z)=>Y.every(v=>v===${Y})&&X.every(v=>v>=${X}&&v<=${X+1})&&Z.every(v=>v>=${Z+6}&&v<=${Z+7})`),0,'the floor under a stair and the stair bottom are both hidden');
+ assert(quads(X,Z+6,`(X,Y,Z)=>Y.every(v=>v===${Y+.5})&&X.every(v=>v>=${X}&&v<=${X+1})&&Z.every(v=>v>=${Z+6}&&v<=${Z+6.5})`)>=1,'the low step has its own top');
+ // 8. Save and reload: orientation, open state, windows and inventory survive; validation accepts the new ids and refuses unknown ones.
+ R(`editMany([[${X}-3,${Y},${Z}+7,53],[${X}-3,${Y}+1,${Z}+7,54],[${X}-5,${Y},${Z}+7,47],[${X}-6,${Y},${Z}+7,50]]);inventory[45]=3;selected=slots.indexOf(49)`);assert(d.api.save());
+ const re=boot(d.storage['nisekura-v1']),RR=c=>run(re,c);
+ assert.deepEqual([RR(`get(${X}-3,${Y},${Z}+7)`),RR(`get(${X}-3,${Y}+1,${Z}+7)`),RR(`get(${X}-5,${Y},${Z}+7)`),RR(`get(${X}-6,${Y},${Z}+7)`),RR('inventory[45]'),RR('slots[selected]')],[53,54,47,50,3,49],'parts, door state and the selected part reload');
+ assert(RR(`(()=>{rebuild(${X-3}>>4,${Z+7}>>4);return true})()`));
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of [[{changes:[[5000,51]]},true],[{inventory:{51:2,41:3}},true],[{changes:[[5000,67]]},false],[{inventory:{67:1}},false]]){const t=()=>run(re,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
+ // An older save without any part opens unchanged and gains the empty part slots.
+ const old=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:10,seed:4242,changes:[[5000,7]],inventory:{7:5},settings:{qualityName:'low',hudMinimal:false,hudDetails:false,lifeVoices:true,selected:2,hotbar:20,eggSp:-1}}));
+ assert.deepEqual([run(old,'terrainVersion'),run(old,'inventory[7]'),run(old,'inventory[51]||0'),run(old,'slots[selected]')],[10,5,0,38]);assert(old.api.save());
+ // Survival: same crafting and placing; a crafted stair placed and broken comes back to the hand.
+ R(`gameMode="survival";creative=false;flying=false;inventory[41]=1;selected=slots.indexOf(41);player.x=${X}+.5;player.z=${Z}-1.5;player.y=${Y};yaw=0;pitch=-.55;hit=ray();place()`);
+ const sp=J('hit.prev');assert.equal(R(`get(${sp})`),41);assert.equal(R('inventory[41]'),0);R('hit=ray();mine()');assert.equal(R('inventory[41]'),1);assert.equal(R(`get(${sp})`),0);
+ // The aim outline is uploaded once while nothing changes (no per-frame buffer churn).
+ let up=0;const bd=d.gl.bufferData;d.gl.bufferData=(...a)=>{up++;return bd(...a)};R('selected=0;hit={x:30,y:30,z:30};outlineKey=-1;for(let i=0;i<30;i++)drawOutline()');d.gl.bufferData=bd;assert.equal(up,1);
+ console.log('PASS: v19 building parts: log→planks→door/stairs/window/stone stairs crafting (costs, refusals, creative free), door place/preview/open/close/tap/no-flap/never closes on the player/break both halves, windows align and join with one glass sheet each, stairs walked up/down without jumping, real-shape collision and picking, save/reload of orientation and state, validation, old saves, survival');
 }
