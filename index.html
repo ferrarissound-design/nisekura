@@ -2000,29 +2000,31 @@ const LIFE_SPECIES=[
  bones:[['body','root',0,0,0]],
  parts:[['body',0,0,0,10,10,10,'#6f98ea','glow'],['body',0,.4,0,10.3,2.2,10.3,'#8f7ae8','glow'],['body',-2.2,5.4,5.05,1.8,2.4,.25,'#1d1640','flat',1],['body',-2.6,6.6,5.2,.7,.7,.15,'#ffffff','flat',1],
   ['body',0,3.2,5.05,2,.7,.25,'#1d1640','flat'],['body',-2.4,10,-1,2,3.2,2,'#c58cff','glow'],['body',2.2,10,1.4,1.6,2.4,1.6,'#7fe8ff','glow'],['body',.4,10,-2.6,1.2,1.8,1.2,'#b7a4ff','glow']]},
-// v18 the dragon partner and its nest egg (cat 'pet': never spawned, never in the egg book, never culled; see the DRAGON section).
-// One model for every age: lifePose scales the head, neck, wings and tail per growth stage. 'shd' carries the contact shadow (hidden in flight).
+// v18 the dragon partner (月影の竜: indigo scales, silver bones, ice-blue glow) and its nest egg (cat 'pet': never spawned, never in the egg book,
+// never culled; see the DRAGON section). One model for every age: lifePose scales the head, neck, wings and tail per growth stage.
+// 'shd' carries the contact shadow (hidden in flight). A slender body, a long neck and tail, spines along the back and big bony wings.
 {id:'dragon',name:'ドラゴン',group:'ドラゴン',cat:'pet',move:'dragon',rig:'dragon',sc:1,sp:1.5,run:4.6,h:1.2,r:.5,flee:0,herd:[1,1],hab:{},voice:'kyu',stride:1.3,
- bones:[['shd','root',0,0,0],['body','root',0,10,0],['neck','body',0,15,8,.55],['head','neck',0,25,9],['jaw','head',0,24,12],['tail','body',0,13,-8,-.12],['tip','tail',0,12.5,-19.5],
-  ['wl','body',-5,17,3],['l1','wl',-19,17,3],['fl','body',-4,9,6],['bl','body',-4,9,-5]],
- parts:[['shd',0,.5,-3,22,.1,36,[11,18,-3/18],'shadow'],
-  ['body',0,8,0,10,9,18,'#2d7a8c','scale'],['body',0,7.4,0,8,1,15,'#a8e0cf','flat'],['body',0,16.6,-1,7,1,15,'#1f5568','scale'],
-  ['body',0,17.4,5,1.4,2.2,2,'#cfeff5','flat'],['body',0,17.4,0,1.4,2.6,2,'#cfeff5','flat'],['body',0,17.4,-5,1.4,2.2,2,'#cfeff5','flat'],['body',0,11,9.05,4,4,.4,'#7fe8ff','glow'],
-  ['neck',0,15,9,5.4,11,5.4,'#2d7a8c','scale'],['neck',0,16,11.75,3.4,9,.4,'#a8e0cf','flat'],['neck',0,24,6.7,1.2,1.8,1.6,'#cfeff5','flat'],
-  ['head',0,24,11,7,6,8,'#2d7a8c','scale'],['head',0,24.4,17,5,3.4,4.4,'#2f8396','scale'],['head',-1.3,26.9,19.25,.8,.6,.2,'#123844','flat',1],
-  ['head',-3.55,27,13,.3,1.5,1.9,'#aef9ff','glow',1],['head',-3.62,27.6,13.4,.2,.5,.6,'#ffffff','flat',1],
-  ['head',-2.2,30,9.5,1.2,3,1.2,'#ede4c8','bone',1],['head',-2.2,32,8,1,1,2.4,'#ede4c8','bone',1],['head',-3.9,26,9,1.6,2.4,1,'#1f5568','fur',1],
-  ['jaw',0,22.8,15.5,4.6,1.4,6,'#2a6f80','scale'],['jaw',0,22.6,15.5,4,.3,5,'#a8e0cf','flat'],
-  ['tail',0,10.5,-14,6,5,12,'#2d7a8c','scale'],['tail',0,15.4,-14,1.2,1.6,2,'#cfeff5','flat'],
-  ['tip',0,11,-26,3.8,3.2,13,'#2d7a8c','scale'],['tip',0,11.6,-33.5,6.4,.8,4,'#7fe8ff','glow'],
-  ['wl',-12,16.6,3,14,1.4,2.4,'#24566a','bone',1],['wl',-12,16.3,-2.8,14,.5,9,'#3f86b8','flat',1],
-  ['l1',-26,16.7,3,14,1.1,2,'#24566a','bone',1],['l1',-26,16.4,-3.5,14,.5,10,'#4a95c8','flat',1],['l1',-33.3,16.45,-3,.6,.5,9,'#8ff4ff','glow',1],['l1',-19,16.2,4.4,1,1.6,1,'#ede4c8','bone',1],
-  ['fl',-4.4,0,6.5,3.4,9.4,3.4,'#2a6f80','scale',1],['fl',-4.4,0,8.4,3.6,1.1,1.2,'#ede4c8','bone',1],
-  ['bl',-4.6,0,-5,4,9.6,4.6,'#2a6f80','scale',1],['bl',-4.6,0,-2.9,4.2,1.1,1.2,'#ede4c8','bone',1]]},
+ bones:[['shd','root',0,0,0],['body','root',0,10,0],['neck','body',0,14,8,.75],['head','neck',0,30,9],['jaw','head',0,29,12],['tail','body',0,12,-8,-.1],['tip','tail',0,12,-26],
+  ['wl','body',-4,16,3],['l1','wl',-22,16.5,3],['fl','body',-3.5,9,5],['bl','body',-3.5,9,-5]],
+ parts:[['shd',0,.5,-8,18,.1,52,[9,26,-8/26],'shadow'],
+  ['body',0,8,0,8,8,18,'#24305e','scale'],['body',0,7.4,0,6,1,14,'#4a5c94','flat'],['body',0,15.6,-1,5.4,1,15,'#1a2248','scale'],
+  ['body',0,16,7,1.2,2.6,1.6,'#d6dde8','bone'],['body',0,16,-4,1.2,2.8,1.6,'#d6dde8','bone'],['body',0,16,-8,1.2,2.4,1.6,'#d6dde8','bone'],['body',0,10,9.05,3.4,3.4,.4,'#8ff4ff','glow'],
+  ['neck',0,14,9,4,16,4,'#24305e','scale'],['neck',0,15,11.2,2.6,14,.4,'#4a5c94','flat'],['neck',0,20,6.6,1,1.8,1.4,'#d6dde8','bone'],['neck',0,25,6.6,1,1.8,1.4,'#d6dde8','bone'],
+  ['head',0,29,11,5.6,4.6,7,'#24305e','scale'],['head',0,29.2,17,4,2.8,5.6,'#2b386c','scale'],['head',-1,31.4,19.85,.7,.5,.2,'#0c1026','flat',1],
+  ['head',-2.85,31.6,13,.3,1.1,2,'#9ff7ff','glow',1],['head',-2.4,33.4,12.2,1.2,.6,3,'#1a2248','scale',1],
+  ['head',-1.8,33.4,9,1,1,5,'#d6dde8','bone',1],['head',-1.8,34.2,6.6,.9,.9,2,'#d6dde8','bone',1],
+  ['jaw',0,27.8,16,3.6,1.2,6.4,'#1f2a55','scale'],['jaw',0,27.6,16,3,.3,5,'#4a5c94','flat'],
+  ['tail',0,10,-17,5,4,18,'#24305e','scale'],['tail',0,14,-12,1,2,1.6,'#d6dde8','bone'],['tail',0,14,-19,1,1.8,1.6,'#d6dde8','bone'],
+  ['tip',0,10.6,-34,2.8,2.6,16,'#24305e','scale'],['tip',0,13.2,-30,.8,1.4,1.4,'#d6dde8','bone'],['tip',0,13,-37,.8,1.2,1.4,'#d6dde8','bone'],['tip',0,11.3,-43,4.6,.6,3,'#8ff4ff','glow'],
+  ['wl',-13,15.6,3,18,1.4,2,'#d6dde8','bone',1],['wl',-13,15.4,-4,18,.4,12,'#2e3b70','flat',1],['wl',-14,15.5,-4,1,.5,12,'#c4ccd8','bone',1],
+  ['l1',-31,16.1,3,18,1.1,1.6,'#d6dde8','bone',1],['l1',-26.5,15.9,-5,9,.4,14,'#34427a','flat',1],['l1',-35.5,15.9,-3,9,.4,10,'#3d4d8a','flat',1],['l1',-28,16,-5,.9,.5,14,'#c4ccd8','bone',1],['l1',-35,16,-3,.9,.5,10,'#c4ccd8','bone',1],
+  ['l1',-26,15.9,-13,3,.4,2,'#34427a','flat',1],['l1',-38.5,15.9,-9,3,.4,2,'#3d4d8a','flat',1],['l1',-40.2,15.95,-3,.5,.4,9,'#8ff4ff','glow',1],['l1',-22,15.6,4.2,.9,1.6,.9,'#d6dde8','bone',1],
+  ['fl',-3.8,0,5.5,2.8,9.4,2.8,'#1f2a55','scale',1],['fl',-3.8,0,7.2,3,1,1,'#d6dde8','bone',1],
+  ['bl',-4,0,-5,3.4,9.6,3.8,'#1f2a55','scale',1],['bl',-4,0,-3.2,3.6,1,1,'#d6dde8','bone',1]]},
 {id:'dragonNest',name:'ドラゴンの卵',group:'ドラゴン',cat:'pet',move:'still',rig:'egg',sc:1,sp:0,run:0,h:.8,r:.4,flee:0,herd:[1,1],hab:{},
  bones:[['nest','root',0,0,0],['egg','root',0,1,0],['crk','egg',0,5,0]],
  parts:[['nest',0,.4,0,7,1,7,'#b8954f','fur'],['nest',0,0,-4,10,2.2,2,'#7a5a34','fur'],['nest',0,0,4,10,2.2,2,'#6b4c2a','fur'],['nest',-4,0,0,2,2.2,6,'#7a5a34','fur',1],
-  ['egg',0,1,0,5,2,5,'#2f8f9a','dots'],['egg',0,3,0,6,3.4,6,'#2f8f9a','dots'],['egg',0,6.4,0,5,2.4,5,'#3aa2ad','dots'],['egg',0,8.8,0,3.4,1.4,3.4,'#45b3bd','dots'],
+  ['egg',0,1,0,5,2,5,'#2b386c','dots'],['egg',0,3,0,6,3.4,6,'#2b386c','dots'],['egg',0,6.4,0,5,2.4,5,'#34437e','dots'],['egg',0,8.8,0,3.4,1.4,3.4,'#3e4f8f','dots'],
   ['egg',-1.5,4.6,3.02,1.4,1,.2,'#7fe8ff','glow'],['egg',1.6,6.8,2.52,1,.8,.2,'#7fe8ff','glow'],['egg',-3.02,3.6,-1,.2,1.2,1.2,'#7fe8ff','glow'],
   ['crk',0,5.2,3.05,3.6,.4,.2,'#c8fbff','glow'],['crk',1.2,5.6,3.06,.4,1.6,.2,'#c8fbff','glow'],['crk',-3.05,4.4,0,.2,.4,3,'#c8fbff','glow'],['crk',3.05,6,.5,.2,1.4,.4,'#c8fbff','glow'],['crk',0,8.3,-1.5,.4,.4,2.6,'#c8fbff','glow']]}];
 const LIFE_BY_ID={};LIFE_SPECIES.forEach((s,i)=>{s.i=i;LIFE_BY_ID[s.id]=s});
@@ -3183,7 +3185,7 @@ function lifePose(c){c.poseVersion++;const sp=c.sp,B=sp.B,R=c.R,O=c.O,S=c.S,nb=s
   case'dragon':{const k=c.stageK??1,hs=1.45-.45*k,ns=.8+.2*k,ws=.5+.5*k;bSC('head',hs,hs,hs);bSC('neck',ns,ns,ns);bSC('tail',ns,ns,ns);bSC('wl',ws,ws,ws);bSC('wr',ws,ws,ws);
    if(c.air){bSC('shd',0,0,0);const f=Math.sin(t*(5.2+2.5*(1-k)))*.7*(c.flap??1),g=.08;bRZ('wl',-f-g);bRZ('wr',f+g);bRZ('l1',-f*.55);bRZ('r1',f*.55);
     bRX('fl',1);bRX('fr',1);bRX('bl',1.2);bRX('br',1.2);bOY('body',f*.8);bRX('neck',-.35-c.pitch*.4);bRX('head',.25+c.pitch*.3);
-    bRY('tail',Math.sin(t*1.7)*.14-c.roll*.3);bRY('tip',Math.sin(t*1.7-.8)*.22-c.roll*.3);bRX('tail',c.pitch*.35)}
+    bRY('tail',Math.sin(t*1.7)*.14-c.roll*.3);bRY('tip',Math.sin(t*1.7-.8)*.22-c.roll*.3);bRX('tail',.12+c.pitch*.35);bRX('tip',.05)}
    else{const a=s*gw*.55,st=c.sit||0,lg=.74+.06*k;bRX('fl',a);bRX('br',a);bRX('fr',-a);bRX('bl',-a);for(const n of ['fl','fr','bl','br'])bSC(n,1.25,lg,1.2);
     // Wings fold short along the back (span scaled in, a little raised); a flutter now and then, more when happy.
     const fl=(c.flutter||0)>0?Math.abs(Math.sin(t*16)):0;const sp2=.3+fl*.45;bSC('wl',sp2,1,.85);bSC('wr',sp2,1,.85);bRY('wl',-.4+fl*.3);bRY('wr',.4-fl*.3);bRZ('wl',-.35-fl*.6);bRZ('wr',.35+fl*.6);bRZ('l1',.5);bRZ('r1',-.5);
@@ -3759,7 +3761,7 @@ function nestTick(dt){const n=nest;if(!n)return;n.dormant=peek(Math.floor(n.x),1
 function hatch(){const n=nest;if(!n||dragon.stage!=='egg')return false;dropEnt(n);nest=null;
  Object.assign(dragon,{stage:'baby',growth:0,joy:60,x:n.x,y:n.y,z:n.z,yaw:Math.atan2(player.x-n.x,player.z-n.z)});if(!dragon.name)dragon.name=DRAGON_NAMES[Math.floor(rand(seed&1023,917)*DRAGON_NAMES.length)%DRAGON_NAMES.length];
  dragonSpawnEnts();pet.mode='happy';pet.timer=2.2;pet.flutter=2;
- const fx=qualityName==='low'||loadScale<1?2:4;for(let k=0;k<fx;k++)burst(n.x,n.y+.5,n.z,k%2?'#2f8f9a':'#c8fbff',8);sfx('hatch');lifeVoice(pet,'kyu');
+ const fx=qualityName==='low'||loadScale<1?2:4;for(let k=0;k<fx;k++)burst(n.x,n.y+.5,n.z,k%2?'#2b386c':'#c8fbff',8);sfx('hatch');lifeVoice(pet,'kyu');
  announce('🐉 ドラゴンが生まれた！',`名前は「${dragonName()}」。いっしょに冒険すると大きくなるよ`,'rare');dirty=true;refresh();queueSave();return true}
 // ---- Companion care: petting (the egg warms, the dragon is happy), apples, the name, follow / wait, calling it over.
 function petDragon(egg){if(petCD>0)return false;petCD=.7;dragon.pets++;dirty=true;
@@ -3819,7 +3821,7 @@ function petFly(c,dt,dx,dy,dz,dist){const land=!flying&&!riding&&dist<7&&dy<2,tx
 // ---- Riding. Stick forward / back = speed, left / right = turn (swiping looks and turns too); ↑ / ↓ climb and descend.
 // On the ground the dragon walks and steps up one block; ↑ takes off. Bumping into a hill lifts it over; it hovers above water,
 // and 降りる in the air lands first (never over water).
-function seatY(c){return 17.6/16*c.size}
+function seatY(c){return 16.6/16*c.size}
 function mount(){if(!pet||dragon.stage!=='adult'||riding||dead||paused)return false;if(Math.hypot(pet.x-player.x,pet.z-player.z)>6)return false;
  flying=false;riding=true;dragon.riding=true;rideV=0;rideVy=0;rideLand=false;camD=4;yaw=pet.yaw;pitch=-.22;pet.sit=0;pet.mode='ride';dig=null;
  document.body.classList.add('riding');player.x=pet.x;player.z=pet.z;player.y=pet.y+seatY(pet);lifeVoice(pet,'kyu');dirty=true;refresh();
@@ -3875,7 +3877,7 @@ function drawRider(a){const c=pet,cy=Math.cos(c.yaw),sy=Math.sin(c.yaw),cx=Math.
 function dragonBreath(dt){if(gameMode!=='survival'||dragon.stage!=='adult'||!pet||pet.dormant)return;if((breathCD-=dt)>0)return;breathCD=.5;
  let best=null,bd=9;for(const m of life){if(!m.sp.hostile||m.dormant||m.vanish>=0||m.sp.id==='guardian'||!(m.aggro>0))continue;const d=Math.hypot(m.x-pet.x,m.z-pet.z);
   if(d<bd&&Math.abs(m.y-pet.y)<5&&Math.hypot(m.x-player.x,m.z-player.z)<14){bd=d;best=m}}
- const s=pet.size/16,mx=pet.x+Math.sin(pet.yaw)*19*s,my=pet.y+25*s,mz=pet.z+Math.cos(pet.yaw)*19*s;if(!best||!canSee(best,mx,my,mz))return;
+ const s=pet.size/16,mx=pet.x+Math.sin(pet.yaw)*21*s,my=pet.y+28*s,mz=pet.z+Math.cos(pet.yaw)*21*s;if(!best||!canSee(best,mx,my,mz))return;
  breathCD=7;pet.want=Math.atan2(best.x-pet.x,best.z-pet.z);if(!riding)pet.yaw=pet.want;pet.talk=.6;
  const n=qualityName==='low'||loadScale<1?5:9,tx=best.x,ty=best.y+best.sp.top*best.size*.5,tz=best.z;
  for(let i=0;i<n;i++){const k=i/n;particles.push({x:mx+(tx-mx)*k,y:my+(ty-my)*k,z:mz+(tz-mz)*k,vx:(Math.random()-.5)*.8,vy:.6,vz:(Math.random()-.5)*.8,life:.45+k*.3,color:i%2?'#bff8ff':'#7fe8ff'})}
