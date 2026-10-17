@@ -466,6 +466,9 @@ const SEA_=62;
  // UI: egg picker icons, chip, menu label; voices never throw without audio.
  R('openEggs()');assert(!d.nodes.eggs.classList.contains('hidden'),'egg picker opens');R('play()');assert(d.nodes.eggs.classList.contains('hidden'),'egg picker closes on play');
  R('eggSp=LIFE_BY_ID.wolf.i;refresh()');assert(!d.nodes.eggChip.classList.contains('hidden'),'egg chip shows');R('selected=2;eggSp=-1;refresh()');assert(d.nodes.eggChip.classList.contains('hidden'));
+ // Survival has no creature-placing UI: the picker cannot open, a chosen egg is dropped and nothing can be placed.
+ {const s=boot();run(s,"lifeNew;eggSp=LIFE_BY_ID.wolf.i;life.length=0;gameMode='survival';refresh()");assert.equal(run(s,'eggSp'),-1,'survival drops a chosen egg');assert(s.c.document.body.classList.contains('mode-survival'));assert(s.nodes.eggChip.classList.contains('hidden'),'no egg chip in survival');
+ run(s,'paused=false;openEggs()');assert.equal(run(s,'paused'),false,'egg picker cannot open in survival');run(s,'eggSp=LIFE_BY_ID.cow.i;placeEgg()');assert.equal(run(s,'life.filter(c=>c.manual).length'),0,'nothing is placed in survival');}
  R('for(const s of LIFE_SPECIES)if(s.voice)lifeVoice(life[0]||{x:0,y:0,z:0},s.voice)');
  console.log(`PASS: creatures: ${sp.length} species (7 monsters), unique models, finite poses, daytime ${day.nat} natural (${day.kinds.length} kinds), night monsters ${night.cnt.monster} (nearest ${Math.min(...mons).toFixed(0)}m), bounded over a long flight (max ${maxN}), eggs place/remove/cap/save/reload, sim ${(simMs/900).toFixed(2)} ms/step`)}
 

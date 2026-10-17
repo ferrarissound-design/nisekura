@@ -161,6 +161,8 @@ body.mode-survival .actions #attack{display:block;grid-column:1/3;order:-1;heigh
 #attack small{display:block;font-size:9px;font-weight:600;opacity:.85}
 body.mode-survival .actions #fly,body.mode-survival .actions #down{display:none}
 body.mode-survival #eat{display:block}
+/* Survival has no creature-placing UI: monsters and animals come only from the world. */
+body.mode-survival #lifeBtn,body.mode-survival #eggChip{display:none!important}
 #eat{position:relative;font-size:17px}#eat b{position:absolute;right:3px;bottom:1px;font-size:10px;text-shadow:1px 1px #000}#eat:disabled{opacity:.45}
 body.mode-survival #survHud{display:flex}
 #survHud{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom)) + 55px);height:16px;align-items:center;gap:6px;pointer-events:none}
@@ -3295,7 +3297,7 @@ function screenDir(px,py){const r=canvas.getBoundingClientRect?canvas.getBoundin
 function pickLife(d,maxD){const o=[player.x,player.y+1.62,player.z];let best=null,bt=maxD;
  for(const c of life){if(c.dormant)continue;const r=c.sp.rad*c.size*.7+.15,cx=c.x-o[0],cy=c.y+c.sp.top*c.size*.5-o[1],cz=c.z-o[2],t=cx*d[0]+cy*d[1]+cz*d[2];if(t<0||t>bt)continue;
   const q=cx*cx+cy*cy+cz*cz-t*t;if(q<r*r){bt=t;best=c}}return best}
-function placeEgg(dir){if(eggSp<0)return;const sp=LIFE_SPECIES[eggSp],d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)];
+function placeEgg(dir){if(eggSp<0||gameMode==='survival')return;const sp=LIFE_SPECIES[eggSp],d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)];
  if(life.filter(c=>c.manual).length>=MANUAL_MAX){toast(`置ける生き物は${MANUAL_MAX}匹まで。🐾メニューで帰せるよ`);return}
  const h=ray(d,24),o=[player.x,player.y+1.62,player.z],end=h?h.dist:16;let pos=null;
  if(sp.cat==='water'){for(let t=.5;t<=end+.01&&!pos;t+=.25){const x=o[0]+d[0]*t,y=o[1]+d[1]*t,z=o[2]+d[2]*t;if(peek(Math.floor(x),Math.floor(y),Math.floor(z))===10)pos=[x,Math.min(y,SEA+.2),z]}
@@ -3336,7 +3338,7 @@ function lifeModeText(){return'生き物：'+(lifeMode==='all'?'すべて':lifeM
 function setLifeMode(m){lifeMode=m;dirty=true;$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();if(gameMode==='survival'&&!paused)toast(monsterNotice()||'モンスターが出るようになった（夜に注意）')}
 // Survival needs 「生き物：すべて」 for monsters. A setting the player chose is respected, never changed silently; it is explained instead.
 function monsterNotice(){return gameMode==='survival'&&lifeMode!=='all'?`⚠ 生き物が「${lifeMode==='off'?'自然発生OFF':'動物だけ'}」なのでモンスターは出ないよ。メニューの「生き物」を「すべて」にしてね`:''}
-function openEggs(){if(photoMode)return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();buildEggPanel();
+function openEggs(){if(photoMode||gameMode==='survival')return;paused=true;rememberPlaying(false);clearInput();document.exitPointerLock?.();buildEggPanel();
  $('lifeMode').textContent=lifeModeText();$('voices').textContent='鳴き声：'+(lifeVoices?'ON':'OFF');$('eggCount').textContent=`置いた生き物 ${life.filter(c=>c.manual).length} / ${MANUAL_MAX}`;$('eggs').classList.remove('hidden');scheduleEggIcons()}
 const eggIcons=new Map();let eggChipSpecies=-2;
 function eggChip(){const chip=$('eggChip');chip.classList.toggle('hidden',eggSp<0);if(eggSp<0){eggChipSpecies=-1;return}if(eggChipSpecies===eggSp)return;eggChipSpecies=eggSp;const sp=LIFE_SPECIES[eggSp];
@@ -3702,7 +3704,7 @@ function guideTick(){const now=performance.now();let step=guideStep;
  const show=!!text&&now-guideSince<15000;if($('guide').classList.contains('hidden')===show)$('guide').classList.toggle('hidden',!show)}
 // ---- HUD (only touched when something changed).
 const heartNodes=[];for(let i=0;i<10;i++){const h=document.createElement('i');$('hearts').appendChild(h);heartNodes.push(h)}
-function survivalUI(){const surv=gameMode==='survival';document.body.classList.toggle('mode-survival',surv);
+function survivalUI(){const surv=gameMode==='survival';if(surv&&eggSp>=0){eggSp=-1;if(typeof eggChip==='function')eggChip()}document.body.classList.toggle('mode-survival',surv);
  const w=weapon(),ar=armor(),key=[surv,Math.ceil(health*2),protectT>0,items.apple,w.name,ar.name,defeated,gameMode].join();if(key===heartsKey)return;heartsKey=key;
  $('craftSurvival').classList.toggle('hidden',gameMode==='creative');$('armorIco').textContent=ar.def?'🛡'+ar.short:'';
  for(let i=0;i<10;i++){const v=health-i*2;heartNodes[i].className=v>=2?'full':v>=1?'half':''}
