@@ -273,7 +273,7 @@ const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木'
 // ---- v19 BUILDING PARTS: doors, stairs and windows. Every orientation and state is its own block id, so the voxel bytes, the saved
 // `changes` and chunk streaming stay as they were: 41-44 wooden stairs and 45-48 stone stairs (facing 0 +z, 1 +x, 2 -z, 3 -x = the way up),
 // 49/50 windows (pane across x / across z), 51-66 doors (51 + facing*4 + open*2 + upper half). The first id of each group is the item.
-const B_STAIR_W=41,B_STAIR_S=45,B_WINDOW=49,B_DOOR=51,PART_LAST=66;
+const B_STAIR_W=41,B_STAIR_S=45,B_WINDOW=49,B_DOOR=51,PART_LAST=66;let worldStamp=0; // counts set() calls, so the placement preview notices edits
 for(let t=41;t<=PART_LAST;t++)defs[t]=t<45?['木の階段','#b78d55']:t<49?['石の階段','#89918e']:t<51?['窓','#afdce0']:['木のドア','#9a6a3c'];
 // PART: 1 stairs, 2 window, 3 door. Stairs count as cover (roofs, corner shade); thin windows and doors do not.
 const PART=new Uint8Array(256),OCC=new Uint8Array(256);for(let t=1;t<256;t++)OCC[t]=t!==9&&t!==10;
@@ -391,7 +391,7 @@ const chunkKey=(x,z)=>Math.floor(x/CHUNK)+','+Math.floor(z/CHUNK);
 const localIdx=(x,y,z)=>(y*CHUNK+(z&15))*CHUNK+(x&15);
 let lastCX=-1,lastCZ=-1,lastData=null;
 function get(x,y,z){if(!inside(x,y,z))return 0;const cx=x>>4,cz=z>>4;if(cx!==lastCX||cz!==lastCZ||!lastData){lastData=voxelChunk(cx,cz);lastCX=cx;lastCZ=cz}return lastData[localIdx(x,y,z)]}
-function set(x,y,z,t){if(!inside(x,y,z))return;const i=idx(x,y,z),key=chunkKey(x,z);if(!changes.has(i)){let list=changeIndex.get(key);if(!list)changeIndex.set(key,list=[]);list.push(i)}changes.set(i,t);const data=blocks.get(key);if(data)data[localIdx(x,y,z)]=t;if(CAVES){if(isGlowBlock(t))glowChunks.add(key);if(glowChunks.has(key))glowCache.delete(key)}}
+function set(x,y,z,t){if(!inside(x,y,z))return;worldStamp++;const i=idx(x,y,z),key=chunkKey(x,z);if(!changes.has(i)){let list=changeIndex.get(key);if(!list)changeIndex.set(key,list=[]);list.push(i)}changes.set(i,t);const data=blocks.get(key);if(data)data[localIdx(x,y,z)]=t;if(CAVES){if(isGlowBlock(t))glowChunks.add(key);if(glowChunks.has(key))glowCache.delete(key)}}
 function solid(x,y,z){const t=get(x,y,z);return t!==0&&t!==10}
 function rand(x,z){let n=Math.imul(x+seed,374761393)^Math.imul(z,668265263);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295}
 function noise(x,z,s){const a=Math.floor(x/s),b=Math.floor(z/s);let u=x/s-a,v=z/s-b;u=u*u*(3-2*u);v=v*v*(3-2*v);return(rand(a,b)*(1-u)+rand(a+1,b)*u)*(1-v)+(rand(a,b+1)*(1-u)+rand(a+1,b+1)*u)*v}
@@ -2208,7 +2208,7 @@ void main(){vec2 q=floor(mp.xy+.001);float n=hash(q+floor(mp.z)*.13);vec3 c=col;
  c=cL.y>=0.?mix(c,vec3(1.,.98,.92),cL.y):mix(c,vec3(1.,.16,.1),-cL.y*.7);
  if(w.y<${SEA}.88){float ds=${SEA}.88-w.y;c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-v.y,.1):0.))*(1.-cL.w));}
  gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
-let lifeProg=null,lifeU=null,lifeBuffer=null,fishBuffer=null,mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
+let lifeProg=null,lifeU=null,lifeBuffer=null,fishBuffer=null,mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,doorGlassBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
 function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(s);gl.deleteShader(s);throw Error(message)}return s}
 function buildProgram(vsrc,fsrc,attribs){
  const p=gl.createProgram();let vs=null,fs=null,linked=false;
@@ -2239,7 +2239,7 @@ function initRenderer(){
  const ind=new Uint16Array(MAXQ*6);for(let i=0;i<MAXQ;i++)ind.set([i*4,i*4+1,i*4+2,i*4,i*4+2,i*4+3],i*6);
  quadIndex=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,quadIndex);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,ind,gl.STATIC_DRAW);
  skyBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,skyBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
- outline=gl.createBuffer();dynamicBuffer=gl.createBuffer();toolBuffer=gl.createBuffer();cloudBuffer=null;
+ outline=gl.createBuffer();dynamicBuffer=gl.createBuffer();doorGlassBuffer=gl.createBuffer();toolBuffer=gl.createBuffer();cloudBuffer=null;
  gl.enable(gl.DEPTH_TEST);
  if(lodOK)buildOcean();
  renderReady=true;
@@ -2471,19 +2471,29 @@ function emitPart(t,wx,y,wz,p,col,gb){const k=PART[t];let base=roofs[col]>y?256:
   boxQuads(opaqueW,wx,y,wz,[0,0,0,1,.5,1],mat,c,base,partCull(p,[0,0,0,1,.5,1])|join|4);
   boxQuads(opaqueW,wx,y,wz,d===0?[0,0,0,1,.5,.5]:d===1?[0,0,0,.5,.5,1]:d===2?[0,0,.5,1,.5,1]:[.5,0,0,1,.5,1],mat,c,base,59);
   boxQuads(opaqueW,wx,y,wz,B[1],mat,c,base,partCull(p,B[1])|join|8)}
- else if(k===2){const ax=t-B_WINDOW,sO=ax?PW:1,sN=ax?5:1,sP=ax?4:0,F1=2/16,P0=6/16,P1=10/16,M0=7/16,M1=9/16;
-  // A window joins the same window beside, above and below it: frames stay only on the outside, every cell keeps its cross.
-  const L=pad[p-sO]===t,R=pad[p+sO]===t,D=pad[p-PA]===t,U=pad[p+PA]===t,sL=L?0:F1,sR=R?1:1-F1,yB=D?0:F1,yT=U?1:1-F1;
-  const put=(s0,y0,q0,s1,y1,q1,sk)=>{const b=ax?[q0,y0,s0,q1,y1,s1]:[s0,y0,q0,s1,y1,q1];boxQuads(opaqueW,wx,y,wz,b,7,WFRAME,base,sk|partCull(p,b))},ends=(a,b)=>(a?1<<sN:0)|(b?1<<sP:0);
+ else if(k===2){const ax=t-B_WINDOW,sO=ax?PW:1,sN=ax?5:1,sP=ax?4:0,F1=2/16,P0=6/16,P1=10/16,M0=7/16,M1=9/16,H0=7.25/16,H1=8.75/16,ls=ax?wz&15:wx&15;
+  // A window joins the same window beside, above and below it: frames stay only on the outside. Along a row (inside this chunk) the sill,
+  // the head, the middle bar and the glass are one long piece started by the row's first cell, and a column shares one upright bar,
+  // so a wall of windows costs about as much as its outline.
+  const L=pad[p-sO]===t,R=pad[p+sO]===t,D=pad[p-PA]===t,U=pad[p+PA]===t,sL=L?0:F1,yB=D?0:F1,yT=U?1:1-F1;
+  // Frames use the wood-grain material (4): it tiles over any length, while plank uv beyond one block selects the chest/door variants.
+  const put=(s0,y0,q0,s1,y1,q1,sk,one=true)=>{const b=ax?[q0,y0,s0,q1,y1,s1]:[s0,y0,q0,s1,y1,q1];boxQuads(opaqueW,wx,y,wz,b,4,WFRAME,base,one?sk|partCull(p,b):sk)},ends=(a,b)=>(a?1<<sN:0)|(b?1<<sP:0);
+  // run(ok): how many cells from here along +s keep this window and satisfy ok(pad index); end = where the last one's piece stops
+  const run=ok=>{let n=1;while(ls+n<16&&pad[p+n*sO]===t&&ok(p+n*sO))n++;const q=p+(n-1)*sO;return{n,q,end:n-1+(pad[q+sO]===t?1:1-F1)}},any=()=>true;
   if(!L)put(0,0,P0,F1,1,P1,(D&&pad[p-PA-sO]!==t?8:0)|(U&&pad[p+PA-sO]!==t?4:0));
   if(!R)put(1-F1,0,P0,1,1,P1,(D&&pad[p-PA+sO]!==t?8:0)|(U&&pad[p+PA+sO]!==t?4:0));
-  if(!D)put(sL,0,P0,sR,F1,P1,ends(!L||pad[p-sO-PA]!==t,!R||pad[p+sO-PA]!==t));
-  if(!U)put(sL,1-F1,P0,sR,1,P1,ends(!L||pad[p-sO+PA]!==t,!R||pad[p+sO+PA]!==t));
-  // the cross bars are decoration: low quality leaves them out (switching quality re-meshes chunks with reefShafts, the same Q.water flag)
-  if(Q.water>=1){put(M0,yB,M0,M1,yT,M1,12);put(sL,M0,M0,M0,M1,M1,ends(1,1));put(M1,M0,M0,sR,M1,M1,ends(1,1))}
-  // one glass sheet in the middle plane (uv kept inside the glass edge lines, so joined panes show no seam)
-  const g=defsRGB[9],code=9+32*(ax?0:4),V=(s,yy,gu,gv)=>vert(waterW,wx+(ax?.5:s),y+yy,wz+(ax?s:.5),g[0],g[1],g[2],.04+.92*gu,.04+.92*gv,code);
-  grow(waterW,36);V(sL,yB,sL,yB);V(sL,yT,sL,yT);V(sR,yT,sR,yT);V(sR,yB,sR,yB)}
+  const start=(o)=>!L||ls===0||pad[p-sO+o]===t;
+  if(!D&&start(-PA)){const r=run(q=>pad[q-PA]!==t);put(sL,0,P0,r.end,F1,P1,ends(!L||pad[p-sO-PA]!==t,pad[r.q+sO]!==t||pad[r.q+sO-PA]!==t),r.n===1)}
+  if(!U&&start(PA)){const r=run(q=>pad[q+PA]!==t);put(sL,1-F1,P0,r.end,1,P1,ends(!L||pad[p-sO+PA]!==t,pad[r.q+sO]!==t||pad[r.q+sO+PA]!==t),r.n===1)}
+  // the cross bars are decoration: low quality leaves them out (switching quality re-meshes chunks with reefShafts, the same Q.water flag).
+  // The middle bar sits a quarter pixel behind the upright ones, so they never share a plane.
+  if(Q.water>=1){if(!D){let n=1;while(pad[p+n*PA]===t)n++;put(M0,F1,M0,M1,n-F1,M1,12)}
+   if(!L||ls===0)put(sL,M0,H0,run(any).end,M1,H1,ends(1,1))}
+  // glass: one sheet per row piece with the same openings above and below (uv kept inside the glass edge lines, so no seam shows)
+  const gk=q=>(pad[q-PA]===t?1:0)|(pad[q+PA]===t?2:0),k0=gk(p);
+  if(!L||ls===0||gk(p-sO)!==k0){const r=run(q=>gk(q)===k0),g=defsRGB[9],code=9+32*(ax?0:4),w=r.end-sL;
+   const V=(s,yy)=>vert(waterW,wx+(ax?.5:s),y+yy,wz+(ax?s:.5),g[0],g[1],g[2],.04+.92*(s-sL)/w,.04+.92*yy,code);
+   grow(waterW,36);V(sL,yB);V(sL,yT);V(r.end,yT);V(r.end,yB)}}
  else{const o=t-B_DOOR,up=o&1;if(doorHide.size&&doorHide.has(idx(wx,y-up,wz)))return;
   // the two halves meet without inner faces; the bottom rests on the floor, the top under a lintel
   const pair=pad[up?p-PA:p+PA]===t+(up?-1:1);
@@ -2820,8 +2830,8 @@ function targetLabel(h){const t=h.t;let s=defs[t][0];
 function place(rep){if(paused||photoMode||riding)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}
  // v19: 置く (right click, a tap) on a door opens or closes it; holding the button does not flap it.
  if(isDoor(hit.t)){if(rep!==true)toggleDoor(hit.x,hit.y,hit.z);return}
- const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast(PART[t]?`${defs[t][0]}がないよ。クラフトの「🏠 建築パーツ」でつくろう`:'素材が足りないよ。掘るか、クラフトしよう');return}
- if(PART[t]){placePart(t,x,y,z);return}
+ const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(PART[t]){placePart(t,x,y,z);return}
+ if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}
  const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
 // ---- v19 building parts: placing, opening doors, breaking, walking up stairs and the placement preview.
 // Several cells change together (a door is two cells), then each touched chunk is rebuilt once.
@@ -2839,13 +2849,15 @@ function partCells(t,x,y,z){const d=facing4(),free=(x,y,z)=>inside(x,y,z)&&y>0&&
  if(!solid(x,y0-1,z)||PART[get(x,y0-1,z)]===3)return{cells:[[x,y0,z,B_DOOR+d*4],[x,y0+1,z,B_DOOR+d*4+1]],why:'ドアは床の上に置こう'};
  if(!free(x,y0,z)||!free(x,y0+1,z))return{cells:[[x,y0,z,B_DOOR+d*4],[x,y0+1,z,B_DOOR+d*4+1]],why:'ドアには高さ2マスのすき間がいるよ'};
  return{cells:[[x,y0,z,B_DOOR+d*4],[x,y0+1,z,B_DOOR+d*4+1]]}}
-function placePart(t,x,y,z){const p=partCells(t,x,y,z);if(p.why){toast(p.why);sfx('clank');return false}
- const old=p.cells.map(([x,y,z])=>get(x,y,z));for(const [x,y,z,id] of p.cells)set(x,y,z,id);
- if(collides(player)){p.cells.forEach(([x,y,z],i)=>{set(x,y,z,old[i]);compactEdit(x,y,z,old[i])});toast('自分のいる場所には置けない');return false}
+// The rest of what placing checks: an item in hand (creative needs none) and room for the player. It only reads, so the preview can
+// ask every frame; the cells were free (air or water), so only the new boxes can meet the player.
+function partWhy(t,cells){if(!creative&&!(inventory[t]>0))return`${defs[t][0]}がないよ。クラフトの「🏠 建築パーツ」でつくろう`;
+ for(const [x,y,z,id] of cells)if(partHit(id,x,y,z,player))return'自分のいる場所には置けない';return''}
+function placePart(t,x,y,z){const p=partCells(t,x,y,z),why=p.why||partWhy(t,p.cells);if(why){toast(why);sfx('clank');return false}
  if(!creative)inventory[t]--;editMany(p.cells);clickSound();refresh();
  if(t===B_DOOR)toast('🚪 ドアを置いた！ タップ（置く）で開け閉め・壊すで回収');return true}
 // Doors: the state lives in the block id; the swing is drawn for a quarter second while the chunk mesh leaves that door out.
-const doorAnims=[];let stepEye=0;
+const doorAnims=[],doorGlass=writer(1<<10);let stepEye=0;
 function toggleDoor(x,y,z){const t=get(x,y,z);if(!isDoor(t))return false;const o=t-B_DOOR,y0=y-(o&1),lo=B_DOOR+(o&~1),open=(o>>1)&1,nl=B_DOOR+((o&~1)^2),cells=[];
  if(get(x,y0,z)===lo)cells.push([x,y0,z,nl]);if(get(x,y0+1,z)===lo+1)cells.push([x,y0+1,z,nl+1]);
  // the panel never swings into the player (closing in the doorway, or opening onto someone beside the hinge)
@@ -2856,8 +2868,8 @@ function toggleDoor(x,y,z){const t=get(x,y,z);if(!isDoor(t))return false;const o
  editMany(cells);sfx(open?'doorShut':'door',{x:x+.5,y:y0+1,z:z+.5});return true}
 function doorTick(dt){for(let i=doorAnims.length-1;i>=0;i--){const a=doorAnims[i];a.t+=dt/.25;
  if(a.t>=1||!isDoor(get(a.x,a.y,a.z))){doorAnims.splice(i,1);doorHide.delete(a.key);const cx=a.x>>4,cz=a.z>>4;if(chunks.has(cx+','+cz))rebuild(cx,cz)}}}
-function drawDoors(w){for(const a of doorAnims){const k=Math.min(1,a.t),e=k*k*(3-2*k),ang=a.from+(a.to-a.from)*e;
- emitDoor(w,null,a.x,a.y,a.z,a.d,ang,0,a.base,a.up?4:0);if(a.up)emitDoor(w,null,a.x,a.y+1,a.z,a.d,ang,1,a.base,8)}}
+function drawDoors(w,gw){for(const a of doorAnims){const k=Math.min(1,a.t),e=k*k*(3-2*k),ang=a.from+(a.to-a.from)*e;
+ emitDoor(w,null,a.x,a.y,a.z,a.d,ang,0,a.base,a.up?4:0);if(a.up)emitDoor(w,gw,a.x,a.y+1,a.z,a.d,ang,1,a.base,8)}}
 // A tap picks the door it touches; an open door is seen edge-on, so a tap anywhere in its doorway (within reach) closes it.
 function tapDoor(d){const h=ray(d);if(h&&isDoor(h.t))return h;const lim=h?h.dist+.05:6;
  for(let s=.1;s<lim;s+=.1){const x=Math.floor(player.x+d[0]*s),y=Math.floor(player.y+1.62+d[1]*s),z=Math.floor(player.z+d[2]*s),t=get(x,y,z);if(isDoor(t)&&(t-B_DOOR)&2)return{x,y,z,t}}return null}
@@ -2872,10 +2884,13 @@ function stepDown(){probe.x=player.x;probe.z=player.z;probe.y=player.y-.02;if(co
  const low=Math.floor((player.y-.002)*2)/2;if(player.y-low>.55)return;probe.y=low;if(collides(probe))return;probe.y=low-.02;if(!collides(probe))return;
  stepEye=Math.min(.6,stepEye+player.y-low);player.y=low}
 // Preview: the shape about to be placed, outlined in warm yellow (red when it cannot go there). Recomputed only when the aim changes.
-let previewKey=-1,preview=null;
+// It gives placePart()'s verdict: the shape (partCells, cached until the aim or the world changes) plus partWhy() every frame.
+let previewKey=-1,previewStamp=-1,preview=null,previewBad=null;
 function partPreview(){const t=slots[selected];if(!hit||!PART[t]||eggSp>=0||isDoor(hit.t)||hit.t===B_CHEST){previewKey=-1;return null}
- const [x,y,z]=hit.prev;if(!inside(x,y,z)||get(x,y,z)&&get(x,y,z)!==10){previewKey=-1;return null}
- const key=((idx(x,y,z)*4+facing4())*4+PART[t])*2+(t===B_STAIR_S?1:0);if(key!==previewKey){previewKey=key;preview=partCells(t,x,y,z)}return preview}
+ const [x,y,z]=hit.prev;if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10){previewKey=-1;return null}
+ const key=((idx(x,y,z)*4+facing4())*4+PART[t])*2+(t===B_STAIR_S?1:0);if(key!==previewKey||worldStamp!==previewStamp){previewKey=key;previewStamp=worldStamp;preview=partCells(t,x,y,z)}
+ const why=preview.why||partWhy(t,preview.cells);if(!why)return preview;
+ if(!previewBad||previewBad.cells!==preview.cells||previewBad.why!==why)previewBad={cells:preview.cells,why};return previewBad}
 function jump(){if(flying||photoMode||riding)return;if(!paused&&(ground||get(Math.floor(player.x),Math.floor(player.y+.8),Math.floor(player.z))===10)){vy=7;ground=false}}
 function toggleFlight(){if(paused||suspended||photoMode)return;if(riding){toast('🐉 ドラゴンに乗っている間は、↑↓で高さを変えよう');return}if(gameMode==='survival'){toast('サバイバルでは飛べないよ（ピースフル・クリエイティブで飛べる）');return}flying=!flying;vy=0;ground=false;riseHeld=descendHeld=false;refresh();save();toast(flying?'飛行：↑で上昇・↓で下降 / PC：Space・Q':'飛行を終了した')}
 function snapshot(){return{version:1,worldWidth:W,worldHeight:H,terrainVersion,seed,inventory,creative,flying,changes:[...changes],player:{...player},yaw,pitch,dayTime,life:lifeSave(),settings:{qualityName,hudMinimal,hudDetails,lifeVoices,selected:selected<8?selected:0,hotbar:selected,eggSp},gameMode,health,items:{...items},defeated,...(RUINS?{adventure}: {}),...(dragon.stage!=='none'||dragon.warmth>0?{dragon:dragonSave()}:{})}}
@@ -3047,10 +3062,10 @@ function animateWorld(dt){swing=Math.max(0,swing-dt*3.5);const moving=Math.hypot
 for(const p of particles){p.life-=dt;p.vy-=dt*8;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt}for(let i=particles.length-1;i>=0;i--)if(particles[i].life<=0)particles.splice(i,1);
 updateLife(dt,player);updateSurvival(dt);dragonTick(dt);if(doorAnims.length)doorTick(dt);
 }
-function drawWorldDetails(){const a=dyn;a.n=0;
+function drawWorldDetails(){const a=dyn;a.n=0;doorGlass.n=0;
 for(const p of particles)cuboid(a,p.x,p.y,p.z,.09,.09,.09,p.color);
 if(dig&&dig.p>.08)drawCrack(a);
-if(doorAnims.length)drawDoors(a);
+if(doorAnims.length)drawDoors(a,doorGlass);
 drawRuinEffects(a);
 if(riding&&pet)drawRider(a);
 if(arrows.length||gameMode==='survival')drawCombat(a);
@@ -4259,15 +4274,16 @@ cuboid(a,-.055,.01,.0,.11,.62,.1,w.blade,3,transform);cuboid(a,-.025,.01,.1,.05,
 else{cuboid(a,-.045,-.30,.02,.09,.66,.09,'#93612e',4,transform);
 cuboid(a,-.20,.28,-.02,.40,.09,.14,'#48545a',0,transform);cuboid(a,-.16,.37,-.02,.32,.19,.14,'#9aa8aa',3,transform);cuboid(a,-.10,.56,-.02,.20,.07,.14,'#79888d',0,transform)}
 gl.clear(gl.DEPTH_BUFFER_BIT);drawData(toolBuffer,a)}
-const outlineData=new Float32Array(432*3);let outlineKey=-1,outlineKey2=-1,outlineN=48;
+const outlineData=new Float32Array(432*3);let outlineKey=-1,outlinePv=null,outlineN=48;
 function outlineBox(n,b,ox,oy,oz,r,g,bl){for(const f of faces)for(let i=0;i<4;i++)for(const k of [i,(i+1)%4]){const v=f.v[k];
  outlineData[n++]=ox+(v[0]?b[3]+.0035:b[0]-.0035);outlineData[n++]=oy+(v[1]?b[4]+.0035:b[1]-.0035);outlineData[n++]=oz+(v[2]?b[5]+.0035:b[2]-.0035);outlineData[n++]=r;outlineData[n++]=g;outlineData[n++]=bl;outlineData[n++]=0;outlineData[n++]=0;outlineData[n++]=224}return n}
 const UNIT_BOX=[0,0,0,1,1,1],PART_BOUND=[];for(let t=41;t<=PART_LAST;t++){const l=PART_BOX[t];PART_BOUND[t]=[0,1,2].map(i=>Math.min(...l.map(b=>b[i]))).concat([3,4,5].map(i=>Math.max(...l.map(b=>b[i]))))}
 // The aimed block's outline (a part shows its own shape), plus the v19 placement preview when a building part is in hand.
-function drawOutline(){if(!hit)return;const pv=partPreview(),key=idx(hit.x,hit.y,hit.z)*64+(PART[hit.t]?hit.t-40:0),key2=pv?previewKey:-1;bind(outline);
- if(key!==outlineKey||key2!==outlineKey2){let n=outlineBox(0,PART[hit.t]?PART_BOUND[hit.t]:UNIT_BOX,hit.x,hit.y,hit.z,.10,.14,.10);
+function drawOutline(){if(!hit)return;const pv=partPreview(),key=idx(hit.x,hit.y,hit.z)*64+(PART[hit.t]?hit.t-40:0);bind(outline);
+ // a new preview object means a new shape or verdict (they are only rebuilt when something changed)
+ if(key!==outlineKey||pv!==outlinePv){let n=outlineBox(0,PART[hit.t]?PART_BOUND[hit.t]:UNIT_BOX,hit.x,hit.y,hit.z,.10,.14,.10);
   if(pv){const ok=!pv.why;for(const [x,y,z,id] of pv.cells)for(const b of PART_BOX[id])if(n<outlineData.length)n=outlineBox(n,b,x,y,z,ok?.98:.95,ok?.9:.3,ok?.45:.25)}
-  gl.bufferData(gl.ARRAY_BUFFER,outlineData.subarray(0,n),gl.DYNAMIC_DRAW);outlineKey=key;outlineKey2=key2;outlineN=n/9}perfDraw();gl.drawArrays(gl.LINES,0,outlineN)}
+  gl.bufferData(gl.ARRAY_BUFFER,outlineData.subarray(0,n),gl.DYNAMIC_DRAW);outlineKey=key;outlinePv=pv;outlineN=n/9}perfDraw();gl.drawArrays(gl.LINES,0,outlineN)}
 function moveAxis(axis,d){
  const steps=Math.max(1,Math.ceil(Math.abs(d)/.18)),step=d/steps;
  for(let i=0;i<steps;i++){const old=player[axis];player[axis]+=step;if(collides(player)){player[axis]=old;return false}}
@@ -4363,6 +4379,8 @@ function render(cam,titleOpen,w,h){
  visible.sort((a,b)=>((b.cx*CHUNK+8-cam.x)**2+(b.cz*CHUNK+8-cam.z)**2)-((a.cx*CHUNK+8-cam.x)**2+(a.cz*CHUNK+8-cam.z)**2));
  if(waterProg){useProgram(waterProg,4);setEnv(waterU,env,fog);setView(waterU,cam,aspect,.1,(Q.near+3)*CHUNK*1.5+H);gl.uniform3f(waterU.eye,cam.x,cam.y,cam.z);gl.uniform3f(waterU.eyeF,cam.x,cam.y,cam.z)}
  for(const ch of visible)if(ch.waterQuads)drawQuads(ch.water,ch.waterQuads,bind,36);
+ // v19: the window of a door that is swinging (its chunk mesh leaves that door out for a quarter second)
+ if(doorGlass.n)drawData(doorGlassBuffer,doorGlass);
  if(waterProg){useProgram(mainProg,4)}
  gl.depthMask(true);gl.disable(gl.BLEND);
  if(!titleOpen&&!photoMode&&!riding){hit=ray();drawOutline();drawTool()}else hit=null;

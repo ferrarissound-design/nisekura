@@ -1474,10 +1474,10 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert.equal(R(`partCells(49,${X}+3,${Y}+1,${Z}+2).cells[0][3]`),49);R('yaw=Math.PI/2');assert.equal(R(`partCells(49,${X}-6,${Y}+1,${Z}-5).cells[0][3]`),50);R('yaw=0');
  const cq=()=>R(`(()=>{rebuild(${X}>>4,${Z+2}>>4);const c=chunks.get((${X}>>4)+','+(${Z+2}>>4));return[c.quads,c.waterQuads]})()`),[q0,w0]=cq();
  R(`inventory[49]=4;placePart(49,${X}+3,${Y}+1,${Z}+2)`);assert.equal(R(`get(${X}+3,${Y}+1,${Z}+2)`),49);R('inventory[49]=4');const [q1,w1]=cq();assert.equal(w1-w0,1,'one glass sheet per window cell (translucent pass)');
- R(`editMany([[${X}+2,${Y}+1,${Z}+2,0]]);placePart(49,${X}+2,${Y}+1,${Z}+2)`);const [q2,w2]=cq();assert.equal(w2-w1,1);assert(q2-q1<q1-q0,'a joined window draws fewer frame faces than a lone one');
+ R(`editMany([[${X}+2,${Y}+1,${Z}+2,0]]);placePart(49,${X}+2,${Y}+1,${Z}+2)`);const [q2,w2]=cq();assert.equal(w2,w1,'two joined windows share one glass sheet');assert(q2-q1<q1-q0,'a joined window draws fewer frame faces than a lone one');
  R('setQuality("low")');assert(cq()[0]<q2,'low quality leaves out the window cross bars');assert.equal(cq()[1],w2,'but keeps every pane');R('setQuality("standard")');
  // Glass edge lines stay hidden in a joined window (uv kept inside .04-.96), and every quad is finite (the WebGL mock checks uploads).
- R(`rebuild(${X}>>4,${Z+2}>>4)`);assert.equal(R(`(()=>{const a=waterW.a;let g=0;for(let i=0;i<waterW.n;i+=9)if(a[i+8]%32===9){g++;if(a[i+6]<.03||a[i+6]>.97)return -1}return g})()`),8,'two glass sheets, no visible edge lines');
+ R(`rebuild(${X}>>4,${Z+2}>>4)`);assert.equal(R(`(()=>{const a=waterW.a;let g=0;for(let i=0;i<waterW.n;i+=9)if(a[i+8]%32===9){g++;if(a[i+6]<.03||a[i+6]>.97)return -1}return g})()`),4,'one glass sheet for the joined pair, no visible edge lines');
  // Stairs: placed facing the way the player looks; four in a row climbed and descended by walking (never a jump), smooth eye.
  R(`(()=>{const l=[];for(let x=${X}-8;x<=${X}+8;x++)for(let y=${Y};y<${Y}+4;y++)l.push([x,y,${Z}+2,0]);editMany(l)})()`);
  R(`inventory[41]=4;selected=slots.indexOf(41);yaw=0`);assert.deepEqual(J(`partCells(41,${X},${Y},${Z}+1).cells`),[[X,Y,Z+1,41]]);R('yaw=Math.PI/2');assert.equal(R(`partCells(41,0,0,0).cells[0][3]`),42);R('yaw=-Math.PI/2');assert.equal(R(`partCells(45,0,0,0).cells[0][3]`),48);
@@ -1513,4 +1513,73 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  // The aim outline is uploaded once while nothing changes (no per-frame buffer churn).
  let up=0;const bd=d.gl.bufferData;d.gl.bufferData=(...a)=>{up++;return bd(...a)};R('selected=0;hit={x:30,y:30,z:30};outlineKey=-1;for(let i=0;i<30;i++)drawOutline()');d.gl.bufferData=bd;assert.equal(up,1);
  console.log('PASS: v19 building parts: log→planks→door/stairs/window/stone stairs crafting (costs, refusals, creative free), door place/preview/open/close/tap/no-flap/never closes on the player/break both halves, windows align and join with one glass sheet each, stairs walked up/down without jumping, real-shape collision and picking, save/reload of orientation and state, validation, old saves, survival');
+}
+// ---- v19 review fixes: the preview gives placePart()'s verdict without touching anything; a swinging door keeps its glass;
+// rows and columns of windows are meshed as long pieces (same look, far fewer faces).
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ R('paused=false;gameMode="peaceful";creative=false;lifeMode="off";life.length=0;streamChunks(true);for(let i=0;i<40;i++)update(1/60)');
+ const X=Math.floor(R('player.x')),Y=Math.floor(R('player.y'))+4,Z=Math.floor(R('player.z'));
+ R(`(()=>{const l=[];for(let x=${X}-8;x<=${X}+8;x++)for(let z=${Z}-8;z<=${Z}+12;z++){l.push([x,${Y}-1,z,3]);for(let y=${Y};y<${Y}+9;y++)l.push([x,y,z,0])}editMany(l)})()`);
+ const stand=(x,z,yw,p)=>R(`flying=false;vy=0;player.x=${x};player.y=${Y};player.z=${z};yaw=${yw};pitch=${p};hit=ray()`);
+ const state=()=>R('JSON.stringify([changes.size,worldStamp,inventory,[...changes].slice(-4)])');
+ // 1. Same verdict as placing, and asking never changes the world or the hand.
+ stand(X+.5,Z-.5,0,-.55);R('selected=slots.indexOf(41);inventory[41]=0;inventory[51]=0;hit=ray()');assert.deepEqual(J('hit.prev'),[X,Y,Z+2]);
+ let before=state();for(let i=0;i<50;i++)R('partPreview();outlineKey=-1;drawOutline()');assert.equal(state(),before,'the preview reads only');
+ assert.match(R('partPreview().why'),/木の階段がないよ/,'red when the hand is empty');
+ const color=()=>J('[...outlineData.slice(48*9+3,48*9+6)]').map(v=>+v.toFixed(2));R('outlineKey=-1;drawOutline()');assert.deepEqual(color(),[.95,.3,.25],'drawn red');
+ assert.equal(R(`placePart(41,${X},${Y},${Z}+2)`),false);assert.equal(state(),before,'and placing refuses the same way');
+ let up=0;const bd=d.gl.bufferData;d.gl.bufferData=(...a)=>{up++;return bd(...a)};
+ R('drawOutline();drawOutline()');assert.equal(up,0,'no upload while nothing changes');
+ R('inventory[41]=1;drawOutline()');assert.equal(up,1,'one upload when the verdict changes');assert.equal(R('partPreview().why'),undefined);assert.deepEqual(color(),[.98,.9,.45],'drawn yellow');
+ R('drawOutline()');assert.equal(up,1);d.gl.bufferData=bd;
+ R('creative=true;gameMode="creative";inventory[41]=0');assert.equal(R('partPreview().why'),undefined,'creative needs no item');R('creative=false;gameMode="peaceful";inventory[41]=2');
+ // the player's own cell: red, and placing refuses (nothing placed, nothing spent)
+ R(`player.x=${X}+.5;player.z=${Z}+2.5;yaw=0;pitch=-1.2;hit={x:${X},y:${Y}-1,z:${Z}+2,t:3,prev:[${X},${Y},${Z}+2]}`);
+ assert.equal(R('partPreview().why'),'自分のいる場所には置けない');before=state();assert.equal(R(`placePart(41,${X},${Y},${Z}+2)`),false);assert.equal(state(),before);
+ R(`player.x=${X}+.5;player.z=${Z}+1.75`);assert.equal(R('partPreview().why'),'自分のいる場所には置けない','a step reaching into the player');
+ R(`player.x=${X}+.5;player.z=${Z}+1.6`);assert.equal(R('partPreview().why'),undefined,'just clear of it');
+ // doors: the floor and the two-cell gap, refreshed when the world changes under an unchanged aim
+ R(`selected=slots.indexOf(51);inventory[51]=1;player.z=${Z}-.5;edit(${X},${Y}+1,${Z}+2,3)`);assert.equal(R('partPreview().why'),'ドアには高さ2マスのすき間がいるよ');
+ R(`edit(${X},${Y}+1,${Z}+2,0)`);assert.equal(R('partPreview().why'),undefined,'the gap is noticed at once');
+ R(`edit(${X},${Y}-1,${Z}+2,0);edit(${X},${Y}-2,${Z}+2,0);hit={x:${X},y:${Y},z:${Z}+3,t:3,prev:[${X},${Y},${Z}+2]}`);assert.equal(R('partPreview().why'),'ドアは床の上に置こう');R(`edit(${X},${Y}-1,${Z}+2,3)`);
+ // the verdict and placePart agree over many aims and stances (each placement undone afterwards)
+ let agree=0;for(let i=0;i<60;i++){const t=[41,45,49,51][i%4],px=X+.2+(i*.37)%2.6,pz=Z+.3+(i*.53)%3.4,tx=X+(i%3),tz=Z+1+(i%4),ty=Y+(i%5===0?1:0);
+  R(`inventory[${t}]=${i%7?1:0};selected=slots.indexOf(${t});player.x=${px};player.z=${pz};player.y=${Y};yaw=${(i%4)*Math.PI/2};hit={x:${tx},y:${ty}-1,z:${tz},t:3,prev:[${tx},${ty},${tz}]}`);
+  const pv=J('partPreview()');if(!pv)continue;const ok=!pv.why,s0=state();const placed=R(`placePart(${t},${tx},${ty},${tz})`);assert.equal(placed,ok,`preview and placing agree (${i})`);
+  if(placed)R(`editMany(${JSON.stringify(pv.cells.map(([x,y,z])=>[x,y,z,0]))})`);else assert.equal(state(),s0);agree++}
+ assert(agree>40,'most cases compared');
+ // 2. While a door swings, its window glass is drawn in the translucent pass right after the chunks' glass.
+ R(`edit(${X},${Y}+1,${Z}+2,0);edit(${X}+1,${Y},${Z}+2,0);edit(${X}+1,${Y}+1,${Z}+2,0);inventory[51]=1;yaw=0;player.x=${X}+.5;player.z=${Z}-.5;player.y=${Y}`);assert(R(`placePart(51,${X},${Y},${Z}+2)`));
+ const glassOf=()=>R(`(()=>{const c=chunks.get((${X}>>4)+','+(${Z+2}>>4));rebuild(${X}>>4,${Z+2}>>4);return c.waterQuads})()`),g0=glassOf();
+ R(`toggleDoor(${X},${Y},${Z}+2);drawWorldDetails()`);assert.equal(glassOf(),g0-1,'the chunk leaves the swinging door (and its glass) out');
+ assert.equal(R('doorGlass.n'),36,'one glass quad for the door window');
+ const gq=J('[...doorGlass.a.slice(0,36)]');assert.equal(gq[8]%32,9,'glass material');for(let k=0;k<4;k++){const v=gq.slice(k*9,k*9+9);assert(v[0]>=X&&v[0]<=X+1&&v[2]>=Z+2&&v[2]<=Z+3&&v[1]>Y+1&&v[1]<Y+2,'inside the upper half');assert(v[6]>=.3&&v[6]<=.7&&v[7]>=.3&&v[7]<=.7,'same uv as the still door')}
+ const log=[];d.c.__log=log;R('const __q=drawQuads;drawQuads=function(b,n,f,s){__log.push(b===doorGlassBuffer?"door":[...chunks.values()].some(c=>c.water===b)?"chunk":"other");return __q.apply(this,arguments)}');
+ const dm=d.gl.depthMask;d.gl.depthMask=v=>{log.push('mask:'+v);return dm(v)};
+ R('canvas.width=800;canvas.height=600;render({x:player.x,y:player.y+1.62,z:player.z,yaw,pitch},false,800,600)');d.gl.depthMask=dm;R('drawQuads=__q');
+ const di=log.indexOf('door'),off=log.lastIndexOf('mask:false'),on=log.lastIndexOf('mask:true');
+ assert(di>0&&di>log.lastIndexOf('chunk')&&di>off&&di<on,'drawn after the chunk glass, inside the blended pass');
+ R('for(let i=0;i<20;i++)animateWorld(1/60);drawWorldDetails()');assert.equal(R('doorGlass.n'),0);assert.equal(glassOf(),g0,'back in the chunk mesh afterwards');
+ // 3. Rows and columns of windows: the same outline with long pieces. A 16×4 wall inside one chunk.
+ const cx=(X>>4),cz=((Z+6)>>4),bx=cx*16,bz=(Z+6);
+ const wallQ=(fill)=>R(`(()=>{const l=[];for(let x=0;x<16;x++)for(let y=0;y<6;y++)l.push([${bx}+x,${Y}+y,${bz},0]);for(let x=0;x<16;x++)for(let y=0;y<4;y++)if(${fill})l.push([${bx}+x,${Y}+y,${bz},49]);editMany(l);rebuild(${cx},${cz});const c=chunks.get('${cx},${cz}'),w=waterW.a;let g=0;for(let i=0;i<waterW.n;i+=36)if(w[i+8]%32===9&&w[i+2]===${bz}+.5)g++;return[c.quads,g]})()`);
+ const [none]=wallQ('false'),[q64,g64]=wallQ('true');
+ assert.equal(g64,4,'one glass sheet per row');
+ assert.equal(R(`(()=>{const a=opaqueW.a;let n=0;for(let i=0;i<opaqueW.n;i+=36){const zs=[0,9,18,27].map(k=>a[i+k+2]);const ys=[1,10,19,28].map(k=>a[i+k]);if(zs.every(z=>z>=${bz}+.3&&z<=${bz}+.7)&&ys.every(y=>y>=${Y}&&y<=${Y}+4)&&a[i+8]%32!==4)n++}return n})()`),0,'window frames use the grain material (long plank uv would pick the chest/door variants)');assert(q64-none<64*2,`64 joined windows cost under two faces each (${q64-none})`);
+ const [q1]=wallQ('x===3&&y===1');assert(q1-none>20,'a lone window keeps its full frame and cross');
+ // every cell of the wall is covered by glass at the middle plane
+ wallQ('true');assert.equal(R(`(()=>{rebuild(${cx},${cz});const a=waterW.a;let n=0;for(let i=0;i<waterW.n;i+=36)if(a[i+8]%32===9&&a[i+2]===${bz}+.5)n++;return n})()`),4);
+ assert.equal(R(`(()=>{const a=waterW.a,ok=new Set();for(let i=0;i<waterW.n;i+=36)if(a[i+8]%32===9&&a[i+2]===${bz}+.5){const xs=[0,9,18,27].map(k=>a[i+k]),ys=[0,9,18,27].map(k=>a[i+k+1]);for(let x=0;x<16;x++)for(let y=0;y<4;y++)if(Math.min(...xs)<=${bx}+x+.2&&Math.max(...xs)>=${bx}+x+.8&&Math.min(...ys)<=${Y}+y+.2&&Math.max(...ys)>=${Y}+y+.8)ok.add(x+','+y)}return ok.size})()`),64,'glass covers every window cell');
+ // a row whose cells differ below (one has a window under it) splits its glass so each sheet keeps the right height
+ const [,gs]=wallQ('y===1||(y===0&&x===5)');assert.equal(gs,4,'the row splits into three sheets around the cell with a window below, plus that window');
+ // a sill row partly over a wall keeps its underside (merged pieces are not culled by the first cell's neighbour)
+ R(`(()=>{const l=[];for(let x=0;x<16;x++)for(let y=0;y<6;y++)l.push([${bx}+x,${Y}+y,${bz},0]);l.push([${bx}+2,${Y},${bz},7]);for(let x=2;x<6;x++)l.push([${bx}+x,${Y}+1,${bz},49]);editMany(l)})()`);
+ assert(R(`(()=>{rebuild(${cx},${cz});const a=opaqueW.a;for(let i=0;i<opaqueW.n;i+=36){const ys=[0,9,18,27].map(k=>a[i+k+1]),xs=[0,9,18,27].map(k=>a[i+k]);if(ys.every(v=>v===${Y}+1)&&Math.max(...xs)>=${bx}+5.8&&Math.min(...xs)<=${bx}+2.2)return true}return false})()`),'the sill underside spans the row');
+ // a row across a chunk border: each chunk draws its own piece, together they cover it and the inner joints stay closed
+ const ex=bx+14;R(`(()=>{const l=[];for(let x=0;x<16;x++)for(let y=0;y<6;y++)l.push([${bx}+x,${Y}+y,${bz},0]);for(let x=0;x<5;x++)l.push([${ex}+x,${Y}+1,${bz},49]);editMany(l)})()`);
+ const span=c=>J(`(()=>{rebuild(${c},${cz});const a=waterW.a;let lo=1e9,hi=-1e9;for(let i=0;i<waterW.n;i+=36)if(a[i+8]%32===9&&a[i+2]===${bz}+.5)for(const k of[0,9,18,27]){lo=Math.min(lo,a[i+k]);hi=Math.max(hi,a[i+k])}return[lo,hi]})()`);
+ assert.deepEqual([span(cx),span(cx+1)],[[ex+2/16,bx+16],[bx+16,ex+5-2/16]],'glass meets at the chunk border without a gap');
+ // low quality drops the cross bars only
+ R('setQuality("low")');const [ql,gl]=wallQ('true');assert(ql<q64);assert.equal(gl,4);R('setQuality("standard")');
+ console.log(`PASS: v19 review fixes: preview = placePart verdict (item, player, door floor/gap, creative; read-only, ${agree} aims agree, uploads only on change), door glass drawn during the swing after chunk glass, joined windows ${q64-none} faces for 64 (rows/columns merged, glass per row, chunk borders, low quality)`);
 }
