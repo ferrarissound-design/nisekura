@@ -698,7 +698,7 @@ const SEA_=62;
  d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),11);
  assert.equal(run(re,`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),R(`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),'reloading does not change the caves');
  // Save format: new block ids are accepted, the unused plant-material ids are not, and future versions are rejected.
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},true],[{changes:[[5000,66]]},true],[{changes:[[5000,67]]},false]]){
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},true],[{changes:[[5000,66]]},true],[{changes:[[5000,82]]},true],[{changes:[[5000,83]]},false]]){
   const t=()=>run(d,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  console.log(`PASS: caves: lake ${lk.water} water voxels (${lk.exposed} open sides), ${cr.n} crystals lighting ${cr.glowFaces} faces, ${dec.hang}/${dec.stand} stalactites/stalagmites, underground factor ${deep.toFixed(2)}, ${spots} spots visited, edits/save/validation`)}
 {// Underground life: dark-loving monsters appear on cave floors only, and the surface is left alone while the player is below.
@@ -1503,7 +1503,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  const re=boot(d.storage['nisekura-v1']),RR=c=>run(re,c);
  assert.deepEqual([RR(`get(${X}-3,${Y},${Z}+7)`),RR(`get(${X}-3,${Y}+1,${Z}+7)`),RR(`get(${X}-5,${Y},${Z}+7)`),RR(`get(${X}-6,${Y},${Z}+7)`),RR('inventory[45]'),RR('slots[selected]')],[53,54,47,50,3,49],'parts, door state and the selected part reload');
  assert(RR(`(()=>{rebuild(${X-3}>>4,${Z+7}>>4);return true})()`));
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of [[{changes:[[5000,51]]},true],[{inventory:{51:2,41:3}},true],[{changes:[[5000,67]]},false],[{inventory:{67:1}},false]]){const t=()=>run(re,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of [[{changes:[[5000,51]]},true],[{inventory:{51:2,41:3}},true],[{changes:[[5000,82]]},true],[{changes:[[5000,83]]},false],[{inventory:{83:1}},false]]){const t=()=>run(re,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  // An older save without any part opens unchanged and gains the empty part slots.
  const old=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:10,seed:4242,changes:[[5000,7]],inventory:{7:5},settings:{qualityName:'low',hudMinimal:false,hudDetails:false,lifeVoices:true,selected:2,hotbar:20,eggSp:-1}}));
  assert.deepEqual([run(old,'terrainVersion'),run(old,'inventory[7]'),run(old,'inventory[51]||0'),run(old,'slots[selected]')],[10,5,0,38]);assert(old.api.save());
@@ -1582,4 +1582,67 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  // low quality drops the cross bars only
  R('setQuality("low")');const [ql,gl]=wallQ('true');assert(ql<q64);assert.equal(gl,4);R('setQuality("standard")');
  console.log(`PASS: v19 review fixes: preview = placePart verdict (item, player, door floor/gap, creative; read-only, ${agree} aims agree, uploads only on change), door glass drawn during the swing after chunk glass, joined windows ${q64-none} faces for 64 (rows/columns merged, glass per row, chunk borders, low quality)`);
+}
+// ---- v19.1: double doors (the second leaf hinges on the right and both open together) and corner stairs (shape from the neighbours).
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ R('paused=false;gameMode="peaceful";creative=false;lifeMode="off";life.length=0;streamChunks(true);for(let i=0;i<40;i++)update(1/60)');
+ const X=Math.floor(R('player.x')),Y=Math.floor(R('player.y'))+4,Z=Math.floor(R('player.z'));
+ R(`(()=>{const l=[];for(let x=${X}-8;x<=${X}+8;x++)for(let z=${Z}-8;z<=${Z}+12;z++){l.push([x,${Y}-1,z,3]);for(let y=${Y};y<${Y}+9;y++)l.push([x,y,z,0])}
+  for(let x=${X}-4;x<=${X}+5;x++)for(let y=${Y};y<${Y}+4;y++)if(!((x===${X}||x===${X}+1)&&y<${Y}+2))l.push([x,y,${Z}+2,8]);editMany(l)})()`);
+ const at=(x,y,z)=>R(`get(${x},${y},${z})`);
+ // Two doors side by side: the second leaf hinges on the right (ids 67-82), so the pair opens from the middle.
+ R(`flying=false;player.x=${X}+1;player.y=${Y};player.z=${Z}-.5;yaw=0;pitch=0;inventory[51]=2`);
+ assert(R(`placePart(51,${X},${Y},${Z}+2)`));assert(R(`placePart(51,${X}+1,${Y},${Z}+2)`));
+ assert.deepEqual([at(X,Y,Z+2),at(X,Y+1,Z+2),at(X+1,Y,Z+2),at(X+1,Y+1,Z+2)],[51,52,67,68],'left leaf, then the right leaf with its hinge on the right');
+ assert.deepEqual(J('[PART_BOX[67][0],PART_BOX[69][0]]'),[[0,0,0,1,1,.1875],[.8125,0,0,1,1,1]],'closed on the near side, open along its own (right) side');
+ assert.equal(R('inventory[51]'),0);
+ // either leaf opens both, with a swing each; the middle is then free to walk through
+ assert(R(`toggleDoor(${X}+1,${Y}+1,${Z}+2)`));assert.deepEqual([at(X,Y,Z+2),at(X,Y+1,Z+2),at(X+1,Y,Z+2),at(X+1,Y+1,Z+2)],[53,54,69,70],'both leaves open');
+ assert.equal(R('doorAnims.length'),2);assert.deepEqual(J('doorAnims.map(a=>a.h)'),[1,0]);
+ R('canvas.width=800;canvas.height=600;drawWorldDetails()');assert.equal(R('doorGlass.n'),72,'both swinging windows keep their glass');
+ R('for(let i=0;i<20;i++)animateWorld(1/60)');assert.equal(R('doorAnims.length+doorHide.size'),0);
+ R(`player.x=${X}+1;player.z=${Z}-.5;keys.KeyW=true;for(let i=0;i<90;i++)update(1/60);keys.KeyW=false`);assert(R('player.z')>Z+4,'through the middle of the open pair');
+ R(`player.z=${Z}+5.5;player.x=${X}+1`);assert(R(`toggleDoor(${X},${Y},${Z}+2)`));assert.deepEqual([at(X,Y,Z+2),at(X+1,Y,Z+2),at(X+1,Y+1,Z+2)],[51,67,68],'and both close');R('doorAnims.length=0;doorHide.clear()');
+ // the knob is on the free edge: the right leaf's hinge-side board edge (uv 6) lies on its right
+ const knobSide=R(`(()=>{rebuild(${X+1}>>4,${Z+2}>>4);const a=opaqueW.a;for(let i=0;i<opaqueW.n;i+=9)if(a[i+8]%32===7&&a[i+6]===6&&a[i+1]===${Y}&&a[i+2]>=${Z}+2&&a[i+2]<=${Z}+2.2&&a[i]>=${X}+1&&a[i]<=${X}+2)return a[i]-${X}-1;return -1})()`);
+ assert(knobSide>.9,'the right leaf hinges at its right edge');
+ // a single leaf of the pair still works alone, and a door facing another way never pairs
+ R(`player.x=${X}-2.5;player.z=${Z}-.5`);R(`editMany([[${X},${Y},${Z}+2,0],[${X},${Y}+1,${Z}+2,0]])`);assert(R(`toggleDoor(${X}+1,${Y},${Z}+2)`));assert.equal(at(X+1,Y,Z+2),69);R('doorAnims.length=0;doorHide.clear()');
+ R(`yaw=Math.PI;inventory[51]=1`);assert.equal(R(`partCells(51,${X},${Y},${Z}+2).cells[0][3]`),59,'facing the other way: an ordinary left hinge');
+ R('yaw=0');assert.equal(R(`partCells(51,${X},${Y},${Z}+2).cells[0][3]`),51,'an open right leaf does not make a new door to its left hinge right');
+ // saved and reloaded with hinge and state
+ R(`editMany([[${X},${Y},${Z}+2,51],[${X},${Y}+1,${Z}+2,52]])`);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);
+ assert.deepEqual([run(re,`get(${X},${Y},${Z}+2)`),run(re,`get(${X}+1,${Y},${Z}+2)`),run(re,`get(${X}+1,${Y}+1,${Z}+2)`)],[51,69,70]);
+ // Corner stairs. S faces +z at (X, Y, Z+6).
+ const S=[X,Y,Z+6],mask=()=>R(`stairMask(41,(dx,dz)=>get(${S[0]}+dx,${S[1]},${S[2]}+dz))`),put=l=>R(`editMany(${JSON.stringify(l)})`);
+ R(`(()=>{const l=[];for(let x=${X}-4;x<=${X}+5;x++)for(let y=${Y};y<${Y}+4;y++)l.push([x,y,${Z}+2,0]);editMany(l)})()`);
+ const high=(lx,lz,t=41)=>J(`partBoxes(${t},${S[0]},${S[1]},${S[2]})`).some(b=>lx>b[0]&&lx<b[3]&&lz>b[2]&&lz<b[5]&&b[1]<.75&&b[4]>.75);
+ put([[...S,41]]);assert.equal(mask(),12,'alone: straight (the +z half rises)');
+ put([[X,Y,Z+7,42]]);assert.equal(mask(),8,'a stair turned to +x behind it: outer corner, only the +x/+z quarter rises');
+ assert.deepEqual([high(.25,.25),high(.25,.75),high(.75,.25),high(.75,.75)],[false,false,false,true],'the +x/+z quarter is high, the -x/+z quarter is low now');
+ assert.equal(R(`collides({x:${X}+.2,y:${Y}+.5,z:${Z}+6.2})`),false,"the player stands on the low step");assert.equal(R(`collides({x:${X}+.7,y:${Y}+.5,z:${Z}+6.7})`),true,'and not inside the high quarter');
+ put([[X-1,Y,Z+6,41]]);assert.equal(mask(),12,'a stair beside it facing the same way keeps it straight (straight runs never break)');
+ put([[X-1,Y,Z+6,0],[X,Y,Z+7,0],[X,Y,Z+5,42]]);assert.equal(mask(),14,'a stair turned to +x in front: inner corner, three quarters rise');
+ assert.deepEqual([high(.25,.25),high(.25,.75),high(.75,.25),high(.75,.75)],[false,true,true,true],'only -x/-z stays low');
+ put([[X,Y,Z+5,44]]);assert.equal(mask(),13,'turned to -x: mirrored inner corner');assert.deepEqual([high(.25,.25),high(.75,.25)],[true,false]);
+ put([[X,Y,Z+5,45+1]]);assert.equal(mask(),14,'stone and wood stairs join the same way');put([[X,Y,Z+5,43]]);assert.equal(mask(),12,'facing the opposite way is no corner');
+ // picking and the mesh follow the shape: an outer corner has exactly one high quarter top
+ put([[X,Y,Z+5,0],[X,Y,Z+7,42]]);R(`player.x=${X}+.25;player.z=${Z}+6.25;player.y=${Y}+2;flying=true`);assert.deepEqual(J('(()=>{const h=ray([0,-1,0]);return[h.y,h.t]})()'),[Y,41],'low quarter picked at its step');
+ const tops=y=>R(`(()=>{rebuild(${X}>>4,${Z+6}>>4);const a=opaqueW.a,r=[];for(let i=0;i<opaqueW.n;i+=36){const xs=[0,9,18,27].map(k=>a[i+k]),ys=[0,9,18,27].map(k=>a[i+k+1]),zs=[0,9,18,27].map(k=>a[i+k+2]);
+  if(ys.every(v=>v===${y})&&Math.floor(a[i+8]/32)%8===2&&xs.every(v=>v>=${X}&&v<=${X}+1)&&zs.every(v=>v>=${Z}+6&&v<=${Z}+7))r.push((Math.max(...xs)-Math.min(...xs))*(Math.max(...zs)-Math.min(...zs)))}return r.reduce((s,v)=>s+v,0)})()`);
+ assert.equal(tops(Y+1),.25,'outer corner: a quarter on top');assert.equal(tops(Y+.5),.75,'and three quarters of low step');
+ put([[X,Y,Z+7,0],[X,Y,Z+5,42]]);assert.equal(tops(Y+1),.75,'inner corner: three quarters on top');assert.equal(tops(Y+.5),.25);
+ // a straight run joins without inner walls, and nothing else in the run changes
+ put([[X,Y,Z+5,0]]);const runQ=n=>R(`(()=>{const l=[];for(let x=0;x<6;x++)l.push([${(X>>4)*16+4}+x,${Y},${Z}+6,x<${n}?41:0]);editMany(l);rebuild(${X}>>4,${Z+6}>>4);return opaqueW.n/36})()`);
+ const q0=runQ(0),q1=runQ(1),q3=runQ(3);assert(q3-q0<3*(q1-q0),'side faces between neighbouring stairs are hidden');
+ // walking diagonally up a pyramid's outer corner (corner stair → its high quarter → the block top) never needs a jump
+ R(`(()=>{const l=[];for(let x=${X}-8;x<=${X}+8;x++)for(let z=${Z};z<=${Z}+12;z++)for(let y=${Y};y<${Y}+5;y++)l.push([x,y,z,0]);
+  l.push([${X}+1,${Y},${Z}+7,3],[${X}+2,${Y},${Z}+7,3],[${X}+1,${Y},${Z}+8,3],[${X}+2,${Y},${Z}+8,3],[${X}+1,${Y},${Z}+6,41],[${X}+2,${Y},${Z}+6,41],[${X},${Y},${Z}+7,42],[${X},${Y},${Z}+8,42],[${X},${Y},${Z}+6,41]);editMany(l)})()`);
+ assert.equal(R(`stairMask(41,(dx,dz)=>get(${X}+dx,${Y},${Z}+6+dz))`),8,'the pyramid corner is an outer corner');
+ R(`flying=false;vy=0;player.x=${X}-1.2;player.y=${Y};player.z=${Z}+4.8;yaw=Math.PI/4;pitch=0`);let maxVy=0;for(let i=0;i<60;i++){R('keys.KeyW=true;update(1/60)');maxVy=Math.max(maxVy,R('vy'))}R('keys.KeyW=false');
+ assert.equal(R('player.y'),Y+1,'up the corner onto the top by walking');assert.equal(maxVy,0,'no jump');
+ // the preview outlines the corner it would make
+ R(`editMany([[${X}+5,${Y},${Z}+9,42]]);selected=slots.indexOf(41);inventory[41]=1;yaw=0;player.x=${X}+5.5;player.z=${Z}+5.5;player.y=${Y};flying=false;hit={x:${X}+5,y:${Y}-1,z:${Z}+8,t:3,prev:[${X}+5,${Y},${Z}+8]}`);
+ assert.equal(J(`partBoxes(41,${X}+5,${Y},${Z}+8)`).length,2);assert.deepEqual(J(`partBoxes(41,${X}+5,${Y},${Z}+8)[1]`),[.5,.5,.5,1,1,1],'the preview shows the outer corner');
+ console.log('PASS: v19.1 double doors (right hinge ids 67-82, pair placing, both leaves open/close with swing and glass, walk through, single leaf, other facing, save/reload) and corner stairs (outer/inner, same-facing neighbour keeps straight, wood+stone, collision, picking, mesh tops, joined runs, pyramid corner climbed diagonally without jumping, preview)');
 }
