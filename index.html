@@ -2638,8 +2638,19 @@ let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performanc
 const hotbarButtons=[];
 function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];if(typeof lifeModeText==='function')$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();survivalUI();if(typeof craftUI==='function')craftUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
+// v17 sealed doors (block 39). The main stone door opens with the stepping stone (adventure gate), the hidden-passage door with its chest
+// (adventure secret). While the matching flag is unset, survival cannot dig the door: both mine() and breakBlock() ask doorBlocked().
+// Creative and peaceful are not restricted, and a block 39 outside a ruin door cell (or after the door opened) is ordinary.
+function sealedDoor(x,y,z){if(!RUINS)return null;
+ for(const r of ruins){const p=ruinLocal(r,x,z),s=adventure.ruins[r.id];
+  if(p.v===35&&p.u>=-2&&p.u<=2&&y>r.f&&y<=r.f+5&&!s?.gate)return'gate';
+  if(p.v===30&&p.u>=19&&p.u<=21&&y>r.f&&y<=r.f+4&&!s?.secret)return'secret'}
+ return null}
+const DOOR_MSG={gate:'🔒 封印の石扉はこわせないよ。青く光る踏み石をふむと開くよ',secret:'🔒 かくし扉はこわせないよ。近くの小さな宝箱を開けると封印がとけるよ'};
+function doorBlocked(h){if(gameMode!=='survival'||h.t!==39)return false;const k=sealedDoor(h.x,h.y,h.z);if(!k)return false;dig=null;toast(DOOR_MSG[k]);sfx('clank');return true}
 function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]))return;if(strike(false))return;hit=ray();if(!hit)return;if(hit.t===11){toast('岩盤は壊せない');return}
  if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}
+ if(doorBlocked(hit))return;
  // Survival: ore needs a strong enough pickaxe, and stone and ore take a moment to dig (hold 壊す / the mouse; a pickaxe is faster).
  if(gameMode==='survival'){const need=ORE_TIER[hit.t]||0;if(need>pickaxe().tier){toast(`⛏ ${defs[hit.t][0]}は「${TIER_NAME[need]}」以上で掘れるよ`+(pickaxe().tier?'':'（クラフトでつくろう）'));sfx('clank');return}
   const tm=DIG_BASE[hit.t]?DIG_BASE[hit.t]/pickaxe().speed:0;if(tm>0){if(!dig||dig.x!==hit.x||dig.y!==hit.y||dig.z!==hit.z)dig={x:hit.x,y:hit.y,z:hit.z,t:hit.t,p:0,need:tm,idle:0,chipT:0};return}}
@@ -2647,7 +2658,7 @@ function mine(){if(paused||photoMode)return;swing=1;if(eggSp>=0&&shooEgg([Math.s
 // Breaking: blocks go to the hotbar; ore gives its material (no smelting), with a cheer the first time each one is found.
 const FOUND_BIT={coal:1,iron:2,gold:4,diamond:8,coin:16,crystal:32,dragonEgg:64,chest:128};
 const FIRST_FIND={coal:['⚫ はじめての石炭！','将来はたいまつの材料に。まずは集めておこう'],iron:['🎉 はじめての鉄！','クラフトで 鉄のツルハシ・鉄の剣・鉄の防具 がつくれるよ'],gold:['🌟 はじめての金！','めずらしい金属。宝物として集めよう'],diamond:['💎 ダイヤモンド発見！！','とても貴重。ダイヤの剣やツルハシの材料だよ']};
-function breakBlock(h){const t=h.t;dig=null;
+function breakBlock(h){const t=h.t;if(doorBlocked(h))return;dig=null;
  if(ORE_DROP[t]){const k=ORE_DROP[t],n=t===ORE_COAL&&Math.random()<.35?2:1;items[k]+=n;burst(h.x+.5,h.y+.5,h.z+.5,defs[t][1]);edit(h.x,h.y,h.z,0);dirty=true;
   if(!(items.found&FOUND_BIT[k])){items.found|=FOUND_BIT[k];announce(FIRST_FIND[k][0],FIRST_FIND[k][1],k==='diamond'||k==='gold'?'rare':'first')}else{toast(`${MAT_ICON[k]} ${MAT_NAME[k]} +${n}（${items[k]}個）`);sfx('ore')}
   refresh();return}
@@ -2664,6 +2675,7 @@ function digTick(dt){if(!dig)return;if(!(mineHeld||mouseMine)||paused){dig.idle+
 function targetLabel(h){const t=h.t;let s=defs[t][0];
  if(gameMode==='survival'&&(ORE_TIER[t]||0)>pickaxe().tier)s+=' 🔒'+TIER_NAME[ORE_TIER[t]];
  if(t===B_CHEST)s='🎁 宝箱（タップ／右クリックで開ける）';
+ if(t===39&&gameMode==='survival'){const k=sealedDoor(h.x,h.y,h.z);if(k)s+=k==='gate'?' 🔒踏み石で開く':' 🔒宝箱で開く'}
  if(dig&&dig.x===h.x&&dig.y===h.y&&dig.z===h.z){const k=Math.min(5,Math.floor(dig.p*5));s+=' '+'▰'.repeat(k)+'▱'.repeat(5-k)}
  return s}
 function place(){if(paused||photoMode)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}

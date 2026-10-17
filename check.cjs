@@ -1298,3 +1298,56 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  }
  console.log('PASS: multiple v11 seeds reproduce placements; coast passages have supported stairs/headroom and underwater exits');
 }
+
+// ---- v17 review fix: sealed ruin doors (block 39) cannot be dug in survival until their puzzle flag is set.
+{const hint=b=>b.nodes.hint.textContent;
+ const setup=b=>run(b,`var rr=ruins[0];var go=(u,v,y=rr.f+1)=>{const p=ruinWorld(rr,u,v);player.x=p.x+.5;player.z=p.z+.5;player.y=y;vy=0;pkX=1e9;streamChunks(true)};
+  var aimDoor=(u,v,dy)=>{const p=ruinWorld(rr,u,v),ex=player.x,ey=player.y+1.62,ez=player.z,tx=p.x+.5,ty=rr.f+dy+.5,tz=p.z+.5;yaw=Math.atan2(tx-ex,tz-ez);pitch=Math.atan2(ty-ey,Math.hypot(tx-ex,tz-ez));pkX=1e9};
+  var doorCells=(secret)=>{const o=[];const [u0,u1,v,h]=secret?[19,21,30,4]:[-2,2,35,5];for(let u=u0;u<=u1;u++){const p=ruinWorld(rr,u,v);for(let y=rr.f+1;y<=rr.f+h;y++)o.push([p.x,y,p.z])}return o};
+  var doorsGet=secret=>doorCells(secret).map(([x,y,z])=>get(x,y,z));
+  var digFor=n=>{mineHeld=true;for(let i=0;i<n;i++)update(1/30);mineHeld=false};
+  paused=false;protectT=1e9;life.length=0;1`);
+ const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));setup(d);R('setGameMode("survival");go(0,32)');
+ // Every ruin in the world: both doors stand sealed in the generated blocks and survival cannot dig them (hand and tools), through mine(), holding 壊す and breakBlock().
+ for(const r of J('ruins')){
+  R(`rr=ruins.find(r=>r.id==='${r.id}');for(const k in adventure.ruins)delete adventure.ruins[k];go(0,32)`);
+  assert(R('doorsGet(false).every(t=>t===39)&&doorsGet(true).every(t=>t===39)'),'both doors are generated: '+r.id);
+  assert.equal(R('sealedDoor(...doorCells(false)[0])'),'gate');assert.equal(R('sealedDoor(...doorCells(true)[0])'),'secret');
+  R('items.ironPick=1;items.diamondPick=1;inventory[39]=0');
+  R('aimDoor(0,35,2);hit=ray()');assert.equal(R('hit.t'),39,'the gate door is under the crosshair: '+r.id);
+  R('mine()');assert(R('doorsGet(false).every(t=>t===39)'),'mine() cannot break the sealed gate door');assert.match(hint(d),/封印の石扉.*踏み石/,'the player is told how to open it');
+  R('digFor(90)');assert(R('doorsGet(false).every(t=>t===39)'),'holding 壊す never digs it through');assert.equal(R('dig'),null,'no digging starts');
+  R('breakBlock(hit)');assert.equal(R('get(hit.x,hit.y,hit.z)'),39,'breakBlock() also refuses (any other caller)');assert.equal(R('inventory[39]||0'),0,'and gives no door block');
+  assert.match(R('targetLabel(hit)'),/🔒踏み石で開く/,'the label says how to open it');
+  R('go(20,27);aimDoor(20,30,2);hit=ray()');assert.equal(R('hit.t'),39,'the hidden-passage door is under the crosshair');
+  assert.match(R('targetLabel(hit)'),/🔒宝箱で開く/);R('mine();digFor(90)');assert(R('doorsGet(true).every(t=>t===39)'),'the secret door cannot be dug either');assert.match(hint(d),/かくし扉.*宝箱/);
+  R('breakBlock(hit)');assert.equal(R('get(hit.x,hit.y,hit.z)'),39);
+  assert(!R('ruinState(rr).gate')&&!R('ruinState(rr).secret'),'trying to dig never sets a progress flag');
+ }
+ // Opening the gate by the stepping stone frees only the gate: the passage is walkable, the secret door still holds.
+ R(`rr=ruins[0];for(const k in adventure.ruins)delete adventure.ruins[k];go(rr.side*12,26);dungeonTick(1)`);assert(R('ruinState(rr).gate'));
+ assert(R('doorsGet(false).every(t=>t===0)'),'the stepping stone opens the gate door');assert(R('doorsGet(true).every(t=>t===39)'),'but not the hidden door');
+ R('go(0,35);');assert(!R('collides(player)'),'the opened doorway can be walked through');R('go(0,38);');assert(!R('collides(player)'));
+ R('go(20,27);aimDoor(20,30,2);hit=ray();mine();digFor(60)');assert(R('doorsGet(true).every(t=>t===39)'),'the secret door is still sealed after the gate opened');
+ // Its chest opens the hidden door.
+ R(`rr=ruins[1];go(-rr.side*14,25);dungeonTick(1);var small=ruinWorld(rr,-rr.side*14,26);openChest(small.x,rr.f+1,small.z)`);assert(R('ruinState(rr).secret'));
+ assert(R('doorsGet(true).every(t=>t===0)'),'the matching chest opens the hidden door');R('go(20,31);');assert(!R('collides(player)'),'the hidden passage can be walked through');
+ assert(R('doorsGet(false).every(t=>t===39)&&sealedDoor(...doorCells(false)[0])==="gate"'),'and does not open the other ruin\'s main gate');
+ // Save and reload: the open gate stays open, the sealed ones stay sealed and still cannot be dug.
+ R('rr=ruins[0]');assert(d.api.save());const re=boot(d.storage['nisekura-v1']),RR=c=>run(re,c);setup(re);
+ assert.equal(RR('gameMode'),'survival');assert(RR('doorsGet(false).every(t=>t===0)'),'the opened gate is still open after reload');assert(RR('doorsGet(true).every(t=>t===39)'),'the sealed hidden door is still there after reload');
+ RR('go(0,36)');assert(!RR('collides(player)'),'walkable after reload');
+ RR('go(20,27);aimDoor(20,30,2);hit=ray();mine();digFor(90)');assert(RR('doorsGet(true).every(t=>t===39)'),'still cannot be dug after reload');
+ RR('rr=ruins[1]');assert(RR('doorsGet(true).every(t=>t===0)'),'the other ruin\'s hidden door stayed open after reload');
+ // A save written before anything was solved reloads with every door sealed.
+ const fresh=boot();setup(fresh);run(fresh,'setGameMode("survival")');assert(fresh.api.save());const fr=boot(fresh.storage['nisekura-v1']);setup(fr);
+ assert(run(fr,'doorsGet(false).every(t=>t===39)&&doorsGet(true).every(t=>t===39)'));run(fr,'go(0,32);aimDoor(0,35,2);hit=ray();mine();digFor(60)');assert(run(fr,'doorsGet(false).every(t=>t===39)'),'sealed after reloading an unsolved save');
+ // Creative mode is unchanged (free building); a block 39 that is not a ruin door cell is ordinary in survival.
+ const cr=boot();setup(cr);const C=c=>run(cr,c);C('setGameMode("creative");go(0,32);aimDoor(0,35,2);hit=ray();mine()');assert(C('get(hit.x,hit.y,hit.z)')===0&&C('inventory[39]')===1,'creative can still remove a door');
+ C('setGameMode("survival");var X0=Math.floor(player.x)+40,Z0=Math.floor(player.z)+40,Y0=150;for(let x=X0-2;x<=X0+3;x++)for(let z=Z0-2;z<=Z0+2;z++){edit(x,Y0,z,3);for(let y=Y0+1;y<Y0+4;y++)edit(x,y,z,0)}edit(X0+1,Y0+1,Z0,39);player.x=X0-.5+.5;player.z=Z0+.5;player.y=Y0+1;vy=0;yaw=Math.PI/2;pitch=Math.atan2(Y0+1.5-(player.y+1.62),1);pkX=1e9;hit=ray()');
+ assert(C('hit&&hit.t===39&&!sealedDoor(hit.x,hit.y,hit.z)'),'a block 39 outside the door cells is under the crosshair and not sealed');C('mine()');assert.equal(C('get(hit.x,hit.y,hit.z)'),0,'an ordinary block 39 can be broken in survival');
+ // Old worlds (no ruins at all): block 39 has no special rule, saves still load.
+ const old=boot(JSON.stringify({version:1,terrainVersion:10,worldWidth:2048,worldHeight:192,seed:73219,changes:[],inventory:{},gameMode:'survival'})),O=c=>run(old,c);
+ assert.equal(O('RUINS'),false);assert.equal(O('sealedDoor(1000,40,1000)'),null);O('paused=false;protectT=1e9;var ox=Math.floor(player.x)+2,oy=Math.floor(player.y)+1,oz=Math.floor(player.z);edit(ox,oy,oz,39);player.x=ox-.5;player.y=oy-1+.02;player.z=oz+.5;yaw=Math.PI/2;pitch=Math.atan2(oy+.5-(player.y+1.62),1);pkX=1e9;hit=ray()');assert.equal(O('hit&&hit.t'),39,'old world: block 39 is under the crosshair');O('mine()');assert.equal(O('get(ox,oy,oz)'),0,'old worlds have no sealed doors');
+ console.log('PASS: v17 sealed doors: every ruin\'s gate and hidden door cannot be dug in survival (mine, held 壊す, breakBlock, with pickaxes), kid-readable messages and label, stepping stone / chest unlock only their own door, passage walkable, saved and reloaded (open stays open, sealed stays sealed), creative and old worlds unchanged');
+}
