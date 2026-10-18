@@ -2825,6 +2825,24 @@ function partHit(t,x,y,z,p){for(const b of partBoxes(t,x,y,z))if(x+b[0]<p.x+.29&
 function rayPartHit(t,c,o,d){let best=null;for(const b of partBoxes(t,c[0],c[1],c[2])){let t0=0,t1=1e9,axis=-1;for(let i=0;i<3&&t0<=t1;i++){const lo=c[i]+b[i],hi=c[i]+b[i+3];
   if(Math.abs(d[i])<1e-9){if(o[i]<lo||o[i]>hi)t0=2e9}else{let a=(lo-o[i])/d[i],e=(hi-o[i])/d[i];if(a>e){const s=a;a=e;e=s}if(a>t0){t0=a;axis=i}if(e<t1)t1=e}}
   if(t0<=t1&&(!best||t0<best.dist)){const normal=[0,0,0];if(axis>=0)normal[axis]=d[axis]>0?-1:1;best={dist:t0,normal,point:o.map((v,i)=>v+d[i]*t0)}}}return best}
+// Voxel traversal for combat, testing actual part geometry rather than treating whole cells as solid.
+function segmentBlocked(x0,y0,z0,x1,y1,z1){
+ const dx=x1-x0,dy=y1-y0,dz=z1-z0,length=Math.hypot(dx,dy,dz);if(length<1e-6)return false;
+ const d=[dx/length,dy/length,dz/length],o=[x0+d[0]*1e-5,y0+d[1]*1e-5,z0+d[2]*1e-5],cell=o.map(Math.floor);
+ const step=d.map(v=>v>=0?1:-1),delta=d.map(v=>v===0?Infinity:Math.abs(1/v));
+ const next=d.map((v,i)=>v===0?Infinity:Math.max(0,(cell[i]+(v>0?1:0)-o[i])/v));
+ let traveled=0;
+ while(traveled<length){
+  const t=peek(cell[0],cell[1],cell[2]),end=Math.min(length,next[0],next[1],next[2]);
+  if(t<0)return true;
+  if(t>0&&t!==10){
+   if(!PART[t])return true;
+   const hit=rayPartHit(t,cell,o,d);
+   if(hit&&hit.dist>=traveled-1e-4&&hit.dist<=end+1e-4)return true}
+  const axis=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);
+  if(!Number.isFinite(next[axis])||next[axis]>=length)break;
+  traveled=next[axis];cell[axis]+=step[axis];next[axis]+=delta[axis]}
+ return false}
 function rayPart(t,c,o,d){return!!rayPartHit(t,c,o,d)}
 if(collides(player))spawn();
 function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10){const shape=PART[t]?rayPartHit(t,cell,o,d):null;
@@ -3164,10 +3182,14 @@ const terrainH=(x,z)=>GRAND?height4(x,z):height(x,z);
 const isNight=()=>sunFromTime(dayTime)[1]<-.06;
 // Voxel lookup that never generates terrain: -1 where the chunk is not loaded.
 let pkX=1e9,pkZ=1e9,pkData=null;
-function peek(x,y,z){if(x<0||z<0||x>=W||z>=W)return -1;if(y<0)return 11;if(y>=H)return 0;const cx=x>>4,cz=z>>4;if(cx!==pkX||cz!==pkZ){pkX=cx;pkZ=cz;pkData=blocks.get(cx+','+cz)||null}return pkData?pkData[localIdx(x,y,z)]:-1}
+function peek(x,y,z){x=Math.floor(x);y=Math.floor(y);z=Math.floor(z);if(x<0||z<0||x>=W||z>=W)return -1;if(y<0)return 11;if(y>=H)return 0;const cx=x>>4,cz=z>>4;if(cx!==pkX||cz!==pkZ){pkX=cx;pkZ=cz;pkData=blocks.get(cx+','+cz)||null}return pkData?pkData[localIdx(x,y,z)]:-1}
 const LEAFY=t=>t===5||t===14||t===15||t===16;
 // Top of the ground below (top) within depth blocks: -1e9 when not loaded, -1e8 when there is no floor in range.
-function groundAt(x,z,top,depth){const X=Math.floor(x),Z=Math.floor(z),y0=Math.floor(top);for(let y=y0;y>=y0-depth;y--){const t=peek(X,y,Z);if(t<0)return -1e9;if(t&&t!==10)return y+1}return -1e8}
+// Ground support follows real part boxes, including half-block heights.
+function groundAt(x,z,top,depth){const X=Math.floor(x),Z=Math.floor(z),y0=Math.floor(top);for(let y=y0;y>=y0-depth;y--){const t=peek(X,y,Z);if(t<0)return -1e9;if(!t||t===10)continue;
+ if(!PART[t])return y+1;
+ let highest=-Infinity;for(const b of partBoxes(t,X,y,Z))if(x>=X+b[0]&&x<=X+b[3]&&z>=Z+b[2]&&z<=Z+b[5])highest=Math.max(highest,y+b[4]);
+ if(highest>-Infinity)return highest}return -1e8}
 function lifeColumn(X,Z){let canopy=0;for(let y=Math.min(H-2,terrainH(X,Z)+28);y>0;y--){const t=peek(X,y,Z);if(t<0)return null;if(!t)continue;
   if(LEAFY(t)||t===4||t===13){canopy++;continue}
   if(t===10){let d=0;while(peek(X,y-d,Z)===10)d++;return{g:y-d+1,water:d,surf:peek(X,y-d,Z),canopy}}
@@ -3251,7 +3273,11 @@ function lifeCull(focus,night){const cap=lifeCap(),far=Math.max(80,readyR*CHUNK+
 // ---- Behaviour. Each step gets the time since its last update; distant creatures update less often.
 const angTo=(a,b)=>{let d=b-a;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;return d};
 function standAt(c,x,z){const sp=c.sp,g=groundAt(x,z,c.y+1.1,sp.climb?3.2:2.2);if(g<-1e7||g>c.y+1.05)return null;const X=Math.floor(x),Z=Math.floor(z);
- if(sp.cat!=='bird'&&peek(X,g,Z)===10)return null;const hh=Math.max(1,Math.ceil(sp.h*c.size-.05));for(let k=0;k<hh;k++){const t=peek(X,g+k,Z);if(t<0||(t&&t!==10))return null}return g}
+ if(sp.cat!=='bird'&&peek(X,g,Z)===10)return null;
+ const r=Math.min(.45,sp.r*c.size*.75),top=g+sp.h*c.size;
+ for(let y=Math.floor(g);y<=Math.floor(top-.001);y++){const t=peek(X,y,Z);if(t<0)return null;if(!t||t===10)continue;if(!PART[t])return null;
+  for(const b of partBoxes(t,X,y,Z))if(X+b[0]<x+r&&X+b[3]>x-r&&y+b[1]<top&&y+b[4]>g+.001&&Z+b[2]<z+r&&Z+b[5]>z-r)return null}
+ return g}
 function lifeWalk(c,dt){const sp=c.sp;c.yaw+=angTo(c.yaw,c.want)*Math.min(1,dt*(c.mode==='flee'?6:3.5));if(c.speed<.02){c.speed=0;return}
  const s=c.speed*dt,sx=Math.sin(c.yaw),sz=Math.cos(c.yaw),nx=c.x+sx*s,nz=c.z+sz*s,pr=sp.r*c.size+.12;
  const ga=standAt(c,c.x+sx*(pr+s),c.z+sz*(pr+s)),gn=ga===null||intoSafe(c,nx,nz)?null:standAt(c,nx,nz);
@@ -3684,8 +3710,7 @@ function weapon(){return items.ancientSword&&!items.diamondSword?ANCIENT_SWORD:b
 function monsterMaxHP(c){const h=c.sp.hostile;return h?h.hp||Math.round(3+c.size*4):8}
 function viewDir(){return[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)]}
 // Clear line between the monster's eyes and the player's chest: rock, wood, leaves and glass all block it (no hits through walls).
-function canSee(c,tx=player.x,ty=player.y+1.4,tz=player.z){const ex=c.x,ey=c.y+c.sp.top*c.size*.8,ez=c.z,dx=tx-ex,dy=ty-ey,dz=tz-ez,n=Math.ceil(Math.hypot(dx,dy,dz)/.3);
- for(let i=1;i<n;i++){const k=i/n,t=peek(Math.floor(ex+dx*k),Math.floor(ey+dy*k),Math.floor(ez+dz*k));if(t<0||(t>0&&t!==10))return false}return true}
+function canSee(c,tx=player.x,ty=player.y+1.4,tz=player.z){return!segmentBlocked(c.x,c.y+c.sp.top*c.size*.8,c.z,tx,ty,tz)}
 // ---- Hostile decisions. Returns false while the monster is not engaged (too far, or it has not seen the player for a few seconds).
 // The start area is a sanctuary: survival monsters never walk into it and leave a player alone while they stand inside it.
 const inSafe=(x,z)=>Math.hypot(x-homeX,z-homeZ)<SAFE_R;
@@ -3731,8 +3756,8 @@ function shootArrow(c,dmg){if(arrows.length>=ARROW_MAX)arrows.shift();const f=Ma
  const a=Math.atan2(tx,tz)+err;arrows.push({x:sx,y:sy,z:sz,vx:Math.sin(a)*spd,vy:ty/t+.5*ARROW_G*t,vz:Math.cos(a)*spd,life:5,stuck:false,dmg});sfx('shoot',c)}
 function updateArrows(dt){for(let i=arrows.length-1;i>=0;i--){const a=arrows[i];a.life-=dt;if(a.life<=0){arrows.splice(i,1);continue}if(a.stuck)continue;
  a.vy-=ARROW_G*dt;const n=Math.max(1,Math.ceil(Math.hypot(a.vx,a.vy,a.vz)*dt/.2));let gone=false;
- for(let s=0;s<n;s++){a.x+=a.vx*dt/n;a.y+=a.vy*dt/n;a.z+=a.vz*dt/n;const t=peek(Math.floor(a.x),Math.floor(a.y),Math.floor(a.z));
-  if(t<0||(t>0&&t!==10)){a.stuck=true;a.life=Math.min(a.life,1.5);sfx('thunk',a);break}
+ for(let s=0;s<n;s++){const x=a.x,y=a.y,z=a.z;a.x+=a.vx*dt/n;a.y+=a.vy*dt/n;a.z+=a.vz*dt/n;
+  if(segmentBlocked(x,y,z,a.x,a.y,a.z)){a.stuck=true;a.life=Math.min(a.life,1.5);sfx('thunk',a);break}
   if(Math.abs(a.x-player.x)<.45&&Math.abs(a.z-player.z)<.45&&a.y>player.y&&a.y<player.y+1.85){hurtPlayer(a.dmg,a);gone=true;break}}
  if(gone)arrows.splice(i,1)}}
 // ---- Player attacks. The attack button always swings; 壊す / left click hits a monster under the crosshair instead of mining behind it.
