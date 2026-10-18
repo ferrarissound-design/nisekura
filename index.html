@@ -232,7 +232,9 @@ body.photo-mode #bossHUD,body:has(#menu:not(.hidden)) #bossHUD,body:has(#craft:n
 .part-icon{display:block;width:34px;height:34px;flex:0 0 34px;image-rendering:pixelated}
 #craft .craft-grid button.part-recipe{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px}#craft .part-recipe>span{flex:0 0 50px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;color:#ffe49e;white-space:nowrap}#craft .part-recipe div{display:flex;flex-direction:column}
 #craft .craft-head small{font-size:10px;letter-spacing:0;color:#cfe3c7;margin-left:4px}
-</style><div id="bossHUD" class="hidden" aria-label="古代の石の守護者の体力"><b>古代の石の守護者</b><div id="bossTrack"><div id="bossFill"></div></div><span id="bossTell"></span></div><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>HOME BUILDER · v19.2</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
+#bar .block-icon.slab-icon,.part-icon.slab-icon{height:12px;margin-top:12px;background:repeating-linear-gradient(0deg,#ffffff12 0 3px,#0002 3px 5px),var(--block);border:1px solid #0005;box-shadow:inset -3px -3px #0002,inset 2px 2px #fff2}
+.part-icon.slab-icon{height:17px;margin:8px 0;background-color:var(--block)}
+</style><div id="bossHUD" class="hidden" aria-label="古代の石の守護者の体力"><b>古代の石の守護者</b><div id="bossTrack"><div id="bossFill"></div></div><span id="bossTell"></span></div><canvas id="world"></canvas><div class="top"><div><div class="brand">JOCRAFT2<small>HOME BUILDER · v20</small></div><div id="stats"><span id="statsSummary"></span><span id="statsDetails"></span></div></div><div class="hud-tools"><button id="eat" aria-label="りんごを食べる" title="りんごを食べる (R)">🍎<b>0</b></button><button id="lifeBtn" aria-label="生き物" title="生き物 (G)">🐾</button><button id="photoBtn" aria-label="スクショモード" title="スクショモード (P)">▧</button><button id="menuBtn" aria-label="メニュー">☰</button></div></div><div id="compass" class="hidden" aria-label="探索コンパス">
  <div id="compassTrack"></div>
  <div id="compassInfo"><span id="compassHeading" aria-label="現在の方角"></span><span id="compassHome"><span id="compassHomeArrow" aria-hidden="true">▲</span><span id="compassHomeText">⌂ 出発地点</span></span><span id="compassCave" class="hidden"><span id="compassCaveArrow" aria-hidden="true">▲</span><span id="compassCaveText"></span></span><span id="compassRuin" class="hidden"><span id="compassRuinArrow">▲</span><span id="compassRuinText"></span></span><span id="compassWarning" class="hidden"></span></div>
 </div><div id="cross">+</div><div id="target"></div><div id="hint">木を集めて、自分の家を建てよう</div><div id="stick"><div id="knob"></div></div><div class="actions"><button id="attack" aria-label="攻撃">⚔ 攻撃<small>素手</small></button><button id="mine">⛏ 壊す</button><button id="place">▣ 置く</button><button id="craftBtn">クラフト</button><button id="fly">✦ 飛ぶ</button><button id="down" disabled>↓ 下降</button><button id="jump">↑ ジャンプ</button></div><div id="bar"></div><div id="survHud" aria-label="体力"><div id="hearts"></div><span id="armorIco"></span><span id="kills"></span></div><div id="hurtFx"></div><div id="guide" class="hidden" role="status"></div><div id="find" class="hidden" role="status"></div><div id="loot" class="hidden" role="status"></div><button id="openChest" class="hidden" aria-label="宝箱を開ける">🎁 開ける</button><button id="dragonAct" class="hidden" aria-label="ドラゴン"></button><button id="eggChip" class="hidden" aria-label="選んだ生き物を変える"></button><button id="photoExit" aria-label="スクショモードを終了">↩ 戻る</button><div id="menu" class="overlay title-screen" role="dialog" aria-label="JOCRAFT2 タイトル画面">
@@ -249,10 +251,10 @@ body.photo-mode #bossHUD,body:has(#menu:not(.hidden)) #bossHUD,body:has(#craft:n
   <div class="title-pair"><button id="exportWorld" class="title-button">ワールドをバックアップ</button><button id="importWorld" class="title-button">バックアップから復元</button></div>
 <input id="importFile" type="file" accept=".json,application/json" hidden>
 <details class="title-help"><summary>保存データの復旧</summary><button id="recoverWorld" class="title-button">保存データを復旧（直前の正常セーブ）</button><button id="restoreProtected" class="title-button">切り替え前の世界に戻す</button><button id="exportProtected" class="title-button">退避データを書き出す</button></details>
-  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>サバイバル：⚔攻撃ボタン（PCは左クリック）で敵をたたく / 🍎・Rキーで回復<br>敵が白く光ったら攻撃の合図。出発地点のまわりは安全<br>石や鉱石は「壊す」を長押し（PCは左クリック長押し）。ツルハシで速く・鉄や金も掘れる<br>宝箱：近づいて「🎁 開ける」（PCは右クリック／T）。持ち物はクラフト画面で確認<br>家づくり：クラフトの「🏠 建築パーツ」でドア・窓・階段をつくる。ドアはタップ（置く・右クリック）で開け閉め、「壊す」で回収。ドアの右どなりにもう1つ置くと両開き。階段はジャンプなしで上れ、角に置くと自動で角の形になる。天井（ブロックの下）や壁の上半分をねらって置くと、さかさまの階段になる<br>ドラゴン：卵を巣に置いて温める→なでる・りんごで育てる→大人になったら「🐉 乗る」。スティックで進む・↑↓で高さ（PC：V 乗る/降りる・WASD・Space/Q）<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
+  <details class="title-help"><summary>操作方法を見る ▾</summary><p>スマホ：左スティックで移動・画面スワイプで見回す<br>「飛ぶ」で空中へ。↑上昇・↓下降・もう一度で着地<br>PC：WASD移動 / F飛行 / Space上昇 / Q下降<br>左クリックで採掘・右クリックで設置 / 1〜8で選択<br>下のブロック欄は左右スワイプで切り替え<br>P：スクショ切替 / H：HUD切替 / F3：詳細情報<br>スクショ中は移動停止・スワイプで見回す。「戻る」で復帰<br>上のコンパスで方角・出発地点・境界までの距離を確認<br>サバイバル：⚔攻撃ボタン（PCは左クリック）で敵をたたく / 🍎・Rキーで回復<br>敵が白く光ったら攻撃の合図。出発地点のまわりは安全<br>石や鉱石は「壊す」を長押し（PCは左クリック長押し）。ツルハシで速く・鉄や金も掘れる<br>宝箱：近づいて「🎁 開ける」（PCは右クリック／T）。持ち物はクラフト画面で確認<br>家づくり：クラフトの「🏠 建築パーツ」でドア・窓・階段・ハーフブロックをつくる。ハーフは壁の下半分で下付き、上半分で上付き。上面は下付き、下面は上付き。同じ素材を2枚重ねても上下を別々に壊せる。ドアはタップ（置く・右クリック）で開け閉め、「壊す」で回収。ドアの右どなりにもう1つ置くと両開き。階段はジャンプなしで上れ、角に置くと自動で角の形になる。天井（ブロックの下）や壁の上半分をねらって置くと、さかさまの階段になる<br>ドラゴン：卵を巣に置いて温める→なでる・りんごで育てる→大人になったら「🐉 乗る」。スティックで進む・↑↓で高さ（PC：V 乗る/降りる・WASD・Space/Q）<br><a href="?bench" style="color:#ffe49e">性能を計測する（約35秒・セーブは変更しません）</a><br>2048×2048・高さ192の世界。画質ボタンで描画距離を調整。自動保存・横画面推奨。</p></details>
  </div>
 </div>
-<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v19.2</span></div>
+<div class="title-footer"><span>JOCRAFT2 · GRAND VISTA</span><span id="saveInfo">オリジナル・ブロック建築ゲーム / v20</span></div>
 </div><div id="craft" class="overlay hidden"><div class="panel craft-panel"><div class="eyebrow">WORKBENCH</div><h2>クラフト・持ち物</h2><div id="gearRow" class="gear-row"></div><div id="matRow" class="mat-row"></div><div id="rareRow" class="rare-row"></div><div id="adventureLog" aria-label="冒険の記録"></div><div id="dragonBox" class="dragon-box" aria-label="ドラゴン"></div><div class="craft-head">🧱 ブロック</div><div class="craft-grid"><button data-recipe="plank">原木 1 → 木材 4</button><button data-recipe="brick">石 3 → レンガ 4</button><button data-recipe="glass">砂 2 → ガラス 2</button></div><div class="craft-head">🏠 建築パーツ <small>木を集めて、自分の家を建てよう</small></div><div id="craftParts" class="craft-grid"></div><div id="craftSurvival"><div id="craftGear"></div><div class="craft-head">🍎 食べ物</div><div class="craft-grid"><button id="craftApple">葉っぱ 4 → りんご 1（♥を回復）</button></div></div><button id="closeCraft" class="primary">戻る</button></div></div><div id="death" class="overlay death hidden" role="dialog" aria-label="やられてしまった"><div class="panel"><div class="eyebrow">GAME OVER</div><h2>やられてしまった…</h2><p>持ち物はそのまま。出発地点からすぐに再チャレンジできるよ。</p><button id="respawn" class="primary">復活する</button></div></div><div id="modePick" class="overlay hidden" role="dialog" aria-label="遊び方をえらぶ"><div class="panel mode-panel"><div class="eyebrow">GAME MODE</div><h2>遊び方をえらぼう</h2><p>あとからメニューの「モード」でいつでも変えられるよ。</p><button id="pickSurvival" class="mode-choice"><b>⚔ サバイバル</b><span>♥と剣でぼうけん。木の剣をつくって、夜のモンスターとたたかおう</span></button><button id="pickPeaceful" class="mode-choice"><b>🌿 ピースフル</b><span>素材を集めて建築・探検。モンスターはおそってこない</span></button><button id="pickCreative" class="mode-choice"><b>✦ クリエイティブ</b><span>ブロック使いほうだい・空を飛んで自由に建築</span></button><button id="closeModePick">もどる</button></div></div><div id="eggs" class="overlay hidden"><div class="panel egg-panel"><div class="eyebrow">SPAWN EGGS</div><h2>生き物を置く</h2><p>選んだら、置きたい場所をタップ（または「置く」）。「壊す」を生き物に向けると帰っていくよ。</p><div id="eggGrid"></div><div class="egg-row"><button id="lifeMode">生き物：すべて</button><button id="voices">鳴き声：ON</button></div><div class="egg-row"><span id="eggCount"></span><button id="clearEggs">置いた生き物を全部帰す</button></div><button id="closeEggs" class="primary">戻る</button></div></div>
 <script>
 'use strict';
@@ -274,13 +276,16 @@ const defs=[null,['草','#72a542'],['土','#916444'],['石','#89918e'],['原木'
 // `changes` and chunk streaming stay as they were: 41-44 wooden stairs and 45-48 stone stairs (facing 0 +z, 1 +x, 2 -z, 3 -x = the way up),
 // 49/50 windows (pane across x / across z), 51-82 doors (51 + hinge*16 + facing*4 + open*2 + upper half; v19.1 adds the right-hand hinge
 // for double doors). The first id of each group is the item. Corner stairs need no id: their shape comes from the neighbouring stairs.
-const B_STAIR_W=41,B_STAIR_S=45,B_WINDOW=49,B_DOOR=51,DOOR_LAST=82,STAIR_UP=42,PART_LAST=90; // v19.2: 83-90 are the upside-down stairs (41-48 + 42)
+const B_STAIR_W=41,B_STAIR_S=45,B_WINDOW=49,B_DOOR=51,DOOR_LAST=82,STAIR_UP=42,PART_LAST=108; // 83-90 upside-down stairs; 91-108 slabs
+// v20: three byte ids per material: lower, upper, double. A double keeps its identity so either half can be mined separately.
+const B_SLAB=91,SLAB_MATS=[7,3,4,8,13,36],isSlab=t=>t>=B_SLAB&&t<=PART_LAST,slabState=t=>(t-B_SLAB)%3,slabItem=t=>t-slabState(t),slabMat=t=>SLAB_MATS[Math.floor((t-B_SLAB)/3)];
 const stairDir=t=>(t>=83?t-83:t-41)&3,stairUp=t=>t>=83,stairStone=t=>t>=45&&t<=48||t>=87;let worldStamp=0; // counts set() calls, so the placement preview notices edits
-for(let t=41;t<=PART_LAST;t++)defs[t]=t>82?(t<87?['木の階段','#b78d55']:['石の階段','#89918e']):t<45?['木の階段','#b78d55']:t<49?['石の階段','#89918e']:t<51?['窓','#afdce0']:['木のドア','#9a6a3c'];
-// PART: 1 stairs, 2 window, 3 door. Stairs count as cover (roofs, corner shade); thin windows and doors do not.
+for(let t=41;t<=90;t++)defs[t]=t>82?(t<87?['木の階段','#b78d55']:['石の階段','#89918e']):t<45?['木の階段','#b78d55']:t<49?['石の階段','#89918e']:t<51?['窓','#afdce0']:['木のドア','#9a6a3c'];
+for(let t=B_SLAB;t<=PART_LAST;t++){const m=defs[slabMat(t)];defs[t]=[m[0]+'ハーフ',m[1]]}
+// PART: 1 stairs, 2 window, 3 door, 4 slab. Stairs/slabs count as roof cover; thin windows and doors do not.
 const PART=new Uint8Array(256),OCC=new Uint8Array(256);for(let t=1;t<256;t++)OCC[t]=t!==9&&t!==10;
-for(let t=41;t<=PART_LAST;t++){PART[t]=t<49||t>82?1:t<51?2:3;if(t>=49&&t<=82)OCC[t]=0}
-const partItem=t=>t>82?(t<87?B_STAIR_W:B_STAIR_S):t<45?B_STAIR_W:t<49?B_STAIR_S:t<51?B_WINDOW:B_DOOR,isDoor=t=>t>=B_DOOR&&t<=DOOR_LAST;
+for(let t=41;t<=PART_LAST;t++){PART[t]=isSlab(t)?4:t<49||t>82?1:t<51?2:3;if(t>=49&&t<=82)OCC[t]=0}
+const partItem=t=>isSlab(t)?slabItem(t):t>82?(t<87?B_STAIR_W:B_STAIR_S):t<45?B_STAIR_W:t<49?B_STAIR_S:t<51?B_WINDOW:B_DOOR,isDoor=t=>t>=B_DOOR&&t<=DOOR_LAST;
 const DOOR_T=3/16,DIR4=[[0,1],[1,0],[0,-1],[-1,0]];
 // The door panel turns about a pivot in the hinge corner: width along u from -T/2 to 1-T/2, thickness along v (-T/2..T/2).
 // Closed (a=0) it covers the side facing the player who placed it; open (a=1) it lies along the hinge (left-hand) side.
@@ -292,6 +297,7 @@ function doorFrame(d,a,h=0){const [fx,fz]=DIR4[d],rx=h?-fz:fz,rz=h?fx:-fx,c=Math
 const PART_BOX=[];
 for(let t=41;t<=PART_LAST;t++){const k=PART[t],l=[];
  if(k===1){const d=stairDir(t),hb=d===0?[0,.5,.5,1,1,1]:d===1?[.5,.5,0,1,1,1]:d===2?[0,.5,0,1,1,.5]:[0,.5,0,.5,1,1];l.push(stairUp(t)?[0,.5,0,1,1,1]:[0,0,0,1,.5,1],stairUp(t)?[hb[0],0,hb[2],hb[3],.5,hb[5]]:hb)}
+ else if(k===4){const s=slabState(t);l.push([0,s===1?.5:0,0,1,s===0?.5:1,1])}
  else if(k===2)l.push(t===B_WINDOW?[0,0,7/16,1,1,9/16]:[7/16,0,0,9/16,1,1]);
  else{const o=t-B_DOOR,f=doorFrame((o>>2)&3,(o>>1)&1,o>>4),T=DOOR_T,ex=[f.px-f.ux*T/2-f.vx*T/2,f.px+f.ux*(1-T/2)+f.vx*T/2],ez=[f.pz-f.uz*T/2-f.vz*T/2,f.pz+f.uz*(1-T/2)+f.vz*T/2];
   const r=v=>Math.round(v*1e4)/1e4;l.push([r(Math.min(...ex)),0,r(Math.min(...ez)),r(Math.max(...ex)),1,r(Math.max(...ez))])}
@@ -313,7 +319,7 @@ function stairMask(t,at){const d=stairDir(t),up=stairUp(t),same=n=>PART[n]===1&&
 function partBoxes(t,x,y,z){return PART[t]===1?(stairUp(t)?STAIR_BOXES_UP:STAIR_BOXES)[stairMask(t,(dx,dz)=>get(x+dx,y,z+dz))]:PART_BOX[t]}
 let riding=false,dragonReady=false; // v18: riding the grown dragon (see the DRAGON section)
 let dayTime=.33,windStr=.5,cloudDrift=0,flying=false,suspended=false,riseHeld=false,descendHeld=false,contextLost=false,resettingWorld=false;
-const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29,36,37,38,51,41,49,45];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
+const slots=[1,2,3,4,6,7,8,9,5,12,13,14,15,16,26,27,28,29,36,37,38,51,41,49,45,...SLAB_MATS.map((_,i)=>B_SLAB+i*3)];let seed=73219,inventory={1:16,2:16,3:0,4:0,6:0,7:0,8:0,9:0},creative=false,selected=0,paused=true,yaw=.95,pitch=-.12,vy=0,ground=false,hit=null,time=0,dirty=false,lastSave=0;
 try{const q=new URLSearchParams(location.search).get('seed');if(q!==null&&Number.isFinite(+q))seed=+q}catch(e){}
 const BENCH=(()=>{try{return new URLSearchParams(location.search).has('bench')}catch(e){return false}})();
 let perfEnabled=BENCH;try{perfEnabled=perfEnabled||new URLSearchParams(location.search).has('perf')}catch(e){}
@@ -2465,10 +2471,25 @@ const PFULL=new Uint8Array(256),PCOVER=new Uint8Array(256*6),doorHide=new Set(),
 for(let t=1;t<256;t++)PFULL[t]=OCC[t]&&!PART[t]?1:0;
 // A stair covers the top face of the block below it and the face of the block behind its back.
 for(let t=41;t<=PART_LAST;t++)if(PART[t]===1){PCOVER[t*6+(stairUp(t)?3:2)]=1;PCOVER[t*6+[5,1,4,0][stairDir(t)]]=1}
-function partCull(p,b){let m=0;for(let fi=0;fi<6;fi++){const n=FACE[fi].n,a=n[0]?0:n[1]?1:2;if((n[a]>0?b[a+3]===1:b[a]===0)&&PFULL[pad[p+FACE[fi].off]])m|=1<<fi}return m}
-function boxQuads(w,bx,by,bz,b,mat,c,base,skip){
- for(let fi=0;fi<6;fi++){if(skip>>fi&1)continue;const F=FACE[fi],n=F.n,code=mat+32*fi+base;grow(w,36);
-  for(let k=0;k<4;k++){const v=F.v[k],lx=b[v[0]*3],ly=b[1+v[1]*3],lz=b[2+v[2]*3];vert(w,bx+lx,by+ly,bz+lz,c[0],c[1],c[2],n[1]||n[2]?lx:lz,n[1]?lz:ly,code)}}}
+for(let t=B_SLAB;t<=PART_LAST;t++){const s=slabState(t);if(s!==1)PCOVER[t*6+2]=1;if(s!==0)PCOVER[t*6+3]=1;if(s===2)for(let f=0;f<6;f++)PCOVER[t*6+f]=1}
+function partCull(p,b){let m=0;for(let fi=0;fi<6;fi++){const n=FACE[fi].n,a=n[0]?0:n[1]?1:2;if(n[a]>0?b[a+3]!==1:b[a]!==0)continue;const t=pad[p+FACE[fi].off];
+ if(PFULL[t]||isSlab(t)&&(n[1]?PCOVER[t*6+fi]:b[1]>=PART_BOX[t][0][1]&&b[4]<=PART_BOX[t][0][4]))m|=1<<fi}return m}
+function boxQuads(w,bx,by,bz,b,mat,c,base,skip,p=-1){
+ for(let fi=0;fi<6;fi++){if(skip>>fi&1)continue;const F=FACE[fi],n=F.n,a=n[0]?0:n[1]?1:2,edge=n[a]>0?b[a+3]===1:b[a]===0,nt=p>=0&&edge?pad[p+F.off]:0;let lo=b[1],hi=b[4];
+  // Only the unoccupied height remains visible beside a slab; UVs keep their block-local scale.
+  if(isSlab(nt)){const s=slabState(nt);if(n[1]){if(PCOVER[nt*6+fi])continue}else{if(s===2)continue;if(s===0)lo=Math.max(lo,.5);else hi=Math.min(hi,.5);if(lo>=hi)continue}}
+  const code=mat+32*fi+base+(nt===10?512:0);grow(w,36);
+  for(let k=0;k<4;k++){const v=F.v[k],lx=b[v[0]*3],ly=v[1]?hi:lo,lz=b[2+v[2]*3];vert(w,bx+lx,by+ly,bz+lz,c[0],c[1],c[2],n[1]||n[2]?lx:lz,n[1]?lz:ly,code)}}}
+// Slabs share the existing chunk buffers and materials. Only their faces touching a stair need quarter-face coverage.
+function emitSlab(t,x,y,z,p,base){const b=PART_BOX[t][0],src=slabMat(t),c=defsRGB[src];
+ for(let fi=0;fi<6;fi++){const n=FACE[fi].n,a=n[0]?0:n[1]?1:2,edge=n[a]>0?b[a+3]===1:b[a]===0,nt=edge?pad[p+FACE[fi].off]:0;
+  let mat=src,col=c;if(src===4||src===13){if(n[1]){mat=13;col=src===13?BIRCH_TOP:LOG_TOP}else if(src===13){mat=14;col=WHITE}}else if(src>=36)mat=3;
+  const skip=63^(1<<fi);if(PFULL[nt])continue;
+  if(PART[nt]!==1){boxQuads(opaqueW,x,y,z,b,mat,col,base,skip,p);continue}
+  const nb=partBoxes(nt,x+n[0],y+n[1],z+n[2]),u=a===0?2:0,v=a===1?2:1;let mask=0;
+  for(let q=0;q<4;q++){const u0=(q&1)*.5,v0=(q>>1)*.5;if(u0<b[u]||u0>=b[u+3]||v0<b[v]||v0>=b[v+3])continue;
+   if(!nb.some(r=>(n[a]>0?r[a]===0:r[a+3]===1)&&r[u]<=u0&&r[u+3]>=u0+.5&&r[v]<=v0&&r[v+3]>=v0+.5))mask|=1<<q}
+  for(const r of quadRects(mask)){const cut=b.slice();cut[u]=r[0];cut[v]=r[1];cut[u+3]=r[2];cut[v+3]=r[3];boxQuads(opaqueW,x,y,z,cut,mat,col,base,skip,p)}}}
 // One half of a door at opening a (0 closed .. 1 open): board faces carry the door pattern (uv.x runs from the hinge), the upper half a glass window.
 function emitDoor(w,gw,x,y,z,d,a,up,base,skip,hinge=0){const f=doorFrame(d,a,hinge),T=DOOR_T,h=T/2,U0=-h,U1=1-h;
  const P=(u,v,yy,k)=>{DP[k*3]=x+f.px+f.ux*u+f.vx*v;DP[k*3+1]=y+yy;DP[k*3+2]=z+f.pz+f.uz*u+f.vz*v};
@@ -2482,19 +2503,20 @@ const DP=new Float32Array(12),DU=[0,0,1,1],DV=[0,1,1,0],DT=[0,0,DOOR_T,DOOR_T],G
 function emitPart(t,wx,y,wz,p,col,gb){const k=PART[t];let base=roofs[col]>y?256:0;
  if(CAVES){let dep=rroofs[col]-y;if(dep>1){for(let o=0;o<8;o++){const dn=rroofs[col+NB8[o]]-y+2;if(dn<dep)dep=dn}if(dep>1)base+=1024*Math.min(7,Math.round(7*smooth(1,22,dep)))}
   if(gb){const gv=gb[(y*GW+(wz&15)+GR)*GW+(wx&15)+GR];if(gv)base+=8192*(gv&7)+65536*(gv>>3)}}
+ if(k===4){emitSlab(t,wx,y,wz,p,base);return}
  if(k===1){const up=stairUp(t),mat=stairStone(t)?3:7,c=defsRGB[mat],lx=wx&15,lz=wz&15,m=stairMask(t,(dx,dz)=>pad[p+dx+dz*PW]),SB=up?STAIR_BOXES_UP:STAIR_BOXES,slab=SB[0][0],same=n=>PART[n]===1&&stairUp(n)===up;
   // the full step (low, or high when upside down): a stair beside it hides the side between them
   let side=0;for(const fi of [0,1,4,5])if(same(pad[p+FACE[fi].off]))side|=1<<fi;
   // its inner face is drawn quarter by quarter below (where the other step does not cover it)
-  boxQuads(opaqueW,wx,y,wz,slab,mat,c,base,partCull(p,slab)|side|(up?8:4));
-  for(const r of STAIR_TOPS[m])boxQuads(opaqueW,wx,y,wz,up?[r[0],.5,r[1],r[2],1,r[3]]:[r[0],0,r[1],r[2],.5,r[3]],mat,c,base,up?55:59);
+  boxQuads(opaqueW,wx,y,wz,slab,mat,c,base,partCull(p,slab)|side|(up?8:4),p);
+  for(const r of STAIR_TOPS[m])boxQuads(opaqueW,wx,y,wz,up?[r[0],.5,r[1],r[2],1,r[3]]:[r[0],0,r[1],r[2],.5,r[3]],mat,c,base,up?55:59,p);
   // the other step: a side face is hidden where the stair beside it rises on the matching quarters (only worked out inside this chunk,
   // where that stair's own neighbours are known; at the chunk edge the face is simply drawn)
   const B=SB[m];for(let i=1;i<B.length;i++){const b=B[i];let sk=up?4:8;
    for(const fi of [0,1,4,5]){const n=FACE[fi].n,a=n[0]?0:2,edge=n[a]>0?b[a+3]===1:b[a]===0;if(!edge)continue;const q=p+FACE[fi].off,nt=pad[q];
     if(!same(nt)||(n[0]?(n[0]>0?lx>14:lx<1):(n[2]>0?lz>14:lz<1)))continue;const nm=stairMask(nt,(dx,dz)=>pad[q+dx+dz*PW]);
     const o=a?0:2,lo=b[o]*2,hi=b[o+3]*2;let need=0;for(let k=lo;k<hi;k++)need|=a===0?1<<((n[0]>0?0:1)+2*k):1<<(k+(n[2]>0?0:2));if((nm&need)===need)sk|=1<<fi}
-   boxQuads(opaqueW,wx,y,wz,b,mat,c,base,partCull(p,b)|sk)}}
+   boxQuads(opaqueW,wx,y,wz,b,mat,c,base,partCull(p,b)|sk,p)}}
  else if(k===2){const ax=t-B_WINDOW,sO=ax?PW:1,sN=ax?5:1,sP=ax?4:0,F1=2/16,P0=6/16,P1=10/16,M0=7/16,M1=9/16,H0=7.25/16,H1=8.75/16,ls=ax?wz&15:wx&15;
   // A window joins the same window beside, above and below it: frames stay only on the outside. Along a row (inside this chunk) the sill,
   // the head, the middle bar and the glass are one long piece started by the row's first cell, and a column shares one upright bar,
@@ -2599,8 +2621,8 @@ function rebuild(cx,cz){if(cx<0||cz<0||cx>=CHUNKS||cz>=CHUNKS||!renderReady)retu
     else if(water){let d=1,q=p-PA;while(pad[q]===10&&d<30){d++;q-=PA}
      // v9 streams above the sea: the surface drifts toward the falls
      const pf=WON&&fi===2&&y>SEA?(wfl[0]=wfl[1]=0,wonderFlow(wx,wz,wfl),wfl):ZERO2;
-     for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0;vert(w,wx+v[0],y+v[1]-(v[1]===1?drop:0),wz+v[2],d/30,shore,pad[q]===6?1:0,pf[0],pf[1],code)}}
-    else for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=sh[kk];vert(w,wx+v[0],y+v[1],wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0]+uvo,F.uv[kk][1],code)}}
+     for(let k=0;k<4;k++){const v=F.v[k],ao=F.ao[k],shore=fi===2&&(occ(pad[p+ao[0]])||occ(pad[p+ao[1]])||occ(pad[p+ao[2]]))?1:0,clip=isSlab(nt)&&!F.n[1],yy=clip?(slabState(nt)===0?.5+v[1]*(.5-drop):v[1]*.5):v[1]-(v[1]===1?drop:0);vert(w,wx+v[0],y+yy,wz+v[2],d/30,shore,pad[q]===6?1:0,pf[0],pf[1],code)}}
+    else for(let q=0;q<4;q++){const kk=flip?(q+1)&3:q,v=F.v[kk],s=sh[kk],clip=isSlab(nt)&&!F.n[1],yy=clip?(slabState(nt)===0?.5+v[1]*.5:v[1]*.5):v[1];vert(w,wx+v[0],y+yy,wz+v[2],c[0]*s,c[1]*s,c[2]*s,F.uv[kk][0]+uvo,clip?yy:F.uv[kk][1],code)}}
    if(t===1&&!pad[p+PA]){const ps=roofs[(z+1)*PW+x+1]>y+1;
     if(VEG&&info)emitMeadow(opaqueW,wx,wz,y+1,k,info,gcol,ps,y+2<H&&!pad[p+2*PA],keep);
     else if(info){const forest=smooth(.5,.64,info.hum[k]),r1=rand(wx*23,wz*11),meadow=1-smooth(.36,.5,info.hum[k]),fp=meadow*smooth(.05,.35,pn(wx/24+12.5,wz/24+44.4))*.5+.02;
@@ -2800,14 +2822,18 @@ function collides(p){if(p.x<.3||p.z<.3||p.x>W-.3||p.z>W-.3||p.y<1||p.y+1.8>=H)re
 // v19: stairs, doors and windows collide with their real boxes (the player is 0.58 wide and 1.8 tall).
 function partHit(t,x,y,z,p){for(const b of partBoxes(t,x,y,z))if(x+b[0]<p.x+.29&&x+b[3]>p.x-.29&&y+b[1]<p.y+1.79&&y+b[4]>p.y+.001&&z+b[2]<p.z+.29&&z+b[5]>p.z-.29)return true;return false}
 // A ray only picks a part where it meets one of the boxes, so the floor beyond an open door or above a stair step stays reachable.
-function rayPart(t,c,o,d){for(const b of partBoxes(t,c[0],c[1],c[2])){let t0=0,t1=1e9;for(let i=0;i<3&&t0<=t1;i++){const lo=c[i]+b[i],hi=c[i]+b[i+3];
-  if(Math.abs(d[i])<1e-9){if(o[i]<lo||o[i]>hi)t0=2e9}else{let a=(lo-o[i])/d[i],e=(hi-o[i])/d[i];if(a>e){const s=a;a=e;e=s}if(a>t0)t0=a;if(e<t1)t1=e}}
-  if(t0<=t1)return true}return false}
+function rayPartHit(t,c,o,d){let best=null;for(const b of partBoxes(t,c[0],c[1],c[2])){let t0=0,t1=1e9,axis=-1;for(let i=0;i<3&&t0<=t1;i++){const lo=c[i]+b[i],hi=c[i]+b[i+3];
+  if(Math.abs(d[i])<1e-9){if(o[i]<lo||o[i]>hi)t0=2e9}else{let a=(lo-o[i])/d[i],e=(hi-o[i])/d[i];if(a>e){const s=a;a=e;e=s}if(a>t0){t0=a;axis=i}if(e<t1)t1=e}}
+  if(t0<=t1&&(!best||t0<best.dist)){const normal=[0,0,0];if(axis>=0)normal[axis]=d[axis]>0?-1:1;best={dist:t0,normal,point:o.map((v,i)=>v+d[i]*t0)}}}return best}
+function rayPart(t,c,o,d){return!!rayPartHit(t,c,o,d)}
 if(collides(player))spawn();
-function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10&&(!PART[t]||rayPart(t,cell,o,d)))return{x:cell[0],y:cell[1],z:cell[2],t,prev,dist};prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
+function ray(dir,maxD=6){const d=dir||[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)],o=[player.x,player.y+1.62,player.z];let cell=o.map(Math.floor),step=d.map(v=>v>=0?1:-1),delta=d.map(v=>Math.abs(1/v)),next=d.map((v,i)=>v===0?Infinity:((cell[i]+(v>0?1:0)-o[i])/v)),prev=cell.slice(),dist=0;while(dist<maxD){const t=get(...cell);if(t&&t!==10){const shape=PART[t]?rayPartHit(t,cell,o,d):null;
+ if(!PART[t]||shape&&shape.dist<maxD){const h={x:cell[0],y:cell[1],z:cell[2],t,prev,dist};if(shape){Object.assign(h,shape);h.prev=cell.map((v,i)=>v+shape.normal[i]);if(isSlab(t))h.half=slabHalf(h)}return h}}
+ prev=cell.slice();let a=next[0]<next[1]?(next[0]<next[2]?0:2):(next[1]<next[2]?1:2);dist=next[a];cell[a]+=step[a];next[a]+=delta[a]}return null}
+function slabHalf(h){if(slabState(h.t)!==2)return slabState(h.t);const y=(h.point?h.point[1]:player.y+1.62+Math.sin(pitch)*h.dist)-h.y;return y>.5||y===.5&&h.normal?.[1]!==1?1:0}
 let toastUntil=0;function toast(s){$('hint').textContent=s;toastUntil=performance.now()+2500;$('hint').style.opacity=1}
 const hotbarButtons=[];
-function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];if(typeof lifeModeText==='function')$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();survivalUI();if(typeof craftUI==='function')craftUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying||riding?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying&&!riding;$('fly').classList.toggle('active',flying)}
+function refresh(){const bar=$('bar');slots.forEach((t,i)=>{let b=hotbarButtons[i];if(!b){b=document.createElement('button');hotbarButtons[i]=b;b.onclick=()=>{selected=i;eggSp=-1;refresh()};bar.appendChild(b)}b.className=i===selected&&eggSp<0?'selected':'';const markup=`<i class="block-icon block-${t}${isSlab(t)?' slab-icon':''}" style="--block:${defs[t][1]}"></i>${defs[t][0]}<b>${creative?'∞':inventory[t]||0}</b>`;if(b.innerHTML!==markup)b.innerHTML=markup});if(typeof eggChip==='function')eggChip();$('mode').textContent='モード：'+MODE_LABEL[gameMode];if(typeof lifeModeText==='function')$('lifeMenu').textContent=$('lifeMode').textContent=lifeModeText();survivalUI();if(typeof craftUI==='function')craftUI();$('quality').textContent='画質：'+Q.label;$('fly').textContent=flying?'✦ 飛行中':'✦ 飛ぶ';$('jump').textContent=flying||riding?'↑ 上昇':'↑ ジャンプ';$('down').disabled=!flying&&!riding;$('fly').classList.toggle('active',flying)}
 let sound;function clickSound(){try{sound??=new(window.AudioContext||window.webkitAudioContext)();sound.resume();const o=sound.createOscillator(),g=sound.createGain();o.type='triangle';o.frequency.setValueAtTime(180,sound.currentTime);o.frequency.exponentialRampToValueAtTime(50,sound.currentTime+.08);g.gain.setValueAtTime(.06,sound.currentTime);g.gain.exponentialRampToValueAtTime(.001,sound.currentTime+.1);o.connect(g);g.connect(sound.destination);o.start();o.stop(sound.currentTime+.1)}catch(e){}}
 // v17 sealed doors (block 39). The main stone door opens with the stepping stone (adventure gate), the hidden-passage door with its chest
 // (adventure secret). While the matching flag is unset, survival cannot dig the door: both mine() and breakBlock() ask doorBlocked().
@@ -2854,7 +2880,7 @@ function targetLabel(h){const t=h.t;let s=defs[t][0];
 function place(rep){if(paused||photoMode||riding)return;swing=1;if(eggSp>=0){placeEgg();return}hit=ray();if(!hit)return;if(hit.t===B_CHEST){if(typeof openChest==='function')openChest(hit.x,hit.y,hit.z);return}
  // v19: 置く (right click, a tap) on a door opens or closes it; holding the button does not flap it.
  if(isDoor(hit.t)){if(rep!==true)toggleDoor(hit.x,hit.y,hit.z);return}
- const[x,y,z]=hit.prev,t=slots[selected];if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(PART[t]){placePart(t,x,y,z,aimUp(hit));return}
+ const[x,y,z]=hit.prev,t=slots[selected];if(isSlab(t)){placeSlab(t,hit);return}if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10)return;if(PART[t]){placePart(t,x,y,z,aimUp(hit));return}
  if(!creative&&!(inventory[t]>0)){toast('素材が足りないよ。掘るか、クラフトしよう');return}
  const old=get(x,y,z);set(x,y,z,t);if(collides(player)){set(x,y,z,old);compactEdit(x,y,z,old);toast('自分のいる場所には置けない');return}if(!creative)inventory[t]--;edit(x,y,z,t);clickSound();refresh()}
 // ---- v19 building parts: placing, opening doors, breaking, walking up stairs and the placement preview.
@@ -2881,7 +2907,17 @@ function partCells(t,x,y,z,up=false){const d=facing4(),free=(x,y,z)=>inside(x,y,
 function partWhy(t,cells){if(!creative&&!(inventory[t]>0))return`${defs[t][0]}がないよ。クラフトの「🏠 建築パーツ」でつくろう`;
  for(const [x,y,z,id] of cells)if(partHit(id,x,y,z,player))return'自分のいる場所には置けない';return''}
 // Upside down: the aim is the underside of a block, or the upper half of its side (the point is worked out from the view ray).
-function aimUp(h){if(!h)return false;if(h.prev[1]!==h.y)return h.prev[1]<h.y;return player.y+1.62+Math.sin(pitch)*h.dist-h.y>.5}
+function aimUp(h){if(!h)return false;if(h.normal?.[1])return h.normal[1]<0;if(h.prev[1]!==h.y)return h.prev[1]<h.y;return(h.point?h.point[1]:player.y+1.62+Math.sin(pitch)*h.dist)-h.y>.5}
+// The preview and placement use this same read-only plan, including filling a cell's empty half.
+function slabPlan(t,h){let [x,y,z]=h.prev,up=aimUp(h);const hs=isSlab(h.t)?slabState(h.t):2;
+ if(hs<2&&h.normal?.[1]===(hs===0?1:-1)){x=h.x;y=h.y;z=h.z;up=hs===0}
+ const id=t+(up?1:0),cells=[[x,y,z,id]],plan={cells,previewCells:cells};
+ if(!inside(x,y,z)||y===0){plan.why='ここには置けないよ';return plan}
+ const old=get(x,y,z);if(old&&old!==10){if(isSlab(old)&&slabItem(old)===t&&slabState(old)===(up?0:1)){plan.cells=[[x,y,z,t+2]]}
+  else plan.why='同じ素材の空いている半分に置こう'}
+ return plan}
+function placeSlab(t,h){const p=slabPlan(t,h),why=p.why||partWhy(t,p.previewCells);if(why){toast(why);sfx('clank');return false}
+ if(!creative)inventory[t]--;editMany(p.cells);clickSound();refresh();return true}
 function placePart(t,x,y,z,up=false){const p=partCells(t,x,y,z,up),why=p.why||partWhy(t,p.cells);if(why){toast(why);sfx('clank');return false}
  if(!creative)inventory[t]--;editMany(p.cells);clickSound();refresh();
  if(t===B_DOOR)toast('🚪 ドアを置いた！ タップ（置く）で開け閉め・壊すで回収');return true}
@@ -2905,6 +2941,7 @@ function drawDoors(w,gw){for(const a of doorAnims){const k=Math.min(1,a.t),e=k*k
 function tapDoor(d){const h=ray(d);if(h&&isDoor(h.t))return h;const lim=h?h.dist+.05:6;
  for(let s=.1;s<lim;s+=.1){const x=Math.floor(player.x+d[0]*s),y=Math.floor(player.y+1.62+d[1]*s),z=Math.floor(player.z+d[2]*s),t=get(x,y,z);if(isDoor(t)&&(t-B_DOOR)&2)return{x,y,z,t}}return null}
 function breakPart(h){const t=h.t,cells=[[h.x,h.y,h.z,0]];
+ if(isSlab(t)&&slabState(t)===2)cells[0][3]=slabItem(t)+((h.half??slabHalf(h))?0:1);
  if(isDoor(t)){const up=(t-B_DOOR)&1,oy=up?-1:1;if(get(h.x,h.y+oy,h.z)===t+oy)cells.push([h.x,h.y+oy,h.z,0])}
  const item=partItem(t);inventory[item]=(inventory[item]||0)+1;burst(h.x+.5,h.y+.5,h.z+.5,defs[t][1]);editMany(cells);clickSound();refresh()}
 // Stairs: walking into a rise of half a block or less steps up onto it, and walking off one steps down; the eye follows smoothly.
@@ -2918,6 +2955,9 @@ function stepDown(){probe.x=player.x;probe.z=player.z;probe.y=player.y-.02;if(co
 // It gives placePart()'s verdict: the shape (partCells, cached until the aim or the world changes) plus partWhy() every frame.
 let previewKey=-1,previewStamp=-1,preview=null,previewBad=null;
 function partPreview(){const t=slots[selected];if(!hit||!PART[t]||eggSp>=0||isDoor(hit.t)||hit.t===B_CHEST){previewKey=-1;return null}
+ if(isSlab(t)){let [x,y,z]=hit.prev,up=aimUp(hit);const s=isSlab(hit.t)?slabState(hit.t):2;if(s<2&&hit.normal?.[1]===(s===0?1:-1)){x=hit.x;y=hit.y;z=hit.z;up=s===0}
+  const key=-2-((idx(x,y,z)*256+t)*2+(up?1:0));if(key!==previewKey||worldStamp!==previewStamp){previewKey=key;previewStamp=worldStamp;preview=slabPlan(t,hit)}
+  const why=preview.why||partWhy(t,preview.previewCells);if(!why)return preview;if(!previewBad||previewBad.cells!==preview.cells||previewBad.why!==why)previewBad={...preview,why};return previewBad}
  const [x,y,z]=hit.prev;if(!inside(x,y,z)||y===0||get(x,y,z)&&get(x,y,z)!==10){previewKey=-1;return null}
  const up=PART[t]===1&&aimUp(hit),key=(((idx(x,y,z)*4+facing4())*4+PART[t])*2+(t===B_STAIR_S?1:0))*2+(up?1:0);if(key!==previewKey||worldStamp!==previewStamp){previewKey=key;previewStamp=worldStamp;preview=partCells(t,x,y,z,up)}
  const why=preview.why||partWhy(t,preview.cells);if(!why)return preview;
@@ -3764,6 +3804,7 @@ function craftUI(){partsUI();const box=$('craftGear');if(!box)return;adventureUI
 // v19 building parts: wood from logs, glass from sand, then doors, stairs and windows. Every mode lists them; creative needs no materials.
 const PARTS={door:{id:B_DOOR,make:1,need:{7:4},tip:'タップで開け閉め'},stairW:{id:B_STAIR_W,make:4,need:{7:3},tip:'上れる・天井にはさかさに'},
  window:{id:B_WINDOW,make:2,need:{9:2,7:2},tip:'外の景色が見える'},stairS:{id:B_STAIR_S,make:4,need:{3:3},tip:'石の家やお城に'}};
+for(let i=0;i<SLAB_MATS.length;i++)PARTS['slab'+i]={id:B_SLAB+i*3,make:6,need:{[SLAB_MATS[i]]:3},tip:'上下に置ける・2枚で1ブロック'};
 function showSlot(t){const i=slots.indexOf(t);if(i<0)return;selected=i;eggSp=-1;refresh();const b=hotbarButtons[i],bar=$('bar');if(b&&typeof b.offsetLeft==='number'&&bar.clientWidth)bar.scrollLeft=Math.max(0,b.offsetLeft-bar.clientWidth/2+b.offsetWidth/2)}
 function craftPart(k){const r=PARTS[k],name=defs[r.id][0];
  if(creative){showSlot(r.id);toast(`クリエイティブでは材料なしで置けるよ。ホットバーの「${name}」を選んだよ`);return true}
@@ -3774,7 +3815,7 @@ const partButtons={};
 function partsUI(){const g=$('craftParts');if(!g)return;
  for(const k in PARTS){const r=PARTS[k],name=defs[r.id][0];let b=partButtons[k];if(!b){b=partButtons[k]=document.createElement('button');b.id='craft_'+k;b.className='recipe part-recipe';b.onclick=()=>craftPart(k);g.appendChild(b)}
   const miss=creative?'':missingOf(r.need).join('・'),need=needList(r.need).map(([t,n])=>needName(t)+' '+n).join(' + ');
-  const h=`<span><i class="part-icon block-${r.id}"></i>${creative?'':'もってる '+(inventory[r.id]||0)}</span><div><b>${name} ×${r.make}</b><span>${need} → ${r.tip}</span>${creative?'<em class="ok">材料なしで置ける</em>':miss?'<em>たりない：'+miss+'</em>':'<em class="ok">つくれる！</em>'}</div>`;
+  const h=`<span><i class="part-icon block-${r.id}${isSlab(r.id)?' slab-icon':''}" style="--block:${defs[r.id][1]}"></i>${creative?'':'もってる '+(inventory[r.id]||0)}</span><div><b>${name} ×${r.make}</b><span>${need} → ${r.tip}</span>${creative?'<em class="ok">材料なしで置ける</em>':miss?'<em>たりない：'+miss+'</em>':'<em class="ok">つくれる！</em>'}</div>`;
   if(b.innerHTML!==h)b.innerHTML=h;b.classList.toggle('ready',creative||!miss)}}
 $('craftApple').onclick=()=>craftItem('apple');
 $('eat').onclick=()=>eat();$('respawn').onclick=()=>respawn();
@@ -4310,10 +4351,10 @@ function outlineBox(n,b,ox,oy,oz,r,g,bl){for(const f of faces)for(let i=0;i<4;i+
  outlineData[n++]=ox+(v[0]?b[3]+.0035:b[0]-.0035);outlineData[n++]=oy+(v[1]?b[4]+.0035:b[1]-.0035);outlineData[n++]=oz+(v[2]?b[5]+.0035:b[2]-.0035);outlineData[n++]=r;outlineData[n++]=g;outlineData[n++]=bl;outlineData[n++]=0;outlineData[n++]=0;outlineData[n++]=224}return n}
 const UNIT_BOX=[0,0,0,1,1,1],PART_BOUND=[];for(let t=41;t<=PART_LAST;t++){const l=PART_BOX[t];PART_BOUND[t]=[0,1,2].map(i=>Math.min(...l.map(b=>b[i]))).concat([3,4,5].map(i=>Math.max(...l.map(b=>b[i]))))}
 // The aimed block's outline (a part shows its own shape), plus the v19 placement preview when a building part is in hand.
-function drawOutline(){if(!hit)return;const pv=partPreview(),key=idx(hit.x,hit.y,hit.z)*64+(PART[hit.t]?hit.t-40:0);bind(outline);
+function drawOutline(){if(!hit)return;const pv=partPreview(),key=(idx(hit.x,hit.y,hit.z)*128+(PART[hit.t]?hit.t-40:0))*2+(hit.half||0);bind(outline);
  // a new preview object means a new shape or verdict (they are only rebuilt when something changed)
- if(key!==outlineKey||pv!==outlinePv){let n=outlineBox(0,PART[hit.t]?PART_BOUND[hit.t]:UNIT_BOX,hit.x,hit.y,hit.z,.10,.14,.10);
-  if(pv){const ok=!pv.why;for(const [x,y,z,id] of pv.cells)for(const b of partBoxes(id,x,y,z))if(n<outlineData.length)n=outlineBox(n,b,x,y,z,ok?.98:.95,ok?.9:.3,ok?.45:.25)}
+ if(key!==outlineKey||pv!==outlinePv){const b=isSlab(hit.t)&&slabState(hit.t)===2?PART_BOUND[slabItem(hit.t)+(hit.half??slabHalf(hit))]:PART[hit.t]?PART_BOUND[hit.t]:UNIT_BOX;let n=outlineBox(0,b,hit.x,hit.y,hit.z,.10,.14,.10);
+  if(pv){const ok=!pv.why;for(const [x,y,z,id] of pv.previewCells||pv.cells)for(const b of partBoxes(id,x,y,z))if(n<outlineData.length)n=outlineBox(n,b,x,y,z,ok?.98:.95,ok?.9:.3,ok?.45:.25)}
   gl.bufferData(gl.ARRAY_BUFFER,outlineData.subarray(0,n),gl.DYNAMIC_DRAW);outlineKey=key;outlinePv=pv;outlineN=n/9}perfDraw();gl.drawArrays(gl.LINES,0,outlineN)}
 function moveAxis(axis,d){
  const steps=Math.max(1,Math.ceil(Math.abs(d)/.18)),step=d/steps;
@@ -4540,3 +4581,4 @@ if(BENCH)startBench();
 requestAnimationFrame(frame);
 window.Nisekura={get performanceProfile(){return perfEnabled?JSON.parse(JSON.stringify(perfStats)):null},get,collides,ray,player,inventory,blocks,save,spawn,edit,defs,get cows(){return life.filter(c=>c.sp===COW)},life,LIFE_SPECIES,animateWorld,vertexSource,fragmentSource,waterFragmentSource,lodVertexSource,lodFragmentSource,skyVertexSource,skyFragmentSource,toggleFlight,streamChunks,vista,lodTiles,setQuality,sphereVisible,makeFrustum,height:GRAND?height4:height,get wonders(){return WLIST},wonderData:()=>({WF,WA})};
 </script></html>
+

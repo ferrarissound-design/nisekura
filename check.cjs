@@ -698,7 +698,7 @@ const SEA_=62;
  d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),11);
  assert.equal(run(re,`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),R(`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),'reloading does not change the caves');
  // Save format: new block ids are accepted, the unused plant-material ids are not, and future versions are rejected.
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},true],[{changes:[[5000,66]]},true],[{changes:[[5000,82]]},true],[{changes:[[5000,90]]},true],[{changes:[[5000,91]]},false]]){
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},true],[{changes:[[5000,66]]},true],[{changes:[[5000,82]]},true],[{changes:[[5000,90]]},true],[{changes:[[5000,109]]},false]]){
   const t=()=>run(d,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  console.log(`PASS: caves: lake ${lk.water} water voxels (${lk.exposed} open sides), ${cr.n} crystals lighting ${cr.glowFaces} faces, ${dec.hang}/${dec.stand} stalactites/stalagmites, underground factor ${deep.toFixed(2)}, ${spots} spots visited, edits/save/validation`)}
 {// Underground life: dark-loving monsters appear on cave floors only, and the surface is left alone while the player is below.
@@ -1503,7 +1503,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  const re=boot(d.storage['nisekura-v1']),RR=c=>run(re,c);
  assert.deepEqual([RR(`get(${X}-3,${Y},${Z}+7)`),RR(`get(${X}-3,${Y}+1,${Z}+7)`),RR(`get(${X}-5,${Y},${Z}+7)`),RR(`get(${X}-6,${Y},${Z}+7)`),RR('inventory[45]'),RR('slots[selected]')],[53,54,47,50,3,49],'parts, door state and the selected part reload');
  assert(RR(`(()=>{rebuild(${X-3}>>4,${Z+7}>>4);return true})()`));
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of [[{changes:[[5000,51]]},true],[{inventory:{51:2,41:3}},true],[{changes:[[5000,82]]},true],[{changes:[[5000,90]]},true],[{changes:[[5000,91]]},false],[{inventory:{83:1}},true],[{inventory:{91:1}},false]]){const t=()=>run(re,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of [[{changes:[[5000,51]]},true],[{inventory:{51:2,41:3}},true],[{changes:[[5000,82]]},true],[{changes:[[5000,90]]},true],[{changes:[[5000,109]]},false],[{inventory:{83:1}},true],[{inventory:{109:1}},false]]){const t=()=>run(re,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  // An older save without any part opens unchanged and gains the empty part slots.
  const old=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:10,seed:4242,changes:[[5000,7]],inventory:{7:5},settings:{qualityName:'low',hudMinimal:false,hudDetails:false,lifeVoices:true,selected:2,hotbar:20,eggSp:-1}}));
  assert.deepEqual([run(old,'terrainVersion'),run(old,'inventory[7]'),run(old,'inventory[51]||0'),run(old,'slots[selected]')],[10,5,0,38]);assert(old.api.save());
@@ -1705,3 +1705,89 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  assert.deepEqual([run(re,`get(${X}+3,${Y}+1,${Z}+2)`),run(re,`get(${X}+3,${Y}+1,${Z}+3)`)],[86,87]);
  console.log('PASS: v19.2 upside-down stairs (ids 83-90, ceiling/upper-half aim, place/break, join only their own kind, mirrored corners, shape, collision, faces around them, preview, save/reload)');
 }
+
+// ---- v20 slabs: real hit faces, independent halves, shared chunk meshes and unchanged v1 saves.
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ const X=1188,Y=160,Z=740;
+ R(`paused=false;gameMode='peaceful';creative=false;lifeMode='off';life.length=0;player.x=${X}+.5;player.y=${Y};player.z=${Z}-2;flying=true;
+  (()=>{const l=[];for(let x=${X}-4;x<${X}+20;x++)for(let z=${Z}-4;z<${Z}+10;z++){l.push([x,${Y}-1,z,3]);for(let y=${Y};y<${Y}+7;y++)l.push([x,y,z,0])}editMany(l)})()`);
+ const put=(x,y,z,t)=>R(`edit(${x},${y},${z},${t})`),at=(x,y,z)=>R(`get(${x},${y},${z})`);
+ // Exact recipes, shortages, inventory/selection and creative costs for every supported material.
+ for(let i=0;i<6;i++){const item=91+i*3,mat=R(`SLAB_MATS[${i}]`);
+  R(`inventory[${mat}]=2;inventory[${item}]=0`);assert.equal(R(`craftPart('slab${i}')`),false);
+  R(`inventory[${mat}]=3`);assert(R(`craftPart('slab${i}')`));assert.deepEqual(J(`[inventory[${mat}],inventory[${item}],slots[selected]]`),[0,6,item]);
+  R('creative=true');assert(R(`craftPart('slab${i}')`));assert.equal(R(`inventory[${item}]`),6);R('creative=false');
+  for(let s=0;s<3;s++){const t=item+s;assert.equal(R(`partItem(${t})`),item);assert.equal(R(`PART[${t}]`),4);
+   assert.deepEqual(J(`PART_BOX[${t}][0]`),[0,s===1?.5:0,0,1,s===0?.5:1,1]);put(X+i,Y+3,Z+5,t)}}
+ // Aim at each half of the four side faces of a wall, then its top and bottom.
+ const aim=(x,y,z,normal,point,prev)=>({x,y,z,t:3,normal,point,prev:prev||[x+normal[0],y+normal[1],z+normal[2]],dist:2});
+ for(const n of [[1,0,0],[-1,0,0],[0,0,1],[0,0,-1]])for(const hi of [false,true]){const h=aim(X,Y+1,Z+3,n,[X+.5,Y+1+(hi?.75:.25),Z+3.5]);
+  const p=J(`slabPlan(91,${JSON.stringify(h)})`);assert.equal(p.cells[0][3],hi?92:91)}
+ for(const [normal,id] of [[[0,1,0],91],[[0,-1,0],92]]){const h=aim(X,Y+2,Z+3,normal,[X+.5,Y+(id===91?3:2),Z+3.5]);assert.equal(J(`slabPlan(91,${JSON.stringify(h)})`).cells[0][3],id)}
+ // Actual ray entry on an internal half-height face: merge in the same cell, not above/below it.
+ put(X,Y,Z+2,91);R(`player.x=${X}+.5;player.y=${Y};player.z=${Z}+.5;yaw=0;pitch=-.6;selected=slots.indexOf(91);inventory[91]=6;hit=ray()`);
+ assert.deepEqual(J('[hit.x,hit.y,hit.z,hit.half,hit.normal]'),[X,Y,Z+2,0,[0,1,0]]);
+ assert(Math.abs(R('hit.point[1]')-(Y+.5))<1e-9);
+ assert.deepEqual(J('partPreview().previewCells'),[[X,Y,Z+2,92]]);assert.deepEqual(J('partPreview().cells'),[[X,Y,Z+2,93]]);
+ const before=R('JSON.stringify([...changes])');R('for(let i=0;i<60;i++)partPreview()');assert.equal(R('JSON.stringify([...changes])'),before,'preview never edits');
+ let uploads=0;const bd=d.gl.bufferData;d.gl.bufferData=(...a)=>{uploads++;return bd(...a)};R('outlineKey=-1;for(let i=0;i<60;i++)drawOutline()');d.gl.bufferData=bd;assert.equal(uploads,1,'unchanged previews reuse the GPU buffer');
+ R('place()');assert.equal(at(X,Y,Z+2),93);assert.equal(R('inventory[91]'),5);
+ R('mine()');assert.equal(at(X,Y,Z+2),91,'top ray removes only upper half');assert.equal(R('inventory[91]'),6);
+ // A ray from below adds the lower half to an upper slab; either side of a double can be removed separately.
+ put(X,Y+2,Z+2,92);R(`player.y=${Y};player.z=${Z}+.5;pitch=.35;hit=ray()`);
+ assert.deepEqual(J('[hit.y,hit.normal]'),[Y+2,[0,-1,0]]);R('place()');assert.equal(at(X,Y+2,Z+2),93);
+ R('mine()');assert.equal(at(X,Y+2,Z+2),92,'bottom ray removes only lower half');
+ put(X,Y+2,Z+2,0);put(X,Y,Z+2,93);
+ for(const [height,left] of [[.25,92],[.75,91]]){put(X,Y,Z+2,93);R(`player.y=${Y}+${height}-1.62;pitch=0;hit=ray()`);assert.equal(R('hit.half'),height>.5?1:0);R('mine()');assert.equal(at(X,Y,Z+2),left)}
+ // The empty half is transparent to selection; actual shape entry, rather than cell entry, obeys reach.
+ put(X,Y,Z+2,91);put(X,Y,Z+3,3);R(`player.y=${Y}+.75-1.62;pitch=0;hit=ray()`);assert.equal(R('hit.z'),Z+3);
+ assert.equal(R(`rayPart(92,[${X},${Y},${Z}+2],[${X}+.5,${Y}+.25,${Z}],[0,0,1])`),false);
+ assert.equal(R(`ray([0,0,1],2)`),null);
+ // Adjacent target occupied by an opposite slab can merge; different material, same half and doubles refuse.
+ const h=aim(X,Y,Z+3,[0,0,-1],[X+.5,Y+.75,Z+3]);
+ put(X,Y,Z+2,91);assert.equal(J(`slabPlan(91,${JSON.stringify(h)})`).cells[0][3],93);
+ for(const old of [92,93,94]){put(X,Y,Z+2,old);assert(J(`slabPlan(91,${JSON.stringify(h)})`).why)}
+ put(X,Y,Z+2,91);R('inventory[91]=0');assert.equal(R(`placeSlab(91,${JSON.stringify(h)})`),false);assert.equal(at(X,Y,Z+2),91);
+ R(`inventory[91]=3;player.x=${X}+.5;player.y=${Y};player.z=${Z}+2.5`);assert.equal(R(`placeSlab(91,${JSON.stringify(h)})`),false,'new upper half cannot enclose player');assert.equal(R('inventory[91]'),3);
+ // Walk onto the lower slab, onto a full block, and back down, without jumping. Full-height walls still stop motion.
+ R(`player.x=${X}+.5;player.y=${Y};player.z=${Z}-.5;flying=false;vy=0;ground=true;pitch=0;yaw=0;inventory[91]=6;keys.KeyW=true`);
+ put(X,Y,Z+1,91);put(X,Y,Z+2,3);put(X,Y,Z+3,0);
+ R('for(let i=0;i<42;i++)update(1/60);keys.KeyW=false');assert(R(`player.z>${Z}+2&&player.y>${Y}+.9`),'two half rises walk naturally');
+ R('yaw=Math.PI;keys.KeyW=true;for(let i=0;i<42;i++)update(1/60);keys.KeyW=false');assert(Math.abs(R('player.y')-Y)<.08,'walk down smoothly');
+ R(`player.z=${Z}+.5;player.y=${Y};ground=true;keys.KeyW=true`);put(X,Y,Z+1,3);R('yaw=0;for(let i=0;i<20;i++)update(1/60);keys.KeyW=false');assert(R(`player.z<${Z}+.72`),'one-block wall cannot be stepped up');
+ put(X,Y,Z+1,0);put(X,Y+2,Z+1,92);
+ assert.equal(R(`collides({x:${X}+.5,y:${Y}+.6,z:${Z}+1.5})`),false,'headroom below upper slab');
+ assert.equal(R(`collides({x:${X}+.5,y:${Y}+.8,z:${Z}+1.5})`),true,'upper slab ceiling collision');
+ // Contact faces: same-height slabs cull, opposite halves keep exposed faces, full blocks/stairs expose only open areas.
+ R(`player.x=${X}-3;player.z=${Z}-3;player.y=${Y};hit=null`);
+ const faceArea=(cx,cz,plane,normal)=>R(`(()=>{rebuild(${cx}>>4,${cz}>>4);let area=0;const a=opaqueW.a;for(let i=0;i<opaqueW.n;i+=36){if(Math.floor(a[i+8]%256/32)!==${normal})continue;
+  const xs=[0,9,18,27].map(k=>a[i+k]),ys=[0,9,18,27].map(k=>a[i+k+1]),zs=[0,9,18,27].map(k=>a[i+k+2]);if(xs.every(v=>v===${plane})&&ys.every(v=>v>=${Y}&&v<=${Y}+1)&&zs.every(v=>v>=${Z}&&v<=${Z}+1))area+=(Math.max(...ys)-Math.min(...ys))*(Math.max(...zs)-Math.min(...zs))}return area})()`);
+ for(const edge of [X,1199]){const left=edge,right=edge+1;put(left,Y,Z,91);put(right,Y,Z,91);
+  assert.equal(faceArea(left,Z,right,0),0);assert.equal(faceArea(right,Z,right,1),0,'same-height neighbor including chunk boundary');
+  put(right,Y,Z,92);assert.equal(faceArea(left,Z,right,0),.5);assert.equal(faceArea(right,Z,right,1),.5);
+  put(right,Y,Z,3);assert.equal(faceArea(left,Z,right,0),0);assert.equal(faceArea(right,Z,right,1),.5,'cube clips its covered half');
+  put(right,Y,Z,41);assert.equal(faceArea(left,Z,right,0),0);assert.equal(faceArea(right,Z,right,1),.25,'stair clips its low half, keeps riser');
+  put(left,Y,Z,92);assert.equal(faceArea(left,Z,right,0),.25,'upper slab clips the stair riser');
+  put(left,Y,Z,93);put(right,Y,Z,93);assert.equal(faceArea(left,Z,right,0)+faceArea(right,Z,right,1),0,'double slab has no internal seam');
+  put(left,Y,Z,0);put(right,Y,Z,0)}
+ // Water keeps its translucent pass and only its exposed height; a submerged slab carries the existing wet-material flag.
+ put(X,Y,Z,91);put(X+1,Y,Z,10);
+ const wet=J(`(()=>{rebuild(${X}>>4,${Z}>>4);const out={water:[],solid:[]};for(const [w,k,f] of [[waterW,'water',1],[opaqueW,'solid',0]])for(let i=0;i<w.n;i+=36){
+  const a=w.a;if(Math.floor(a[i+8]%256/32)!==f)continue;const xs=[0,9,18,27].map(n=>a[i+n]),ys=[0,9,18,27].map(n=>a[i+n+1]),zs=[0,9,18,27].map(n=>a[i+n+2]);
+  if(xs.every(v=>v===${X+1})&&ys.every(v=>v>=${Y}&&v<=${Y+1})&&zs.every(v=>v>=${Z}&&v<=${Z+1}))out[k].push([Math.min(...ys),Math.max(...ys),a[i+8]])}return out})()`);
+ assert.equal(wet.water.length,1);assert.equal(wet.water[0][0],Y+.5);assert(Math.abs(wet.water[0][1]-Y-.88)<1e-5,'water surface height in Float32 mesh');assert.equal(wet.solid.length,1);assert(wet.solid[0][2]%1024>=512,'wet shading bit on submerged side');
+ put(X,Y,Z,0);put(X+1,Y,Z,0);
+ // Touch place/break controls dispatch the same gameplay path and retain hold/cancel state.
+ put(X,Y,Z+2,91);R(`player.x=${X}+.5;player.y=${Y};player.z=${Z}+.5;pitch=-.6;yaw=0;selected=slots.indexOf(91);inventory[91]=3;paused=false`);
+ const e={pointerId:1,preventDefault(){}};d.nodes.place.listeners.pointerdown[0](e);assert.equal(at(X,Y,Z+2),93);assert(R('placeHeld'));
+ d.nodes.place.listeners.pointercancel[0]();assert.equal(R('placeHeld'),false);
+ d.nodes.mine.listeners.pointerdown[0](e);assert.equal(at(X,Y,Z+2),91);d.nodes.mine.listeners.pointerup[0]();assert.equal(R('mineHeld'),false);
+ // All state bytes, inventory and selected hotbar item round-trip through checksum + validation + fresh boot.
+ R(`(()=>{const l=[];for(let i=0;i<18;i++)l.push([${X}+i,${Y}+4,${Z}+6,91+i]);editMany(l)})();selected=slots.indexOf(106);inventory[106]=17`);assert(d.api.save());
+ const re=boot(d.storage['nisekura-v1']);for(let i=0;i<18;i++)assert.equal(run(re,`get(${X}+${i},${Y}+4,${Z}+6)`),91+i);
+ assert.equal(run(re,'inventory[106]'),17);assert.equal(run(re,'slots[selected]'),106);
+ assert.throws(()=>run(re,'validateSave({...snapshot(),changes:[[5000,109]]})'),/不正/);
+ assert.equal(run(re,'snapshot().version'),1);assert.equal(run(re,'snapshot().terrainVersion'),11,'terrain version unchanged');
+ console.log('PASS: v20 slabs: six 3→6 recipes, all 18 states, side/top/bottom aim, same-cell/adjacent merging, independent mining, exact ray/reach/outline, cached previews, collisions/headroom/step movement, cube/stair/slab face coverage across chunk boundaries, touch hold/cancel, checked save/reload');
+}
+
