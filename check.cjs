@@ -698,7 +698,7 @@ const SEA_=62;
  d.api.edit(px,py+2,pz,28);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);assert.equal(re.api.get(px,py+2,pz),28,'a cave edit survives reload');assert.equal(run(re,'terrainVersion'),11);
  assert.equal(run(re,`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),R(`(()=>{let h=2166136261;for(const [x,y,z] of[[${Math.floor(hall.x)},${Math.floor(hall.y)},${Math.floor(hall.z)},],[${Math.floor(lake.x)},60,${Math.floor(lake.z)}]]){h^=get(x,y,z);h=Math.imul(h,16777619)}return h>>>0})()`),'reloading does not change the caves');
  // Save format: new block ids are accepted, the unused plant-material ids are not, and future versions are rejected.
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},true],[{changes:[[5000,66]]},true],[{changes:[[5000,82]]},true],[{changes:[[5000,83]]},false]]){
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of[[{changes:[[5000,26]]},true],[{changes:[[5000,29]]},true],[{changes:[[5000,17]]},false],[{changes:[[5000,25]]},false],[{inventory:{27:3}},true],[{inventory:{20:3}},false],[{terrainVersion:8},true],[{terrainVersion:9},true],[{terrainVersion:10},true],[{terrainVersion:11},true],[{terrainVersion:12},false],[{changes:[[5000,31]]},true],[{changes:[[5000,35]]},true],[{changes:[[5000,36]]},true],[{changes:[[5000,41]]},true],[{changes:[[5000,66]]},true],[{changes:[[5000,82]]},true],[{changes:[[5000,90]]},true],[{changes:[[5000,91]]},false]]){
   const t=()=>run(d,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  console.log(`PASS: caves: lake ${lk.water} water voxels (${lk.exposed} open sides), ${cr.n} crystals lighting ${cr.glowFaces} faces, ${dec.hang}/${dec.stand} stalactites/stalagmites, underground factor ${deep.toFixed(2)}, ${spots} spots visited, edits/save/validation`)}
 {// Underground life: dark-loving monsters appear on cave floors only, and the surface is left alone while the player is below.
@@ -1503,7 +1503,7 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  const re=boot(d.storage['nisekura-v1']),RR=c=>run(re,c);
  assert.deepEqual([RR(`get(${X}-3,${Y},${Z}+7)`),RR(`get(${X}-3,${Y}+1,${Z}+7)`),RR(`get(${X}-5,${Y},${Z}+7)`),RR(`get(${X}-6,${Y},${Z}+7)`),RR('inventory[45]'),RR('slots[selected]')],[53,54,47,50,3,49],'parts, door state and the selected part reload');
  assert(RR(`(()=>{rebuild(${X-3}>>4,${Z+7}>>4);return true})()`));
- const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of [[{changes:[[5000,51]]},true],[{inventory:{51:2,41:3}},true],[{changes:[[5000,82]]},true],[{changes:[[5000,83]]},false],[{inventory:{83:1}},false]]){const t=()=>run(re,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
+ const base=JSON.parse(d.storage['nisekura-v1']);for(const [patch,ok] of [[{changes:[[5000,51]]},true],[{inventory:{51:2,41:3}},true],[{changes:[[5000,82]]},true],[{changes:[[5000,90]]},true],[{changes:[[5000,91]]},false],[{inventory:{83:1}},true],[{inventory:{91:1}},false]]){const t=()=>run(re,`validateSave(${JSON.stringify({...base,...patch})})`);if(ok)t();else assert.throws(t,/不正/)}
  // An older save without any part opens unchanged and gains the empty part slots.
  const old=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:10,seed:4242,changes:[[5000,7]],inventory:{7:5},settings:{qualityName:'low',hudMinimal:false,hudDetails:false,lifeVoices:true,selected:2,hotbar:20,eggSp:-1}}));
  assert.deepEqual([run(old,'terrainVersion'),run(old,'inventory[7]'),run(old,'inventory[51]||0'),run(old,'slots[selected]')],[10,5,0,38]);assert(old.api.save());
@@ -1645,4 +1645,63 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  R(`editMany([[${X}+5,${Y},${Z}+9,42]]);selected=slots.indexOf(41);inventory[41]=1;yaw=0;player.x=${X}+5.5;player.z=${Z}+5.5;player.y=${Y};flying=false;hit={x:${X}+5,y:${Y}-1,z:${Z}+8,t:3,prev:[${X}+5,${Y},${Z}+8]}`);
  assert.equal(J(`partBoxes(41,${X}+5,${Y},${Z}+8)`).length,2);assert.deepEqual(J(`partBoxes(41,${X}+5,${Y},${Z}+8)[1]`),[.5,.5,.5,1,1,1],'the preview shows the outer corner');
  console.log('PASS: v19.1 double doors (right hinge ids 67-82, pair placing, both leaves open/close with swing and glass, walk through, single leaf, other facing, save/reload) and corner stairs (outer/inner, same-facing neighbour keeps straight, wood+stone, collision, picking, mesh tops, joined runs, pyramid corner climbed diagonally without jumping, preview)');
+}
+// ---- v19.2: upside-down stairs (ids 83-90) are placed by aiming at a ceiling or the upper half of a wall; they join only their own kind.
+{const d=boot(),R=c=>run(d,c),J=c=>JSON.parse(R(`JSON.stringify(${c})`));
+ R('paused=false;gameMode="peaceful";creative=false;lifeMode="off";life.length=0;streamChunks(true);for(let i=0;i<40;i++)update(1/60)');
+ const X=(Math.floor(R('player.x'))>>4)*16+4,Y=Math.floor(R('player.y'))+4,Z=(Math.floor(R('player.z'))>>4)*16+4;
+ R(`(()=>{const l=[];for(let x=${X}-4;x<=${X}+8;x++)for(let z=${Z}-4;z<=${Z}+10;z++){l.push([x,${Y}-1,z,3]);for(let y=${Y};y<${Y}+8;y++)l.push([x,y,z,0])}editMany(l)})()`);
+ const at=(x,y,z)=>R(`get(${x},${y},${z})`);
+ R(`flying=false;vy=0;player.x=${X}+.5;player.y=${Y};player.z=${Z}-1.5;yaw=0;pitch=0;gameMode="peaceful";creative=false;inventory[41]=9;inventory[45]=9;selected=slots.indexOf(41)`);
+ // 1. Which way up: a ceiling (underside) or the upper half of a wall means upside down; the floor or the lower half means upright.
+ const aim=(x,y,z,prev,dist,pt)=>R(`player.y=${Y};pitch=${pt};aimUp({x:${x},y:${y},z:${z},t:3,prev:${JSON.stringify(prev)},dist:${dist}})`);
+ assert.equal(aim(X,Y+2,Z+3,[X,Y+3,Z+3],3,0),false,'top of a block: upright');
+ assert.equal(aim(X,Y+3,Z+3,[X,Y+2,Z+3],3,0),true,'underside of a block: upside down');
+ R(`pitch=0;player.y=${Y}`);// eye at Y+1.62: the lower half of a wall block at Y+1 is below Y+1.5 only when the ray is level
+ assert.equal(R(`aimUp({x:${X},y:${Y}+1,z:${Z}+3,t:3,prev:[${X},${Y}+1,${Z}+2],dist:2})`),true,'level at eye height 1.62: upper half of the wall block at Y+1');
+ assert.equal(R(`aimUp({x:${X},y:${Y},z:${Z}+3,t:3,prev:[${X},${Y},${Z}+2],dist:2})`),true,'upper half of the block at Y (1.62 above its base → 0.62)');
+ R(`pitch=-.4`);assert.equal(R(`aimUp({x:${X},y:${Y},z:${Z}+3,t:3,prev:[${X},${Y},${Z}+2],dist:3.5})`),false,'looking down at the lower half (1.62 - 3.5 sin 0.4 = 0.26)');
+ assert.equal(R('aimUp(null)'),false);
+ assert.deepEqual(J(`[partCells(41,0,0,0,true).cells[0][3],partCells(45,0,0,0,true).cells[0][3],partCells(41,0,0,0).cells[0][3]]`),[83,87,41],'ids: +42 when upside down');
+ R('yaw=Math.PI/2');assert.equal(R('partCells(45,0,0,0,true).cells[0][3]'),88);R('yaw=0');
+ // 2. Placing under a ceiling with 置く; the item is the same, one is spent; breaking gives it back.
+ R(`edit(${X}+1,${Y}+2,${Z}+2,3)`);R(`player.x=${X}+1.5;player.y=${Y};player.z=${Z}-1.5;pitch=-.45;yaw=0;hit=ray()`);
+ R(`player.y=${Y};pitch=.12;player.x=${X}+1.5;player.z=${Z}-.5;hit=ray()`);
+ assert.deepEqual(J('[hit.x,hit.y,hit.z]'),[X+1,Y+2,Z+2],'aiming up at the ceiling block');assert.deepEqual(J('hit.prev'),[X+1,Y+1,Z+2]);
+ const n0=R('inventory[41]');R('place()');assert.equal(at(X+1,Y+1,Z+2),83,'upside-down wooden stair');assert.equal(R('inventory[41]'),n0-1);
+ assert.deepEqual(J(`PART_BOX[83]`),[[0,.5,0,1,1,1],[0,0,.5,1,.5,1]],'a slab on top, the riser below at the back');
+ R('mine()');assert.deepEqual([at(X+1,Y+1,Z+2),R('inventory[41]')],[0,n0],'breaking returns the same item');
+ // 3. Upside-down stairs join only each other, and corners work mirrored.
+ const S=[X+4,Y+1,Z+4],mk=(t,dx=0,dz=0)=>[S[0]+dx,S[1],S[2]+dz,t],mask=()=>R(`stairMask(83,(dx,dz)=>get(${S[0]}+dx,${S[1]},${S[2]}+dz))`),put=l=>R(`editMany(${JSON.stringify(l)})`);
+ R(`(()=>{const l=[];for(let x=${X}+2;x<=${X}+6;x++)for(let z=${Z}+2;z<=${Z}+6;z++)l.push([x,${Y}+1,z,0]);editMany(l)})()`);
+ put([mk(83)]);assert.equal(mask(),12,'alone: straight');
+ put([mk(84,0,1)]);assert.equal(mask(),8,'an upside-down stair behind, turned: outer corner');
+ put([mk(42,0,1)]);assert.equal(mask(),12,'a right-side-up one there does not bend it');
+ put([mk(0,0,1),mk(84,0,-1)]);assert.equal(mask(),14,'in front: inner corner');
+ put([mk(0,0,-1),mk(83,-1,0)]);assert.equal(mask(),12,'same facing beside: stays straight');
+ assert.equal(R(`stairMask(41,(dx,dz)=>get(${S[0]}+dx,${S[1]},${S[2]}+dz))`),12);
+ // the shape of an upside-down outer corner: only the +x/+z quarter hangs down from the slab
+ put([mk(0,-1,0),mk(83),mk(84,0,1)]);
+ assert.deepEqual(J(`partBoxes(83,${S})`),[[0,.5,0,1,1,1],[.5,0,.5,1,.5,1]],'one riser quarter below the slab');
+ // 4. Collision: the slab is a ceiling, the riser a step; head room under it is free. Picking follows the shape.
+ put([mk(0,0,1),mk(83)]);
+ assert.equal(R(`collides({x:${S[0]}+.5,y:${S[1]-1}+.001,z:${S[2]}+.5})`),true,'the slab is in the way at head height');
+ assert.equal(R(`collides({x:${S[0]}+.5,y:${S[1]}-.2,z:${S[2]}+.5})`),true);
+ assert.equal(R(`partHit(83,${S},{x:${S[0]}+.5,y:${S[1]}-1,z:${S[2]}+.2})`),true,'a player under the slab overlaps it');
+ assert.equal(R(`partHit(83,${S},{x:${S[0]}+.5,y:${S[1]}-1.9,z:${S[2]}+.2})`),false,'below the slab (feet 1.9 under): clear');
+ // 5. Faces of full blocks next to an upside-down stair: the block above loses its bottom (the slab covers it), the block below keeps its top.
+ const plane=(y,x,z)=>R(`(()=>{rebuild(${x}>>4,${z}>>4);const a=opaqueW.a;let n=0;for(let i=0;i<opaqueW.n;i+=36){const ys=[0,9,18,27].map(k=>a[i+k+1]),xs=[0,9,18,27].map(k=>a[i+k]),zs=[0,9,18,27].map(k=>a[i+k+2]);if(ys.every(v=>v===${y})&&xs.every(v=>v>=${x}&&v<=${x}+1)&&zs.every(v=>v>=${z}&&v<=${z}+1))n++}return n})()`);
+ put([[S[0],S[1],S[2],83],[S[0],S[1]+1,S[2],3],[S[0],S[1]-1,S[2],3],[S[0],S[1]+2,S[2],0],[S[0]+1,S[1]+1,S[2]+1,0]]);
+ assert.equal(plane(S[1]+1,S[0],S[2]),0,'the underside of the block above the slab is not drawn');
+ assert.equal(plane(S[1]+.5,S[0],S[2]),1,'the underside of the slab is drawn (one piece) where no riser hangs');
+ put([[S[0],S[1],S[2],41]]);assert.equal(plane(S[1]+.5,S[0],S[2]),1,'a right-side-up stair draws its low step top the same way');
+ put([[S[0],S[1]-1,S[2],3],[S[0],S[1],S[2],83]]);assert.equal(plane(S[1],S[0],S[2]),1,'the block below an upside-down stair keeps its top face against the open underside');
+ // 6. The preview shows the upside-down shape when aiming at a ceiling.
+ put([[X+1,Y+2,Z+2,3],[X+1,Y+1,Z+2,0]]);R(`selected=slots.indexOf(41);inventory[41]=2;player.x=${X}+1.5;player.z=${Z}-.5;player.y=${Y};yaw=0;pitch=.12;hit=ray()`);
+ assert.deepEqual(J('partPreview().cells'),[[X+1,Y+1,Z+2,83]],'the preview is the upside-down stair');
+ R(`pitch=-.55;hit=ray()`);R('partPreview()');assert.equal(J('partPreview().cells')[0][3],41,'aimed at the floor: upright again');
+ // 7. Save and reload keep the id; validation takes 83-90.
+ put([[X+3,Y+1,Z+2,86],[X+3,Y+1,Z+3,87]]);assert(d.api.save());const re=boot(d.storage['nisekura-v1']);
+ assert.deepEqual([run(re,`get(${X}+3,${Y}+1,${Z}+2)`),run(re,`get(${X}+3,${Y}+1,${Z}+3)`)],[86,87]);
+ console.log('PASS: v19.2 upside-down stairs (ids 83-90, ceiling/upper-half aim, place/break, join only their own kind, mirrored corners, shape, collision, faces around them, preview, save/reload)');
 }
