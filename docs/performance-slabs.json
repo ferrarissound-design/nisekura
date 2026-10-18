@@ -1,0 +1,77 @@
+{
+  "before": {
+    "environment": "Node VM / mocked WebGL, deterministic seed 42",
+    "near120CpuMs": 48.08,
+    "distant120CpuMs": 20.53,
+    "creatureCommands240Frames": {
+      "binds": 240,
+      "pointers": 960,
+      "draws": 14400
+    },
+    "distantPoseCalls": 2058,
+    "nearAI240Ms": 55.69,
+    "title120Callbacks": {
+      "renders": 60,
+      "streamCalls": 60,
+      "renderScale": 1
+    },
+    "synchronousEggIcons": 0,
+    "dynamic20Frames": {
+      "allocations": 1,
+      "subUploads": 20
+    },
+    "outlineUploads60Frames": 1
+  },
+  "after": {
+    "environment": "Node VM / mocked WebGL, deterministic seed 42",
+    "near120CpuMs": 54,
+    "distant120CpuMs": 16.09,
+    "creatureCommands240Frames": {
+      "binds": 240,
+      "pointers": 960,
+      "draws": 14400
+    },
+    "distantPoseCalls": 2058,
+    "nearAI240Ms": 49.2,
+    "title120Callbacks": {
+      "renders": 60,
+      "streamCalls": 60,
+      "renderScale": 1
+    },
+    "synchronousEggIcons": 0,
+    "dynamic20Frames": {
+      "allocations": 1,
+      "subUploads": 20
+    },
+    "outlineUploads60Frames": 1
+  },
+  "slabScene": {
+    "environment": "Node VM / mocked WebGL; CPU timings vary, no Safari or device FPS claim",
+    "scenes": {
+      "cube": {
+        "medianRebuildCpuMs": 1.185,
+        "opaqueFloats": 57312,
+        "waterFloats": 0,
+        "voxelBytes": 24576
+      },
+      "lower": {
+        "medianRebuildCpuMs": 1.905,
+        "opaqueFloats": 57312,
+        "waterFloats": 0,
+        "voxelBytes": 24576
+      },
+      "upper": {
+        "medianRebuildCpuMs": 1.279,
+        "opaqueFloats": 57312,
+        "waterFloats": 0,
+        "voxelBytes": 24576
+      },
+      "double": {
+        "medianRebuildCpuMs": 1.211,
+        "opaqueFloats": 57312,
+        "waterFloats": 0,
+        "voxelBytes": 24576
+      }
+    }
+  }
+}
