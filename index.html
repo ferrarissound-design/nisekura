@@ -266,7 +266,7 @@ for(const type of ['gesturestart','gesturechange'])document.addEventListener(typ
 document.addEventListener('touchmove',e=>{if(e.touches.length>1)preventPageZoom(e)},{passive:false});
 document.addEventListener('dblclick',preventPageZoom,{passive:false});
 document.addEventListener('wheel',e=>{if(e.ctrlKey)preventPageZoom(e)},{passive:false});
-const gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'})||canvas.getContext('experimental-webgl');
+const gl=canvas.getContext('webgl',{antialias:false,alpha:false,stencil:true,powerPreference:'high-performance'})||canvas.getContext('experimental-webgl');
 if(!gl){$('saveInfo').textContent='WebGLが使えるブラウザで開いてください。';throw Error('WebGL unavailable')}
 // The world is generated on demand. Near 16x16 columns are real voxels; everything farther is a light LOD mesh.
 const W=2048,CHUNK=16,CHUNKS=W/CHUNK,ORIGIN=W/2,KEY='nisekura-v1',QUALITY_KEY='jocraft2-quality';
@@ -1836,6 +1836,8 @@ void main(){
   c*=lighting(faceNormal(vFace),0.,w,0.);}
  gl_FragColor=vec4(fogMix(c,vRel,w.y),1.);}`;
 const skyVertexSource=`attribute vec2 sPos; varying vec2 vNdc; void main(){vNdc=sPos;gl_Position=vec4(sPos,.9999,1.);}`;
+// Depth fill: puts the depth back to the far plane (1.0, as a clear would) where the far pass drew; color writes are masked off.
+const depthFillVertexSource=`attribute vec2 sPos; void main(){gl_Position=vec4(sPos,1.,1.);}`,depthFillFragmentSource=PRECISION+`void main(){gl_FragColor=vec4(0.);}`;
 const skyFragmentSource=PRECISION+`varying vec2 vNdc; uniform vec3 cFwd; uniform vec3 cRight; uniform vec3 cUp; uniform vec2 cScale;`+SKY_GLSL+`
 void main(){vec3 d=normalize(cFwd+cRight*vNdc.x*cScale.x+cUp*vNdc.y*cScale.y);vec3 c=skyColor(d);
  c=mix(c,vec3(1.,.97,.88),smoothstep(.9986,.9994,dot(d,sunDir))*(1.-misc.x));
@@ -2231,7 +2233,7 @@ void main(){vec2 q=floor(mp.xy+.001);float n=hash(q+floor(mp.z)*.13);vec3 c=col;
  c=cL.y>=0.?mix(c,vec3(1.,.98,.92),cL.y):mix(c,vec3(1.,.16,.1),-cL.y*.7);
  if(w.y<${SEA}.88){float ds=${SEA}.88-w.y;c*=exp(-WABS*(ds+(eyeF.y>${SEA}.88?ds/max(-v.y,.1):0.))*(1.-cL.w));}
  gl_FragColor=vec4(fogMix(c,rel,w.y),alpha);}`;
-let lifeProg=null,lifeU=null,lifeBuffer=null,fishBuffer=null,mainProg,waterProg,lodProg,skyProg,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,doorGlassBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
+let lifeProg=null,lifeU=null,lifeBuffer=null,fishBuffer=null,mainProg,waterProg,lodProg,skyProg,depthFillProg=null,mainU,waterU,lodU,skyU,lodOK=false,renderReady=false,quadIndex,skyBuffer,outline,dynamicBuffer,doorGlassBuffer,toolBuffer,cloudBuffer,oceanTiles=[];
 function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(s);gl.deleteShader(s);throw Error(message)}return s}
 function buildProgram(vsrc,fsrc,attribs){
  const p=gl.createProgram();let vs=null,fs=null,linked=false;
@@ -2253,6 +2255,8 @@ function initRenderer(){
  try{lodProg=buildProgram(lodVertexSource,lodFragmentSource,['lPos','lCol']);skyProg=buildProgram(skyVertexSource,skyFragmentSource,['sPos']);
   lodU=uniformsOf(lodProg,['org','yaw','pitch','aspect','proj','clock','hole','eyeF','wq',...SKY_UNIFORMS]);skyU=uniformsOf(skyProg,['cFwd','cRight','cUp','cScale',...SKY_UNIFORMS]);lodOK=true}
  catch(farError){if(lodProg)gl.deleteProgram(lodProg);if(skyProg)gl.deleteProgram(skyProg);lodProg=skyProg=null;console.warn('Far terrain disabled:',farError);lodOK=false}
+ // Near-first pass order (see render) needs the stencil buffer and the depth fill program; without them the old order is used.
+ depthFillProg=null;if(lodOK&&gl.getParameter(gl.STENCIL_BITS)>0)try{depthFillProg=buildProgram(depthFillVertexSource,depthFillFragmentSource,['sPos'])}catch(e){console.warn('Near-first order disabled:',e)}
  // Creatures: one static model buffer for every species; if the program fails, the world simply has no visible creatures.
  try{lifeProg=buildProgram(lifeVertexSource,lifeFragmentSource,['aPos','aColor','aUV','aMat']);lifeU=uniformsOf(lifeProg,['B','yaw','pitch','aspect','proj','clock','eyeF','cL',...SKY_UNIFORMS]);
   lifeBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,lifeBuffer);gl.bufferData(gl.ARRAY_BUFFER,lifeModel.a.subarray(0,lifeModel.n),gl.STATIC_DRAW);
@@ -4448,9 +4452,19 @@ function render(cam,titleOpen,w,h){
  const aspect=w/h,F=makeFrustum(cam,aspect),underwater=!titleOpen&&get(Math.floor(cam.x),Math.floor(cam.y),Math.floor(cam.z))===10,env=environment(titleOpen,cam);
  env.deckEye=[cam.x,cam.y,cam.z];
  const far=lodOK?Q.far:(Q.near+1)*CHUNK,cd=Math.max(0,SEA+.88-cam.y),cf=caveF,ck=1-cf,fog=[far*.6*ck+70*cf,far*.8*ck+140*cf,far*.97*ck+190*cf,underwater?1+cd:0];
- gl.clearColor(...(underwater?underColor(env,cd).map(v=>v*(1-.85*cf)):env.horizon.map((v,i)=>v*ck+[.022,.03,.056][i]*cf)),1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ gl.clearColor(...(underwater?underColor(env,cd).map(v=>v*(1-.85*cf)):env.horizon.map((v,i)=>v*ck+[.022,.03,.056][i]*cf)),1);
  // Underwater the fog closes within a few dozen blocks, so the far pass is skipped there.
- if(lodOK&&!underwater&&cf<.98){
+ const farPass=lodOK&&!underwater&&cf<.98,nearFirst=farPass&&!!depthFillProg,visible=visibleChunks;visible.length=0;
+ gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|(nearFirst?gl.STENCIL_BUFFER_BIT:0));
+ // Near-first: the opaque chunk meshes go first and mark their pixels in the stencil, so the far pass below only shades the
+ // pixels they leave open (sky, distant land) instead of drawing the whole screen and being painted over. Both passes keep
+ // their own projections and the full depth range, and the depth fill restores what the old mid-frame depth clear left,
+ // so every later draw (creatures, water, glass, outline, tool) sees exactly the same depth and colour as before.
+ if(nearFirst){gl.enable(gl.STENCIL_TEST);gl.stencilFunc(gl.ALWAYS,1,255);gl.stencilOp(gl.KEEP,gl.KEEP,gl.REPLACE);
+  useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,.1,(Q.near+3)*CHUNK*1.5+H);gl.uniform3f(mainU.eye,cam.x,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x,cam.y,cam.z);
+  for(const ch of chunks.values()){if(Math.max(Math.abs(ch.cx-centerCX),Math.abs(ch.cz-centerCZ))>readyR)continue;const yr=(ch.ymax-ch.ymin)/2;if(!sphereVisible(F,ch.cx*CHUNK+8,ch.ymin+yr,ch.cz*CHUNK+8,Math.sqrt(128+yr*yr)))continue;visible.push(ch);if(ch.quads)drawQuads(ch.buffer,ch.quads,bind,36)}
+  gl.stencilFunc(gl.EQUAL,0,255);gl.stencilOp(gl.KEEP,gl.KEEP,gl.KEEP)}
+ if(farPass){
   // Far pass: sky, LOD terrain, ocean beyond the world and clouds, with its own depth range.
   lodFrame++;lodDraw.length=0;lodRequests.length=0;for(let x=0;x<W;x+=512)for(let z=0;z<W;z+=512)lodVisit(512,x,z,F);
   const farNear=readyR>=1?2:.25,farFar=Q.far*1.15;
@@ -4465,12 +4479,13 @@ function render(cam,titleOpen,w,h){
   const drift=cloudDrift,cloudStart=performance.now();updateClouds(cam.x-drift,cam.z);frameCloudMs+=performance.now()-cloudStart;
   useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,farNear,farFar);gl.uniform3f(mainU.eye,cam.x-drift,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x-drift,cam.y,cam.z); // fragments see the cloud's own coordinates
   if(cloudQuads)drawQuads(cloudBuffer,cloudQuads,bind,36);
-  gl.clear(gl.DEPTH_BUFFER_BIT);
+  if(nearFirst){useProgram(depthFillProg,1);gl.colorMask(false,false,false,false);gl.depthFunc(gl.ALWAYS);gl.bindBuffer(gl.ARRAY_BUFFER,skyBuffer);gl.vertexAttribPointer(0,2,gl.FLOAT,false,8,0);perfDraw();gl.drawArrays(gl.TRIANGLES,0,3);
+   gl.depthFunc(gl.LESS);gl.colorMask(true,true,true,true);gl.disable(gl.STENCIL_TEST)}
+  else gl.clear(gl.DEPTH_BUFFER_BIT);
  }
  // Near pass: real voxels inside the completed square, animals, translucent water, then the held tool.
  useProgram(mainProg,4);setEnv(mainU,env,fog);setView(mainU,cam,aspect,.1,(Q.near+3)*CHUNK*1.5+H);gl.uniform3f(mainU.eye,cam.x,cam.y,cam.z);gl.uniform3f(mainU.eyeF,cam.x,cam.y,cam.z);
- const visible=visibleChunks;visible.length=0;
- for(const ch of chunks.values()){if(Math.max(Math.abs(ch.cx-centerCX),Math.abs(ch.cz-centerCZ))>readyR)continue;const yr=(ch.ymax-ch.ymin)/2;if(!sphereVisible(F,ch.cx*CHUNK+8,ch.ymin+yr,ch.cz*CHUNK+8,Math.sqrt(128+yr*yr)))continue;visible.push(ch);if(ch.quads)drawQuads(ch.buffer,ch.quads,bind,36)}
+ if(!nearFirst)for(const ch of chunks.values()){if(Math.max(Math.abs(ch.cx-centerCX),Math.abs(ch.cz-centerCZ))>readyR)continue;const yr=(ch.ymax-ch.ymin)/2;if(!sphereVisible(F,ch.cx*CHUNK+8,ch.ymin+yr,ch.cz*CHUNK+8,Math.sqrt(128+yr*yr)))continue;visible.push(ch);if(ch.quads)drawQuads(ch.buffer,ch.quads,bind,36)}
  drawWorldDetails();drawLife(cam,F,env,fog,aspect,.1,(Q.near+3)*CHUNK*1.5+H);useProgram(mainProg,4);
  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
  visible.sort((a,b)=>((b.cx*CHUNK+8-cam.x)**2+(b.cz*CHUNK+8-cam.z)**2)-((a.cx*CHUNK+8-cam.x)**2+(a.cz*CHUNK+8-cam.z)**2));
