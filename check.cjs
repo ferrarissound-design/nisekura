@@ -1791,3 +1791,61 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  console.log('PASS: v20 slabs: six 3→6 recipes, all 18 states, side/top/bottom aim, same-cell/adjacent merging, independent mining, exact ray/reach/outline, cached previews, collisions/headroom/step movement, cube/stair/slab face coverage across chunk boundaries, touch hold/cancel, checked save/reload');
 }
 
+// ---- v20.1 tidy UI: survival/peaceful hotbars show only held items (indices into slots never change), the craft screen
+// lists what can be made first with 戻る on top, records fold away, and the first guide speaks touch on touch devices.
+{const u=boot(),U=c=>run(u,c),J=c=>JSON.parse(run(u,`JSON.stringify(${c})`));
+ const empties=()=>J('hotbarButtons.map(b=>b.classList.contains("empty"))');
+ U('setGameMode("survival");for(const t of slots)inventory[t]=0;inventory[1]=16;inventory[2]=16;selected=0;eggSp=-1;refresh()');
+ let e=empties();assert.equal(e.length,J('slots.length'),'one button per slot, as before');
+ assert.deepEqual(J('shownSlots().map(i=>slots[i])'),[1,2],'survival start: only the two held blocks are shown');
+ assert.equal(e.filter(x=>!x).length,2);assert(J('slots.every((t,i)=>slotShown(i)===((inventory[t]||0)>0||i===selected))'),'no 0-count slot is shown except the selected one');
+ // Picking things up makes their slot appear; using the last one keeps the selected slot until another is picked.
+ U('inventory[7]=4;refresh()');assert.equal(empties()[J('slots.indexOf(7)')],false,'planks appear once held');
+ U('selected=1;inventory[2]=0;refresh()');assert.equal(empties()[1],false,'the selected slot stays while it is empty');assert.equal(J('slots[selected]'),2,'and stays selected');
+ U('selected=0;refresh()');assert.equal(empties()[1],true,'it hides once another slot is chosen');
+ // Number keys pick the n-th shown slot; numbers past the end do nothing.
+ u.c.document.onkeydown({code:'Digit2',preventDefault(){}});assert.equal(J('slots[selected]'),7,'2 selects the second shown slot (planks)');
+ u.c.document.onkeydown({code:'Digit8',preventDefault(){}});assert.equal(J('slots[selected]'),7,'8 with two shown slots keeps the selection');
+ // Creative shows everything (unchanged behaviour), peaceful hides like survival.
+ U('setGameMode("creative");refresh()');assert(empties().every(x=>!x),'creative shows every block');
+ u.c.document.onkeydown({code:'Digit3',preventDefault(){}});assert.equal(J('selected'),2,'creative number keys are unchanged');
+ U('setGameMode("peaceful");selected=0;refresh()');assert.equal(empties().filter(x=>!x).length,2,'peaceful hides empty slots too');
+ // Saves keep the slot index: a saved selection on an empty slot loads, stays selected and visible.
+ U('setGameMode("survival");selected=slots.indexOf(45);refresh()');assert(u.api.save());
+ const re=boot(u.storage['nisekura-v1']),RE=c=>run(re,c);assert.equal(RE('slots[selected]'),45,'saved hotbar index round-trips');assert.equal(RE('inventory[45]||0'),0);
+ assert(!RE('hotbarButtons[selected].classList.contains("empty")'),'the saved empty slot is shown while selected');
+ assert(JSON.parse(re.storage['nisekura-v1']).settings.hotbar===RE('selected'),'save field unchanged (index into slots)');
+ // Older saves: an index past the end is refused by validation (as before) and the game still boots safely in range.
+ const bad=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:10,seed:4242,changes:[],inventory:{7:5},gameMode:'survival',creative:false,settings:{qualityName:'low',hudMinimal:false,hudDetails:false,lifeVoices:true,selected:2,hotbar:999,eggSp:-1}}));
+ const bs=run(bad,'selected');assert(Number.isInteger(bs)&&bs>=0&&bs<run(bad,'slots.length'),'out-of-range hotbar never selects outside the slots');run(bad,'refresh()');
+ const oldOk=boot(JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:10,seed:4242,changes:[],inventory:{7:5},gameMode:'survival',creative:false,settings:{qualityName:'low',hudMinimal:false,hudDetails:false,lifeVoices:true,selected:7,eggSp:-1}}));
+ assert.equal(run(oldOk,'slots[selected]'),9,'pre-hotbar saves still use settings.selected');assert(!run(oldOk,'hotbarButtons[selected].classList.contains("empty")'));
+ assert(!run(oldOk,'hotbarButtons[slots.indexOf(7)].classList.contains("empty")')&&run(oldOk,'hotbarButtons[slots.indexOf(8)].classList.contains("empty")'),'held planks shown, empty bricks hidden');
+ // Craft screen: what can be made now comes first (gear before blocks before parts), at most READY_MAX, nothing in creative.
+ U('setGameMode("survival");for(const t of slots)inventory[t]=0;for(const k in GEAR)items[k]=0;items.apple=0;craftUI()');
+ assert.equal(J('readyList().length'),0);assert.match(u.nodes.craftReady.innerHTML,/まだ作れるものがない/,'empty list says how to start');
+ U('inventory[4]=1;craftUI()');assert.deepEqual(J('readyList().map(r=>r[1])'),['plank'],'one log: planks only');
+ U('inventory[7]=3;craftUI()');const ids=J('readyList().map(r=>r[1])');assert.equal(ids[0],'woodPick','the wooden pickaxe comes first');assert(ids.indexOf('woodSword')>0&&ids.indexOf('woodSword')<ids.indexOf('plank'),'gear before blocks');assert(ids.indexOf('stairW')>ids.indexOf('plank'),'parts after blocks');
+ assert.match(u.nodes.craftReady.innerHTML,/data-ready="g:woodPick"[\s\S]*木のツルハシ/);
+ assert(J('readyList().every(([t,k])=>t!=="g"||k==="apple"||!(items[k]>0)&&!missingOf(GEAR[k].need).length)'),'only gear that can really be made');
+ U('inventory[7]=40;inventory[3]=40;inventory[6]=10;inventory[9]=10;inventory[5]=8;craftUI()');assert(J('readyList().length')>J('READY_MAX'));
+ assert.equal((u.nodes.craftReady.innerHTML.match(/data-ready=/g)||[]).length,J('READY_MAX'),'capped');assert.match(u.nodes.craftReady.innerHTML,/ほかに \d+ こ/);
+ // The ready buttons craft through the same functions (costs unchanged).
+ U('craftItem("woodPick")');assert.equal(J('items.woodPick'),1);assert.equal(J('inventory[7]'),37);U('craftUI()');assert(!J('readyList().some(r=>r[1]==="woodPick")'),'made gear leaves the list');
+ U('inventory[4]=0');assert.equal(U('craftBlock("plank")'),false,'no logs, no planks');U('inventory[4]=1');assert(U('craftBlock("plank")'));assert.equal(J('[inventory[4],inventory[7]]')+'',[0,41]+'');
+ assert(!u.nodes.craftReadyBox.classList.contains('hidden'));U('setGameMode("creative");craftUI()');assert(u.nodes.craftReadyBox.classList.contains('hidden'),'creative needs no list');assert.equal(J('readyList().length'),0);
+ // Folds: records closed with a count; the dragon opens by itself once there is an egg to care for.
+ U('setGameMode("survival");dragonKey="";craftUI()');assert.match(u.nodes.recordSum.textContent,/冒険の記録・コレクション（0\/\d+・宝箱 0）/);
+ assert.match(u.nodes.dragonSum.textContent,/卵はまだ見つかっていない/);assert(!u.nodes.dragonFold.open,'no egg: the dragon fold stays closed');
+ U('items.dragonEgg=1;craftUI()');assert.match(u.nodes.dragonSum.textContent,/卵を持っている/);assert(u.nodes.dragonFold.open,'with an egg it opens');assert.match(u.nodes.dragonBox.innerHTML,/卵を巣に置く/);
+ u.nodes.dragonFold.open=false;U('dragonKey="";craftUI()');assert(!u.nodes.dragonFold.open,'a fold the player closed stays closed');
+ // Craft screen markup: 戻る is in the sticky title row (before the lists), the old bottom button is gone, records/dragon are folds.
+ const html=fs.readFileSync(__dirname+'/index.html','utf8'),panel=html.slice(html.indexOf('<div id="craft"'),html.indexOf('<div id="death"'));
+ assert.equal(panel.split('id="closeCraft"').length,2,'one 戻る');assert(panel.indexOf('id="closeCraft"')<panel.indexOf('id="gearRow"'),'戻る at the top');assert(html.includes('#craft .craft-top{position:sticky;top:0'));
+ assert(panel.indexOf('id="craftReady"')<panel.indexOf('data-recipe="plank"')&&panel.indexOf('id="craftGear"')<panel.indexOf('id="craftParts"')&&panel.indexOf('id="craftParts"')<panel.indexOf('id="dragonFold"'),'order: ready, blocks, gear, parts, folds');
+ assert(/<details id="recordFold"[^>]*>[\s\S]*id="rareRow"[\s\S]*id="adventureLog"/.test(panel),'records fold');
+ // Guide: touch devices (mock: no fine pointer) never read "PC："; a fine pointer gets the PC words.
+ U('guideStep=0;guideShown="";paused=false;guideTick()');assert.match(u.nodes.guide.innerHTML,/「⛏ 壊す」/);assert(!/PC：/.test(run(u,'GUIDE.map(g=>{try{return g()}catch(e){return""}}).join("")')),'no PC words on touch');
+ const src=fs.readFileSync(__dirname+'/index.html','utf8');assert(src.includes("(FINE_POINTER?'<small>PC：左クリック</small>'"),'mouse players still get the PC hint');
+ console.log('PASS: v20.1 tidy UI: held-only survival/peaceful hotbar (stable slot indices, selected kept, number keys, creative unchanged, save/old-save safe), craft screen ready-first list (gear→blocks→parts, capped, creative hidden), sticky 戻る, record/dragon folds, touch-worded guide');
+}

@@ -738,3 +738,29 @@ Minecraft公式作品ではありません。コードとブロックの外観�
 - 重点回帰テスト: node shape-check.cjs。従来の全体回帰テスト: node check.cjs。
 - シード、地形生成、ブロックID、セーブ形式、既存の景観描画は変更していない。
 - 実機のiPhone 16・A16搭載iPad・Safariでの見た目・FPS・長時間動作は未検証。
+
+## v20.1 — UI整理（ホットバーとクラフト画面）
+
+- サバイバル／ピースフルのホットバーは、持っている物（1個以上）と選択中の枠だけを表示。開始直後は31枠→2枠になり、横スクロールが不要になった。クリエイティブは従来どおり全31枠。枠の番号（`slots` の順）と保存値は変えず、隠すだけ。
+- 数字キー1〜8は表示中のn番目の枠を選ぶ（クリエイティブは従来と同じ）。
+- クラフト画面：見出しと「戻る」を上部に固定（スクロールしても常に見える。高さ44px）。その下に装備・素材、続いて「✅ いま作れるもの」（装備→木材・りんご→レンガ・ガラス→建築パーツの順、最大6個。作れない時は始め方を案内）。並びは ブロック→道具・武器・防具→食べ物→建築パーツ。
+- 「🐉 ドラゴン」と「📜 冒険の記録・コレクション」は折りたたみ（`<details>`）。見出しに状態（卵の有無・成長段階、集めた数・宝箱の数）を表示し、卵を手に入れた時などドラゴンの状態が変わった時だけ自動で開く。
+- 最初のヒントの「PC：左クリック」は、マウス（`(hover:hover) and (pointer:fine)`）の時だけ表示。タッチ端末では「まん中の＋を木に合わせて「⛏ 壊す」」と案内する。
+- 新しい画面・HUD部品は追加していない。セーブ形式・地形・ブロックIDは変更なし（[SAVE_SYSTEM.md](docs/SAVE_SYSTEM.md#v201-ホットバー表示の整理)）。
+
+| 画面 | 変更前 | 変更後 |
+| --- | --- | --- |
+| iPhone横 852×393 クラフト | ![](docs/screenshots/v201-before-iphone-land-craft.png) | ![](docs/screenshots/v201-after-iphone-land-craft.png) |
+| iPhone縦 393×852 クラフト | ![](docs/screenshots/v201-before-iphone-port-craft.png) | ![](docs/screenshots/v201-after-iphone-port-craft.png) |
+| iPad 1180×820 クラフト | ![](docs/screenshots/v201-before-ipad-craft.png) | ![](docs/screenshots/v201-after-ipad-craft.png) |
+| iPhone縦 プレイ（ホットバー） | ![](docs/screenshots/v201-before-iphone-port-play.png) | ![](docs/screenshots/v201-after-iphone-port-play.png) |
+| iPhone横 プレイ | ![](docs/screenshots/v201-before-iphone-land-play.png) | ![](docs/screenshots/v201-after-iphone-land-play.png) |
+| iPad プレイ | ![](docs/screenshots/v201-before-ipad-play.png) | ![](docs/screenshots/v201-after-ipad-play.png) |
+
+**測定**（Chromium headless／SwiftShader、タッチ端末エミュレーション、サバイバル開始直後、画質low）：ホットバーの表示枠 31→2（内容幅1398px→93px、縦向きで全体が見える枠 8→2）。「戻る」の位置 y=1372→29（852×393）、y=2508→29（393×852）、y=1411→29（1180×820）。最初に必要な木のツルハシは「いま作れるもの」の先頭（852×393で1画面目）。3サイズとも横はみ出しなし、ボタン高さ44px以上。
+
+**検証**：`node check.cjs` に v20.1 のテストを追加（0個の枠を隠す・選択中は0個でも表示・拾うと出る・数字キー・クリエイティブ全表示・ピースフル・保存再読込で選択枠が戻る・範囲外の `settings.hotbar` を持つ旧セーブでも枠内・`settings.selected` だけの旧セーブ、いま作れるものの順番・上限・作れる物だけ・作ると消える・クリエイティブでは非表示、記録とドラゴンの折りたたみ、戻るが上部に1つ、タッチ向けヒント）。
+
+**負荷**：ホットバーのボタンは従来どおり再利用し（DOMは作り直さない）、クラスの切り替えのみ。いま作れるもの はクラフト画面の更新時に内容が変わった時だけ書き換える。毎フレームの処理は増えていない。
+
+**未検証**：iPhone 16・A16 iPad・Safari 実機でのタッチ操作（「戻る」の固定表示、`<details>` の開閉、ホットバーのタップ）と見た目。画面確認はSwiftShaderのみ。
