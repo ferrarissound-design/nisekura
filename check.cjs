@@ -1791,3 +1791,37 @@ const aquaQuads=(b,cx,cz)=>JSON.parse(run(b,`(()=>{rebuild(${cx},${cz});const a=
  console.log('PASS: v20 slabs: six 3→6 recipes, all 18 states, side/top/bottom aim, same-cell/adjacent merging, independent mining, exact ray/reach/outline, cached previews, collisions/headroom/step movement, cube/stair/slab face coverage across chunk boundaries, touch hold/cancel, checked save/reload');
 }
 
+// ---- Near-first pass order: opaque chunks mark the stencil, the far pass only shades the open pixels, a depth fill replaces the depth clear.
+{const d=boot(),R=c=>run(d,c);
+ const K={COLOR_BUFFER_BIT:16384,DEPTH_BUFFER_BIT:256,STENCIL_BUFFER_BIT:1024,STENCIL_TEST:'STENCIL',DEPTH_TEST:'DEPTH',BLEND:'BLEND',ALWAYS:'ALWAYS',EQUAL:'EQUAL',LESS:'LESS',KEEP:'KEEP',REPLACE:'REPLACE',STENCIL_BITS:'STENCIL_BITS'};
+ Object.assign(d.gl,K);let stencilBits=8;d.gl.getParameter=p=>p==='STENCIL_BITS'?stencilBits:0;
+ R(`paused=false;lifeMode='off';life.length=0;player.x=vista.x+.5;player.z=vista.z+.5;player.y=vista.eye-1.62;yaw=vista.yaw;pitch=-.1;caveF=0;streamChunks(true);for(let i=0;i<80;i++)streamChunks();initRenderer()`);
+ assert(R('lodOK&&!!depthFillProg'),'depth fill program built when the context has a stencil buffer');
+ const g=d.gl,frame=()=>{const l=[];R(`activeProgram=null;__n=p=>p===lodProg?'lod':p===skyProg?'sky':p===mainProg?'main':p===depthFillProg?'fill':p===waterProg?'water':p===lifeProg?'life':'other'`);let p='none';
+  g.useProgram=q=>{p=R('__n')(q);l.push('use:'+p)};g.drawElements=()=>l.push('draw:'+p);g.drawArrays=()=>l.push('arrays:'+p);
+  g.clear=b=>l.push('clear:'+b);g.enable=k=>l.push('enable:'+k);g.disable=k=>l.push('disable:'+k);
+  g.stencilFunc=(f,r)=>l.push('sfunc:'+f+':'+r);g.stencilOp=(a,b,c)=>l.push('sop:'+c);g.colorMask=(...m)=>l.push('mask:'+m.every(Boolean));g.depthFunc=f=>l.push('dfunc:'+f);
+  R('canvas.width=800;canvas.height=600;render({x:player.x,y:player.y+1.62,z:player.z,yaw,pitch},false,800,600)');return l};
+ const at=(l,s,from=0)=>l.indexOf(s,from);
+ // 1. With a stencil buffer: chunks (stencil written) → far pass on stencil 0 → depth fill → stencil off → everything else.
+ let l=frame();
+ assert.equal(l.filter(s=>s.startsWith('clear:')&&s!=='clear:256').length,1,'one frame clear');
+ assert(l.filter(s=>s==='clear:256').length<=1&&(at(l,'clear:256')<0||at(l,'clear:256')>at(l,'enable:BLEND')),'no mid-frame depth clear (only the held tool clears depth, at the end)');
+ assert(l.includes('clear:'+(16384|256|1024)),'stencil cleared together with colour and depth');
+ const sOn=at(l,'enable:STENCIL'),chunk=at(l,'draw:main'),eq=at(l,'sfunc:EQUAL:0'),lod=at(l,'use:lod'),sky=at(l,'arrays:sky'),fill=at(l,'arrays:fill'),sOff=at(l,'disable:STENCIL');
+ assert(sOn>=0&&at(l,'sfunc:ALWAYS:1')>sOn&&at(l,'sop:REPLACE')>sOn&&chunk>sOn,'opaque chunks draw while the stencil is written');
+ assert(eq>chunk&&lod>eq&&at(l,'draw:lod')>lod&&sky>lod&&fill>sky&&sOff>fill,'far pass (LOD, sea, sky, clouds) on stencil 0, then the depth fill');
+ assert(at(l,'dfunc:ALWAYS')<fill&&at(l,'mask:false')<fill&&at(l,'dfunc:LESS')>fill&&at(l,'mask:true')>fill,'the depth fill writes depth only and restores the state');
+ assert(!l.slice(eq,sOff).includes('sop:REPLACE'),'the far pass never writes the stencil');
+ assert(l.slice(sOff+1).every(s=>s!=='use:lod'&&s!=='use:sky'&&!s.includes('STENCIL')),'creatures, water, outline and tool come after, without the stencil');
+ assert(at(l,'enable:BLEND',sOff)>sOff,'the translucent pass is still after the far pass');
+ const nearDraws=l.slice(sOn,eq).filter(s=>s==='draw:main').length;assert(nearDraws>0,'chunk draws happen before the far pass');
+ // 2. Without the depth fill program (no stencil buffer): the old order, far → depth clear → near, same chunk draws.
+ R('depthFillProg=null');l=frame();const mid=at(l,'clear:256');
+ assert(!l.some(s=>s.includes('STENCIL')),'no stencil use');assert(at(l,'use:lod')<mid&&mid<at(l,'draw:main',mid),'far pass, depth clear, then the near pass');
+ assert.equal(l.slice(mid).filter(s=>s==='draw:main').length>=nearDraws,true,'the same chunk draws');
+ stencilBits=0;R('initRenderer()');assert.equal(R('depthFillProg'),null,'no stencil bits → old order');stencilBits=8;R('initRenderer()');assert(R('!!depthFillProg'));
+ // 3. Deep in a cave the far pass is skipped: no stencil work at all.
+ R('caveF=1');l=frame();assert(!l.some(s=>s.includes('STENCIL')||s==='use:lod'||s==='use:fill'),'cave: near pass only');R('caveF=0');
+ console.log('PASS: near-first pass order: opaque chunks fill the stencil before the far pass, far pass only on open pixels, a depth fill instead of the mid-frame clear, old order without a stencil buffer, none in caves');
+}
