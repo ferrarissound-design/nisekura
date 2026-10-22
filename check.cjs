@@ -55,7 +55,8 @@ console.log('PASS: compass cardinal directions, home marker, boundary warning, m
 
 // ---- Terrain composition: scenic point, mountains, ocean, inland water, beaches, forests.
 const V=a.api.vista;assert(V&&Number.isFinite(V.x)&&Number.isFinite(V.yaw),'vista is computed');
-assert(Math.abs(a.api.player.x-(V.x+.5))<1e-9&&Math.abs(a.api.player.z-(V.z+.5))<1e-9,'new world starts at the vista');
+// v20.1: the player starts beside the vista (up to 6 blocks away, where the view at eye height is open); the home point itself never moves.
+assert(Math.hypot(a.api.player.x-(V.x+.5),a.api.player.z-(V.z+.5))<=6.5,'new world starts at the vista');assert.equal(run(a,'homeX'),V.x+.5);assert.equal(run(a,'homeZ'),V.z+.5);
 assert(a.api.player.y>run(a,'SEA')+8,'vista is a hill above the sea');
 let peak=0,ocean=0,inland=0,cells=0;for(let x=64;x<2048;x+=32)for(let z=64;z<2048;z+=32){const h=a.api.height(x,z);cells++;peak=Math.max(peak,h);if(h<62){if(run(a,'gLand')>0)inland++;else ocean++}}
 assert(peak>62+90,`high mountains exist (peak ${peak})`);assert(ocean/cells>.2,'large ocean');assert(inland>3,'rivers or lakes inland');
@@ -368,6 +369,19 @@ const SEA_=62;
   const main=JSON.parse(R(`(()=>{const it=tileMesh(${step},${x0},${z0});let r;while(!(r=it.next()).done);return JSON.stringify({r:r.value,b:Array.from(lw.u8.subarray(0,lw.n*12))})})()`));
   assert.equal(JSON.stringify(out.r),JSON.stringify(main.r),'worker bounds match');assert.equal(out.bytes.length,main.b.length);for(let i=0;i<main.b.length;i+=53)assert.equal(out.bytes[i],main.b[i],'worker bytes match')}
  console.log(`PASS: spot button (${f.n} spots, 4 kinds, cycling, safe landing), legacy worlds untouched, worker matches main thread on scenic tiles`)}
+{// v20.1: the spots and the start look out over the view at eye height: no wall of leaves or slope in the face (fixed seeds, classic spots).
+ const stat=[];for(const sd of[73219,5,999]){const w=boot(sd===73219?null:JSON.stringify({version:1,worldWidth:2048,worldHeight:192,terrainVersion:11,seed:sd,changes:[],inventory:{}})),R=c=>run(w,c);
+  // Same measure as the diagnosis: 27 rays (yaw ±40°, pitch ±0.15) whose first block within 8 is a trunk or leaves.
+  const leafNear=()=>R('(()=>{let b=0;for(let a=-4;a<=4;a++)for(const dp of[-.15,0,.15]){const yy=yaw+a*Math.PI/18,pp=pitch+dp,dx=Math.sin(yy)*Math.cos(pp),dy=Math.sin(pp),dz=Math.cos(yy)*Math.cos(pp);for(let s=.25;s<=8;s+=.25){const t=get(Math.floor(player.x+dx*s),Math.floor(player.y+1.62+dy*s),Math.floor(player.z+dz*s));if(t&&t!==10){if([4,5,13,14,15,16].includes(t))b++;break}}}return b/27})()');
+  const view=()=>R('viewBlocked(player.x,player.y+1.62,player.z,yaw,pitch)');
+  R('paused=true;spawn()');const V=w.api.vista;assert(Math.hypot(w.api.player.x-V.x-.5,w.api.player.z-V.z-.5)<=6.5&&!w.api.collides(w.api.player),'start stays beside the home point');
+  assert.equal(R('homeX'),V.x+.5,'home point unchanged');const st={view:view(),leaf:leafNear()};assert(st.leaf<=.1&&st.view<=.2,`seed ${sd}: start view open (${JSON.stringify(st)})`);
+  R('nextSpot()');const n=R('spotList.length');let worst=0,sum=0,k=0;
+  for(let i=0;i<n;i++){if(R(`!!spotList[${i}].w`))continue;R(`spotIdx=${i-1};nextSpot()`);const v=view(),l=leafNear();assert(!w.api.collides(w.api.player)&&!R('flying'),'spot landing is safe');
+   assert(l<=.2&&v<=.5,`seed ${sd} spot ${i+1} ${R(`spotList[${i}].kind`)}: view open (leaves ${l.toFixed(2)}, blocked ${v.toFixed(2)})`);worst=Math.max(worst,v);sum+=v;k++}
+  assert(sum/k<=.1,`seed ${sd}: spot views open on average (${(sum/k*100).toFixed(1)}%)`);
+  stat.push(`${sd}: ${k} spots mean ${(sum/k*100).toFixed(0)}% worst ${(worst*100).toFixed(0)}%, start ${(st.view*100).toFixed(0)}%`)}
+ console.log(`PASS: open views at eye height (${stat.join('; ')})`)}
 
 // ---- Phase 9: volumetric clouds and sky layers.
 {const d=boot(),R=c=>run(d,c);
