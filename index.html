@@ -1435,7 +1435,15 @@ if(saved?.version===1&&Array.isArray(saved.changes)){
   const x=i%oldW,z=Math.floor(i/oldW)%oldW,y=Math.floor(i/(oldW*oldW));if(inside(x,y,z))set(x,y,z,t)
  }
 }
-function spawn(){if(riding)endRide();const sx=vista?vista.x:ORIGIN,sz=vista?vista.z:ORIGIN;player.x=sx+.5;player.z=sz+.5;let y=H-3;while(y>0&&!solid(sx,y-1,sz))y--;player.y=y+.02;vy=0;if(vista){yaw=vista.yaw;pitch=-.08}}
+// The start view: the home point (vista) never moves, but the player starts up to 6 blocks from it, where the view at eye height
+// (lower than the title camera) is open, turning up to 20° from the vista's heading. Found once from the generated terrain; the height is read again at every spawn.
+let startPos=null;
+function startView(){if(startPos)return startPos;const top=(x,z)=>{let y=H-3;while(y>0&&!solid(x,y-1,z))y--;return y},y0=top(vista.x,vista.z);let best=null;
+ scan:for(let r=0;r<=6;r+=2)for(let d=0;d<(r?12:1);d++){if(best&&(best.sc<.02||r*.01>=best.sc))break scan;const x=Math.round(vista.x+Math.cos(d*.5236)*r),z=Math.round(vista.z+Math.sin(d*.5236)*r),y=top(x,z),t=get(x,y-1,z);
+  if(Math.abs(y-y0)>2||t===5||(t>=13&&t<=16)||t===4||collides({x:x+.5,y:y+.02,z:z+.5}))continue;
+  for(const o of[0,-.17,.17,-.35,.35]){const sc=viewBlocked(x+.5,y+1.64,z+.5,vista.yaw+o,-.08)+Math.abs(o)*.3+r*.01;if(!best||sc<best.sc)best={x,z,y,yaw:vista.yaw+o,sc};if(sc<r*.01+.02)break}}
+ return startPos=best||{x:vista.x,z:vista.z,y:y0,yaw:vista.yaw}}
+function spawn(){if(riding)endRide();const v=vista?startView():null,sx=v?v.x:ORIGIN,sz=v?v.z:ORIGIN;player.x=sx+.5;player.z=sz+.5;let y=H-3;while(y>0&&!solid(sx,y-1,sz))y--;player.y=y+.02;vy=0;if(v){yaw=v.yaw;pitch=-.08}}
 spawn();if(saved?.player&&['x','y','z'].every(k=>Number.isFinite(saved.player[k]))){Object.assign(player,saved.player);yaw=Number.isFinite(saved.yaw)?saved.yaw:0;pitch=Number.isFinite(saved.pitch)?Math.max(-1.5,Math.min(1.5,saved.pitch)):0}
 const faces=[{n:[1,0,0],v:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]],l:.79},{n:[-1,0,0],v:[[0,0,1],[0,1,1],[0,1,0],[0,0,0]],l:.68},{n:[0,1,0],v:[[0,1,0],[0,1,1],[1,1,1],[1,1,0]],l:1},{n:[0,-1,0],v:[[0,0,1],[0,0,0],[1,0,0],[1,0,1]],l:.48},{n:[0,0,1],v:[[1,0,1],[1,1,1],[0,1,1],[0,0,1]],l:.85},{n:[0,0,-1],v:[[0,0,0],[0,1,0],[1,1,0],[1,0,0]],l:.73}];
 function rgb(hex){return[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255)}
@@ -1655,6 +1663,8 @@ else if(mat<17.5){float fv=floor(fract(mat)*10.+.5),hx=abs(q.x-8.),hy=abs(q.y-12
  float stem=step(abs(q.x-8.),1.)*step(q.y,10.);if(max(stem,head)<.5)discard;c=mix(vec3(.24,.44,.1),col*(.9+n*.18),head);if(hx<2.&&hy<2.)c=vec3(1.,.82,.2);}
 else if(mat<18.5){
  // Cloud faces: col.r = height in the cloud, col.g = tint, col.b = depth inside it (0 at the surface of a thin part, 1 deep in a thick one).
+ // Close to the eye (a mountain top or a flight at cloud height) a cloud thins into an even screen-door pattern (4x4 ordered dither) instead of a white wall.
+ float cnear=1.-smoothstep(12.,44.,length(rel));if(cnear>0.){vec2 bq=mod(floor(gl_FragCoord.xy*.5),4.);vec2 bh=floor(bq*.5);float bd=fract(dot(bh,vec2(.5,bh.y*.75)))*.25+fract(dot(bq,vec2(.5,bq.y*.75)));if(bd<cnear)discard;}
  vec3 n3=faceNormal(vFace),v3=normalize(rel);float lam=dot(n3,dirLight),puff=vnoise(w.xz*.085+w.y*.06);
  vec3 sh=ambCol*vec3(.92,.97,1.08)*(.74+.26*col.r);
  vec3 sun=dirCol*(.5+.65*max(lam,0.))*(1.-.6*col.b)*clamp(.5+.6*lam,0.,1.);
@@ -3057,12 +3067,25 @@ window.addEventListener('pageshow',()=>{suspended=false;clearInput();last=perfor
 let swing=0,walkPhase=0;const particles=[];
 // "絶景スポットへ": the title button cycles through the best cliffs, summits, valleys and river plains of this world.
 let spotList=null,spotIdx=-1,spotBusy=false;
-// Stand on open ground: the nearest point (within ~20 blocks) with no trunk or leaf block above it, at the spot's height.
-function clearSpot(s){const wood=t=>t===4||t===5||t===13||t===14||t===15||t===16;
+// How much of a view is hidden close to the eye: 27 rays across it (yaw ±40°, pitch ±0.15). A ray is blocked by a trunk or leaves
+// within 12 blocks (partly, out to 24: a forest just ahead), or by level or rising ground within 6 (a slope or a wall in the face).
+// 0 = wide open, 1 = nothing but leaves.
+function viewBlocked(ex,ey,ez,yw,pt){let b=0;
+ for(let a=-4;a<=4;a++)for(let p=-1;p<=1;p++){const yy=yw+a*.1745,pp=pt+p*.15,c=Math.cos(pp),dx=Math.sin(yy)*c,dy=Math.sin(pp),dz=Math.cos(yy)*c;
+  for(let s=.5;s<=24;s+=s<12?.5:1){const t=get(Math.floor(ex+dx*s),Math.floor(ey+dy*s),Math.floor(ez+dz*s));if(!t||t===10)continue;if(t===4||t===5||(t>=13&&t<=16))b+=s<=12?1:.4;else if(dy>-.05&&s<=6)b++;break}}
+ return b/27}
+// Stand where the view is open: points within ~21 blocks at the spot's height with no trunk or leaf over the head, rated by viewBlocked
+// at eye height toward the spot's view (turning up to 30° when that clears it), preferring the spot itself and its own heading.
+function clearSpot(s,pt){const wood=t=>t===4||t===5||t===13||t===14||t===15||t===16;
  const ground=(x,z)=>{let y=Math.min(H-3,height4(x,z)+14);while(y>1){const t=get(x,y,z);if(t&&t!==10&&!wood(t))break;y--}return y};
- const open=(x,z)=>{const g=ground(x,z);if(Math.abs(g-s.h)>4)return -1;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++)for(let dy=1;dy<=10;dy++)if(wood(get(x+dx,g+dy,z+dz)))return -1;return g+1};
- for(let r=0;r<=20;r+=4)for(let d=0;d<(r?8:1);d++){const x=Math.round(s.x+Math.cos(d*.785)*r),z=Math.round(s.z+Math.sin(d*.785)*r),y=open(x,z);if(y>0)return{x,z,y}}
- return{x:s.x,z:s.z,y:surface(s.x,s.z)}}
+ const dh=s.kind==='summit'?3:4;let best=null;
+ scan:for(let r=0;r<=21;r+=1.5)for(let d=0;d<(r?24:1);d++){if(best&&r*.005>=best.sc)break scan;const x=Math.round(s.x+Math.cos(d*.2618)*r),z=Math.round(s.z+Math.sin(d*.2618)*r),g=ground(x,z);
+  if(Math.abs(g-s.h)>dh||get(x,g+1,z)===10)continue;let ok=true;
+  for(let dz=-1;dz<=1&&ok;dz++)for(let dx=-1;dx<=1&&ok;dx++)for(let dy=1;dy<=8;dy++)if(wood(get(x+dx,g+dy,z+dz))){ok=false;break}
+  if(!ok||collides({x:x+.5,y:g+1.02,z:z+.5}))continue;
+  for(const o of[0,-.26,.26,-.52,.52]){const sc=viewBlocked(x+.5,g+2.64,z+.5,s.yaw+o,pt)+Math.abs(o)*.3+r*.005;if(!best||sc<best.sc)best={x,z,y:g+1,yaw:s.yaw+o,sc};if(sc<r*.005+.02)break}
+  if(best.sc<.02)break scan}
+ return best||{x:s.x,z:s.z,y:surface(s.x,s.z),yaw:s.yaw,fallback:true}}
 function nextSpot(){
  if(!GRAND||spotBusy)return;
  if(!spotList){spotBusy=true;const out={},it=scanSpots(out),btn=$('spots');btn.textContent='探索中…';
@@ -3075,8 +3098,8 @@ function nextSpot(){
  if(!spotList.length){toast('この世界では絶景スポットが見つかりませんでした');return}
  spotIdx=(spotIdx+1)%spotList.length;const s=spotList[spotIdx];
  if(s.w){visitWonder(s.w);toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${s.w.label}`);return}
- const c=clearSpot(s);
- endRide();flying=false;player.x=c.x+.5;player.z=c.z+.5;player.y=c.y+.02;vy=0;yaw=s.yaw;pitch=s.kind==='cliff'?-.3:-.1;streamChunks(true);dirty=true;play();
+ const pt=s.kind==='cliff'?-.3:-.1,c=clearSpot(s,pt);
+ endRide();flying=false;player.x=c.x+.5;player.z=c.z+.5;player.y=c.y+.02;vy=0;yaw=c.yaw;pitch=pt;streamChunks(true);dirty=true;play();
  toast(`絶景スポット ${spotIdx+1}/${spotList.length}：${SPOT_KINDS[s.kind]}（標高${s.h-SEA}m）`)}
 // ---- v9 wonders on the tour and found on foot. The tour interleaves the kinds; each visit picks a viewpoint that frames the wonder
 // (downstream of a fall, on a canyon rim, through a rock window, beside a sea-floor arch) and finds real footing there.
